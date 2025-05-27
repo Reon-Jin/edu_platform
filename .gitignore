@@ -176,3 +176,4 @@ cython_debug/
 backend/.env
 
 .idea
+.idea/workspace.xml
