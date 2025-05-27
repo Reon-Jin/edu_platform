@@ -174,5 +174,3 @@ cython_debug/
 .pypirc
 
 backend/.env
-
-.idea
