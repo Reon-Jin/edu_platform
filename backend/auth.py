@@ -1,18 +1,18 @@
 # backend/auth.py
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select, Session, create_engine
 from pydantic import BaseModel
 
-from backend.config import settings            # 注意这里
-from backend.models import User, Role          # 以及这里
+from backend.config import settings
+from backend.models import User, Role
 
 engine = create_engine(settings.MYSQL_URI, echo=True)
 def get_session():
     with Session(engine) as sess:
         yield sess
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+# 去掉 prefix，让 main.py 来统一加上 /auth
+router = APIRouter(tags=["auth"])
 
 class RegisterData(BaseModel):
     username: str
