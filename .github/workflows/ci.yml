@@ -1,0 +1,37 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ develop, feature/auth-be ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run migrations on SQLite
+        working-directory: backend
+        run: |
+          echo "MYSQL_URI=sqlite:///./test_app.db" >> .env
+          alembic upgrade head
+
+      - name: Run tests
+        working-directory: backend
+        run: pytest -q
