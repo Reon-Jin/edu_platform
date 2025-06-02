@@ -24,13 +24,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest httpx
+          pip install pytest httpx alembic
 
       - name: Run migrations on SQLite
         working-directory: backend
         run: |
           echo "MYSQL_URI=sqlite:///./test_app.db" >> .env
-          alembic upgrade head
+          python -m alembic upgrade head
 
       - name: Run tests
         working-directory: backend
