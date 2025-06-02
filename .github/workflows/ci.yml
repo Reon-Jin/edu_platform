@@ -24,7 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest httpx alembic pydantic-settings
+          pip install pytest httpx
 
       - name: Run migrations on SQLite
         working-directory: backend

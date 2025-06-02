@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlmodel
+pymysql
+python-dotenv
+alembic
+pydantic-settings
