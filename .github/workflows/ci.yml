@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [ develop, feature/auth-be ]
+    branches: [ main, feature/auth-be ]
   pull_request:
-    branches: [ develop ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -30,7 +30,7 @@ jobs:
         working-directory: backend
         run: |
           echo "MYSQL_URI=sqlite:///./test_app.db" >> .env
-          alembic upgrade head
+          python -m alembic -c alembic.ini upgrade head
 
       - name: Run tests
         working-directory: backend
