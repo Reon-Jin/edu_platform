@@ -30,7 +30,7 @@ jobs:
         working-directory: backend
         run: |
           echo "MYSQL_URI=sqlite:///./test_app.db" >> .env
-          python -m alembic upgrade head
+          python -m alembic -c alembic.ini upgrade head
 
       - name: Run tests
         working-directory: backend
