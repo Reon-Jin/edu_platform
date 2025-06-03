@@ -1,7 +1,12 @@
 fastapi
 uvicorn
 sqlmodel
+alembic
 pymysql
 python-dotenv
-alembic
 pydantic-settings
+pytest
+httpx
+requests
+markdown
+pdfkit
