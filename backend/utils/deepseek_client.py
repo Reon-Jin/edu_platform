@@ -19,7 +19,7 @@ def call_deepseek_api(prompt: str, model: str = "deepseek-chat", temperature: fl
         "max_tokens": max_tokens
     }
 
-    # 打印调试信息（可以根据需要删除）
+    # 打印调试信息（可根据需要注释）
     print(">>> Deepseek 请求 URL：", url)
     print(">>> Deepseek 请求头：", headers)
     print(">>> Deepseek 请求体：", data)
