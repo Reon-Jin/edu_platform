@@ -10,7 +10,7 @@ from backend.lesson import router as lesson_router
 
 app = FastAPI()
 
-# 1. CORS 配置（开发阶段全开；生产环境按需调整）
+# 1. CORS（开发阶段全开；生产环境按需配置）
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,9 +19,7 @@ app.add_middleware(
 )
 
 # 2. 注册后端 API 路由
-#    /auth/register, /auth/login
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
-#    /lesson/prepare, /lesson/export-pdf
 app.include_router(lesson_router, prefix="/lesson", tags=["lesson"])
 
 # 3. 挂载静态资源到 /static（前端打包结果放在 backend/static/）
@@ -32,13 +30,13 @@ app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 async def ping():
     return {"msg": "pong"}
 
-# 5. 兜底路由：其余 GET 请求返回前端 index.html（前端 SPA）
+# 5. 兜底路由：其它 GET 请求直接返回前端 index.html（前端 SPA）
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path: str, request: Request):
-    # 如果是以下前缀，抛 404，让 FastAPI 或 StaticFiles 处理：
+    # 如果以下前缀之一，抛 404，让 FastAPI/StaticFiles 处理：
     # - docs、openapi.json、redoc（FastAPI 文档）
-    # - static（静态文件）
-    # - auth、lesson、ping（已经注册的后端 API）
+    # - static（静态资源）
+    # - auth、lesson、ping（已注册的后端 API）
     if (
         full_path.startswith("docs")
         or full_path.startswith("openapi.json")
