@@ -3,7 +3,7 @@
 import requests
 from backend.config import settings
 
-def call_deepseek_api(prompt: str, model: str = "deepseek-chat", temperature: float = 0.7, max_tokens: int = 2048):
+def call_deepseek_api(prompt: str, model: str = "deepseek-chat", temperature: float = 0.7, max_tokens: int = 4096):
     """
     调用 Deepseek 聊天接口，返回完整 JSON 响应。
     """
