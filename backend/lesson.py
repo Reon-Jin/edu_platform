@@ -1,12 +1,15 @@
 # backend/lesson.py
 
 import os
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel
 import pdfkit
 import markdown as md  # 用于将 Markdown 渲染为 HTML
 from backend.config import settings
-from backend.utils.deepseek_client import call_deepseek_api
+
+# —— 修改点：不要直接 from … import call_deepseek_api ——
+#           而是用 import … as _ds
+import backend.utils.deepseek_client as _ds
 
 router = APIRouter()
 
@@ -21,7 +24,8 @@ def load_knowledge_texts() -> list[str]:
     从本地知识库目录（settings.KNOWLEDGE_BASE_DIR）读取所有 .txt 文件内容，
     返回一个字符串列表，每个元素对应一个文件的全文本。
     """
-    kb_dir = "backend/knowledge/" # 如 "backend/knowledge/"
+    # 注意：这里最好也改为使用 settings.KNOWLEDGE_BASE_DIR，而不是硬编码
+    kb_dir = settings.KNOWLEDGE_BASE_DIR
     if not os.path.isdir(kb_dir):
         return []
 
@@ -35,9 +39,7 @@ def load_knowledge_texts() -> list[str]:
                     if content:
                         texts.append(content)
             except Exception:
-                # 跳过无法读取的文件
                 continue
-    print(texts)
     return texts
 
 
@@ -67,12 +69,12 @@ async def prepare_and_export(req: LessonRequest):
         "备课要求：\n"
         "1. 设计教学内容，需要包括：（1）知识讲解（2）实训练习与指导（3）时间分布；\n"
         f"2. 主题：{topic}。\n"
-        "3.课程时长：45分钟\n"
+        "3. 课程时长：45分钟\n"
     )
 
     try:
-        # 3. 调用 Deepseek 获取 Markdown
-        result = call_deepseek_api(prompt=full_prompt)
+        # 3. 调用 Deepseek 获取 Markdown —— 注意前面我们改成了 _ds.call_deepseek_api
+        result = _ds.call_deepseek_api(prompt=full_prompt)
         markdown_content = result["choices"][0]["message"]["content"]
 
         # 4. 如果不需要导出 PDF，仅返回 Markdown
@@ -147,7 +149,6 @@ async def prepare_and_export(req: LessonRequest):
         )
 
     except OSError as oe:
-        # wkhtmltopdf 执行失败
         raise HTTPException(status_code=500, detail=f"PDF 生成失败，检查 wkhtmltopdf 是否安装：{oe}")
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"备课/导出 PDF 失败：{e}")

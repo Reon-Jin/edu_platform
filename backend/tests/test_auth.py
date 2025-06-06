@@ -1,13 +1,20 @@
 # backend/tests/test_auth.py
 
-import pytest
-from sqlmodel import Session, create_engine, SQLModel, select
-from fastapi.testclient import TestClient
 import os
+# 确保 backend/static 目录存在，避免 StaticFiles 报错
+os.makedirs("backend/static", exist_ok=True)
+# 在导入 Settings 之前，先设置必需的环境变量
+os.environ["DEEPSEEK_API_KEY"] = "fake_key_for_dev"
+os.environ["DEEPSEEK_ENDPOINT"] = "https://api.deepseek.mock/v1/chat/completions"
+os.environ["KNOWLEDGE_BASE_DIR"] = "backend/knowledge/"
 
-# 一定要在 import auth 之前先修改 settings
+from fastapi.testclient import TestClient
+from sqlmodel import Session, create_engine, SQLModel
+import pytest
+
+from backend.main import app
 from backend.config import settings
-from backend.models import Role  # 确保引入 Role
+from backend.models import User, Role
 
 # 测试用临时 SQLite 数据库地址
 TEST_SQLITE = "sqlite:///./test_app.db"
