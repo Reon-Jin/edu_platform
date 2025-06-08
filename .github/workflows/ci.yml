@@ -26,6 +26,17 @@ jobs:
           pip install -r requirements.txt
           pip install pytest httpx
 
+      - name: Install wkhtmltopdf
+        run: choco install wkhtmltopdf --no-progress
+
+      - name: Set up environment variables
+        run: |
+          cd backend
+          echo "MYSQL_URI=sqlite:///./test_app.db" >> .env
+          echo "DEEPSEEK_API_KEY=fake_key_for_dev" >> .env
+          echo "DEEPSEEK_ENDPOINT=https://api.deepseek.mock/v1/chat/completions" >> .env
+          echo "KNOWLEDGE_BASE_DIR=knowledge/" >> .env
+
       - name: Run migrations on SQLite
         working-directory: backend
         run: |
@@ -34,4 +45,4 @@ jobs:
 
       - name: Run tests
         working-directory: backend
-        run: pytest -q
+        run: pytest -q --disable-warnings --maxfail=1
