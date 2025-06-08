@@ -10,3 +10,5 @@ httpx
 requests
 markdown
 pdfkit
+PyJWT
+python-multipart
