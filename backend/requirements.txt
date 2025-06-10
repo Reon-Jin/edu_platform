@@ -12,3 +12,4 @@ markdown
 pdfkit
 PyJWT
 python-multipart
+wkhtmltopdf

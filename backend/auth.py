@@ -34,6 +34,7 @@ class RegisterData(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    role: str
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(data: RegisterData, sess: Session = Depends(get_session)):
@@ -69,7 +70,14 @@ def login_for_access_token(
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": str(user.id), "exp": expire}
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return {"access_token": token, "token_type": "bearer"}
+    # 获取角色名
+    db_role = sess.get(Role, user.role_id)
+    role_name = db_role.name if db_role else ""
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "role": role_name
+    }
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -92,5 +100,9 @@ def get_current_user(
     if not user:
         raise credentials_exception
     return user
+
+@router.get("/me")
+def read_current_user(user: User = Depends(get_current_user)):
+    return {"id": user.id, "username": user.username, "role": user.role.name}
 
 __all__ = ["router", "get_current_user"]
