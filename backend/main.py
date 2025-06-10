@@ -6,7 +6,7 @@ from sqlmodel import SQLModel
 
 from backend.config import engine
 from backend.auth import router as auth_router
-from backend.lesson import router as lesson_router
+from backend.routers.lesson_router import router as lesson_router
 from backend.routers.exercise_router import router as exercise_router
 from backend.routers.homework_router import router as homework_router
 
@@ -21,9 +21,9 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/auth")
-app.include_router(lesson_router, prefix="/lesson")
-app.include_router(exercise_router, prefix="/teacher")
-app.include_router(homework_router, prefix="/student")
+app.include_router(lesson_router)
+app.include_router(exercise_router)
+app.include_router(homework_router)
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 
