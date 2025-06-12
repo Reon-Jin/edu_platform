@@ -6,3 +6,13 @@ Conda
 Python=3.10.x
 node=22.13.0
 npm=10.9.2
+
+## launch backend fastapi
+```bash
+python -m uvicorn backend.main:app --reload --port 8000
+```
+
+## launch frontend
+```bash
+npm run dev
+```
