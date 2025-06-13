@@ -152,6 +152,23 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+DROP TABLE IF EXISTS `courseware`;
+-- 存放教师生成并保存的备课课件
+CREATE TABLE `courseware` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `teacher_id` INT NOT NULL COMMENT '关联 user.id，且该用户 role 必须是 teacher',
+  `topic` VARCHAR(255) NOT NULL COMMENT '课件主题',
+  `markdown` LONGTEXT NOT NULL COMMENT '备课内容（Markdown 格式）',
+  `pdf` LONGBLOB NULL COMMENT '可选：PDF 二进制，如需存库可保存',
+  `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '生成/保存时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_teacher` (`teacher_id`),
+  CONSTRAINT `fk_courseware_teacher`
+    FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 --
 -- Dumping data for table `user`
 --
