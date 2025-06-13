@@ -13,3 +13,4 @@ pdfkit
 PyJWT
 python-multipart
 wkhtmltopdf
+cryptography
