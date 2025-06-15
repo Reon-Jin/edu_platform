@@ -37,7 +37,6 @@ export default function AppRouter() {
             <ProtectedRoute allowedRoles={["teacher"]}>
               <Routes>
                 <Route path="lesson" element={<TeacherLesson />} />
-                {/* 其他 teacher 子路由可按需加 */}
                 <Route path="*" element={<Navigate to="lesson" replace />} />
               </Routes>
             </ProtectedRoute>

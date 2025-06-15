@@ -1,19 +1,23 @@
 import React, { useState } from "react";
-import { prepareLessonMarkdown, downloadLessonPdf } from "../api/teacher";
+import { prepareLessonMarkdown, downloadCoursewarePdf, saveCourseware } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
-import "../index.css";
+import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
+import "../index.css";  // 引用全局样式
 
-export default function LessonPage() {
+export default function TeacherLesson() {
   const [topic, setTopic] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [cwId, setCwId] = useState(null);  // 用于保存课件的 ID
 
   const handleGenerate = async (e) => {
     e.preventDefault();
     setError("");
     setMarkdown("");
     setLoading(true);
+    setSaved(false);
     try {
       const md = await prepareLessonMarkdown({ topic });
       setMarkdown(md);
@@ -26,12 +30,16 @@ export default function LessonPage() {
   };
 
   const handleDownload = async () => {
+    if (!cwId) {
+      setError("请先保存教案再下载 PDF");
+      return;
+    }
     try {
-      const blob = await downloadLessonPdf({ topic });
+      const blob = await downloadCoursewarePdf(cwId); // 使用正确的 cw_id
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `lesson_${topic}.pdf`;
+      a.download = `lesson_${topic}.pdf`; // 文件名称
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -42,11 +50,24 @@ export default function LessonPage() {
     }
   };
 
+  const handleSave = async () => {
+    setError("");
+    try {
+      const savedCourseware = await saveCourseware({ topic });
+      setSaved(true);
+      setCwId(savedCourseware.id);  // 获取并保存课件的 ID
+    } catch (error) {
+      console.error(error);
+      setError("保存教案失败");
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
         <h2>教案备课</h2>
         {error && <div className="error">{error}</div>}
+        {saved && <div className="success">教案已保存！</div>}
         <form onSubmit={handleGenerate}>
           <label>
             主题
@@ -65,13 +86,23 @@ export default function LessonPage() {
 
         {markdown && (
           <>
-            <div style={{ margin: "1rem 0" }}>
-              <button className="button" onClick={handleDownload}>
+            <div className="actions">
+              <button className="button" onClick={handleSave}>
+                保存教案
+              </button>
+              <button
+                className="button"
+                onClick={handleDownload}
+                disabled={!saved} // 下载按钮在未保存时禁用
+              >
                 下载 PDF
               </button>
             </div>
-            <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
-              <ReactMarkdown>{markdown}</ReactMarkdown>
+            <div className="markdown-preview">
+              <ReactMarkdown
+                children={markdown}
+                remarkPlugins={[remarkGfm]}  // 使用 GitHub 风格的扩展支持表格
+              />
             </div>
           </>
         )}
