@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "react-markdown": "^10.1.0",
-    "recharts": "^2.15.3"
+    "recharts": "^2.15.3",
+    "remark-gfm": "^4.0.1"
   }
 }

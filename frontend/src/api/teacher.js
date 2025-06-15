@@ -15,18 +15,30 @@ export async function prepareLessonMarkdown({ topic }) {
 }
 
 /**
- * 下载教案 PDF
+ * 保存教案
  * @param {{ topic: string }} params
- * @returns {Promise<Blob>} PDF 二进制
+ * @returns {Promise<{ id: number, topic: string }>} 返回保存的课件信息（包含课件 ID）
  */
-export async function downloadLessonPdf({ topic }) {
-  const resp = await api.post(
-    "/teacher/lesson/prepare",
-    { topic, export_pdf: true },
-    { responseType: "blob" }
-  );
+export async function saveCourseware({ topic }) {
+  const resp = await api.post("/teacher/lesson/save", { topic });
+  return resp.data;  // 返回课件信息，包括 id
+}
+
+
+// src/api/teacher.js
+
+/**
+ * 获取并下载课件的 PDF
+ * @param {number} cw_id - 课件 ID
+ * @returns {Promise<Blob>} PDF 二进制内容
+ */
+export async function downloadCoursewarePdf(cw_id) {
+  const resp = await api.get(`/teacher/lesson/export_pdf/${cw_id}`, {
+    responseType: "blob", // 确保返回的是 PDF 二进制
+  });
   return resp.data;
 }
+
 
 /**
  * 生成练习题（JSON）
