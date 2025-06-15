@@ -1,6 +1,32 @@
 // src/pages/TeacherPage.jsx
-import React from 'react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "../index.css";
 
 export default function TeacherPage() {
-  return <h2>教师页面</h2>;
+  const navigate = useNavigate();
+
+  const handlePrepare = () => {
+    navigate("/teacher/lesson");  // 跳转到备课页面
+  };
+
+  const handleLessonList = () => {
+    navigate("/teacher/lesson/list");  // 跳转到课程列表页面
+  };
+
+  return (
+    <div className="container">
+      <div className="card">
+        <h2>教师中心</h2>
+        <div className="actions">
+          <button className="button" onClick={handlePrepare}>
+            备课
+          </button>
+          <button className="button" onClick={handleLessonList}>
+            课程列表
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
