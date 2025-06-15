@@ -109,3 +109,24 @@ export async function fetchExerciseStats(exerciseId) {
   const resp = await api.get(`/teacher/exercise/${exerciseId}/stats`);
   return resp.data;
 }
+
+// src/api/teacher.js
+
+/**
+ * 获取教案列表
+ * @returns {Promise<Array>} 课件列表
+ */
+export async function fetchLessonList() {
+  const resp = await api.get("/teacher/lesson/list");
+  return resp.data;  // 返回课程数据列表
+}
+
+/**
+ * 获取教案预览
+ * @param {number} cw_id - 课件 ID
+ * @returns {Promise<Object>} 返回教案的详细信息
+ */
+export async function fetchLessonPreview(cw_id) {
+  const resp = await api.get(`/teacher/lesson/preview/${cw_id}`);
+  return resp.data;  // 返回课件详细信息
+}

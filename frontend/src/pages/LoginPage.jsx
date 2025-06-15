@@ -7,34 +7,29 @@ import "../index.css"; // 全局样式
 export default function LoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      // 1. 登录，拿到 token 和 role
-      const { access_token, role } = await login(form);
+      const { access_token, role } = await login(form); // 登录成功返回token与role
       localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
 
-      // 2. 根据角色跳转
+      // 根据角色跳转
       if (role === "teacher") {
-        navigate("/teacher/lesson");
-      } else if (role === "student") {
-        navigate("/student/homeworks");
-      } else if (role === "admin") {
-        navigate("/admin/dashboard");
+        navigate("/teacher");
       } else {
-        setError("未知角色，无法跳转");
+        navigate("/student");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      setError(err.response?.data?.detail || "登录失败，请检查用户名和密码");
+      setError("用户名或密码错误");
     } finally {
       setLoading(false);
     }
@@ -73,9 +68,6 @@ export default function LoginPage() {
             {loading ? "登录中…" : "登录"}
           </button>
         </form>
-        <Link className="link" to="/register">
-          还没有账号？立即注册
-        </Link>
       </div>
     </div>
   );
