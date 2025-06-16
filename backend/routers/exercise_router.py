@@ -2,6 +2,7 @@
 
 import io
 from typing import List
+from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -128,11 +129,22 @@ def api_download_questions(
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
-    pdf = download_questions_pdf(ex)
+
+    # 同步生成 PDF bytes
+    pdf_bytes = download_questions_pdf(ex)
+
+    # 构造支持中文的下载文件名
+    raw_name = f"questions_{ex_id}.pdf"
+    fallback = "questions.pdf"
+    quoted = quote(raw_name, safe="")
+    headers = {
+        "Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"
+    }
+
     return StreamingResponse(
-        io.BytesIO(pdf),
+        io.BytesIO(pdf_bytes),
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=questions_{ex_id}.pdf"}
+        headers=headers
     )
 
 
@@ -148,11 +160,20 @@ def api_download_answers(
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
-    pdf = download_answers_pdf(ex)
+
+    pdf_bytes = download_answers_pdf(ex)
+
+    raw_name = f"answers_{ex_id}.pdf"
+    fallback = "answers.pdf"
+    quoted = quote(raw_name, safe="")
+    headers = {
+        "Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"
+    }
+
     return StreamingResponse(
-        io.BytesIO(pdf),
+        io.BytesIO(pdf_bytes),
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=answers_{ex_id}.pdf"}
+        headers=headers
     )
 
 
