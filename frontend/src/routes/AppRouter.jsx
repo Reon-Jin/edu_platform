@@ -6,6 +6,9 @@ import TeacherPage from "../pages/TeacherPage";
 import TeacherLesson from "../pages/TeacherLesson";
 import LessonList from "../pages/LessonList"; 
 import LessonPreview from "../pages/LessonPreview";
+import ExerciseList from "../pages/ExerciseList";
+import ExercisePreview from "../pages/ExercisePreview";
+import ExerciseStats from "../pages/ExerciseStats";
 import RegisterPage from "../pages/RegisterPage";
 import StudentHomeworks from "../pages/StudentHomeworks";
 import AdminPage from "../pages/AdminPage";
@@ -36,7 +39,11 @@ export default function AppRouter() {
               <Route path="/" element={<TeacherPage />} />
               <Route path="lesson" element={<TeacherLesson />} />
               <Route path="lesson/list" element={<LessonList />} />
-              <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />  
+
+              <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />
+              <Route path="exercise/list" element={<ExerciseList />} />
+              <Route path="exercise/preview/:ex_id" element={<ExercisePreview />} />
+              <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
               <Route path="*" element={<Navigate to="lesson" replace />} />
             </Routes>
           </ProtectedRoute>

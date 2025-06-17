@@ -130,3 +130,46 @@ export async function fetchLessonPreview(cw_id) {
   const resp = await api.get(`/teacher/lesson/preview/${cw_id}`);
   return resp.data;  // 返回课件详细信息
 }
+
+/**
+ * 获取练习列表
+ * @returns {Promise<Array>} 练习列表
+ */
+export async function fetchExerciseList() {
+  const resp = await api.get("/teacher/exercise/list");
+  return resp.data;
+}
+
+/**
+ * 获取练习预览
+ * @param {number} ex_id - 练习 ID
+ * @returns {Promise<Object>} 练习详细信息
+ */
+export async function fetchExercisePreview(ex_id) {
+  const resp = await api.get(`/teacher/exercise/preview/${ex_id}`);
+  return resp.data;
+}
+
+/**
+ * 下载已保存练习的题目 PDF
+ * @param {number} ex_id - 练习 ID
+ * @returns {Promise<Blob>} PDF 二进制
+ */
+export async function downloadExerciseQuestionsPdf(ex_id) {
+  const resp = await api.get(`/teacher/exercise/${ex_id}/download/questions`, {
+    responseType: "blob",
+  });
+  return resp.data;
+}
+
+/**
+ * 下载已保存练习的答案 PDF
+ * @param {number} ex_id - 练习 ID
+ * @returns {Promise<Blob>} PDF 二进制
+ */
+export async function downloadExerciseAnswersPdf(ex_id) {
+  const resp = await api.get(`/teacher/exercise/${ex_id}/download/answers`, {
+    responseType: "blob",
+  });
+  return resp.data;
+}
