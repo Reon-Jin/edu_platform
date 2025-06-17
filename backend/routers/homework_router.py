@@ -9,6 +9,7 @@ from backend.schemas.submission_schema import (
     HomeworkStudentOut,
     HomeworkResultOut
 )
+from backend.schemas.exercise_schema import ExerciseOut
 from backend.services.submission_service import (
     list_student_homeworks,
     submit_homework,
@@ -48,8 +49,9 @@ def api_result(hw_id: int, user=Depends(get_current_user)):
     if sub.status != "completed":
         raise HTTPException(status_code=400, detail="作业尚在批改中")
     # sub.homework 及 sub.homework.exercise 已可访问
+    exercise_data = ExerciseOut.model_validate(sub.homework.exercise, from_attributes=True)
     return HomeworkResultOut(
-        exercise=sub.homework.exercise,
+        exercise=exercise_data,
         student_answers=sub.answers,
         feedback=sub.feedback,
         score=sub.score
