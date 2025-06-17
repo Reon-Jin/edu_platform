@@ -103,6 +103,30 @@ class ChatHistory(SQLModel, table=True):
     student: "User" = Relationship(back_populates="chats")
 
 
+class ChatSession(SQLModel, table=True):
+    __tablename__ = "chat_session"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    student_id: int = Field(foreign_key="user.id", nullable=False)
+    title: str = Field(max_length=255, default="New Chat")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    student: "User" = Relationship()
+    messages: List["ChatMessage"] = Relationship(back_populates="session")
+
+
+class ChatMessage(SQLModel, table=True):
+    __tablename__ = "chat_message"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: int = Field(foreign_key="chat_session.id", nullable=False)
+    role: str = Field(max_length=20)
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    session: ChatSession = Relationship(back_populates="messages")
+
+
 class Practice(SQLModel, table=True):
     __tablename__ = "practice"
 

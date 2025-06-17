@@ -68,6 +68,7 @@ export default function AppRouter() {
               <Route path="homeworks" element={<StudentHomeworks />} />
               <Route path="homeworks/result/:hw_id" element={<StudentHomeworkResult />} />
               <Route path="ai" element={<StudentAiTeacher />} />
+              <Route path="ai/:sessionId" element={<StudentAiTeacher />} />
               <Route path="ai/history" element={<StudentChatHistory />} />
               <Route path="evaluate" element={<EvaluateAssistant />} />
               <Route path="practice" element={<StudentPracticeList />} />
