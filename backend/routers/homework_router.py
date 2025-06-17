@@ -9,11 +9,13 @@ from backend.schemas.submission_schema import (
     HomeworkStudentOut,
     HomeworkResultOut
 )
+from backend.schemas.exercise_schema import ExerciseOut, ExerciseQuestionsOut
 from backend.services.submission_service import (
     list_student_homeworks,
     submit_homework,
     grade_submission,
-    get_submission_by_hw_student
+    get_submission_by_hw_student,
+    get_homework_exercise,
 )
 
 router = APIRouter(prefix="/student", tags=["homework"])
@@ -21,6 +23,14 @@ router = APIRouter(prefix="/student", tags=["homework"])
 @router.get("/homeworks", response_model=List[HomeworkStudentOut])
 def api_list(user=Depends(get_current_user)):
     return list_student_homeworks(user.id)
+
+
+@router.get("/homeworks/{hw_id}/exercise", response_model=ExerciseQuestionsOut)
+def api_hw_exercise(hw_id: int, user=Depends(get_current_user)):
+    ex = get_homework_exercise(hw_id)
+    if not ex:
+        raise HTTPException(status_code=404, detail="作业不存在")
+    return ExerciseQuestionsOut(id=ex.id, subject=ex.subject, prompt=ex.prompt)
 
 @router.post(
     "/homeworks/{hw_id}/submit",
@@ -48,8 +58,9 @@ def api_result(hw_id: int, user=Depends(get_current_user)):
     if sub.status != "completed":
         raise HTTPException(status_code=400, detail="作业尚在批改中")
     # sub.homework 及 sub.homework.exercise 已可访问
+    exercise_data = ExerciseOut.model_validate(sub.homework.exercise, from_attributes=True)
     return HomeworkResultOut(
-        exercise=sub.homework.exercise,
+        exercise=exercise_data,
         student_answers=sub.answers,
         feedback=sub.feedback,
         score=sub.score

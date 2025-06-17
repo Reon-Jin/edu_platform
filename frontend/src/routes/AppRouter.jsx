@@ -11,7 +11,15 @@ import ExerciseList from "../pages/ExerciseList";
 import ExercisePreview from "../pages/ExercisePreview";
 import ExerciseStats from "../pages/ExerciseStats";
 import RegisterPage from "../pages/RegisterPage";
+import StudentPage from "../pages/StudentPage";
 import StudentHomeworks from "../pages/StudentHomeworks";
+import StudentHomeworkResult from "../pages/StudentHomeworkResult";
+import StudentHomeworkAnswer from "../pages/StudentHomeworkAnswer";
+import StudentAiTeacher from "../pages/StudentAiTeacher";
+import StudentChatHistory from "../pages/StudentChatHistory";
+import EvaluateAssistant from "../pages/EvaluateAssistant";
+import StudentPracticeList from "../pages/StudentPracticeList";
+import StudentPracticeDetail from "../pages/StudentPracticeDetail";
 import AdminPage from "../pages/AdminPage";
 
 // 受保护路由：检查是否已登录且角色匹配
@@ -52,7 +60,26 @@ export default function AppRouter() {
       />
       
       {/* 学生视图 */}
-      <Route path="/student/*" element={<StudentHomeworks />} />
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <Routes>
+              <Route path="/" element={<StudentPage />} />
+              <Route path="homeworks" element={<StudentHomeworks />} />
+              <Route path="homeworks/answer/:hw_id" element={<StudentHomeworkAnswer />} />
+              <Route path="homeworks/result/:hw_id" element={<StudentHomeworkResult />} />
+              <Route path="ai" element={<StudentAiTeacher />} />
+              <Route path="ai/:sessionId" element={<StudentAiTeacher />} />
+              <Route path="ai/history" element={<StudentChatHistory />} />
+              <Route path="evaluate" element={<EvaluateAssistant />} />
+              <Route path="practice" element={<StudentPracticeList />} />
+              <Route path="practice/:id" element={<StudentPracticeDetail />} />
+              <Route path="*" element={<Navigate to="/student" replace />} />
+            </Routes>
+          </ProtectedRoute>
+        }
+      />
       {/* 管理员视图 */}
       <Route path="/admin/*" element={<AdminPage />} />
       

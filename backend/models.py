@@ -19,6 +19,8 @@ class User(SQLModel, table=True):
     exercises: List["Exercise"]     = Relationship(back_populates="teacher")
     submissions: List["Submission"] = Relationship(back_populates="student")
     coursewares: List["Courseware"] = Relationship(back_populates="teacher")
+    chats: List["ChatHistory"]   = Relationship(back_populates="student")
+    practices: List["Practice"]  = Relationship(back_populates="student")
 
 
 class Exercise(SQLModel, table=True):
@@ -87,3 +89,56 @@ class Courseware(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     teacher: User = Relationship(back_populates="coursewares")
+
+
+class ChatHistory(SQLModel, table=True):
+    __tablename__ = "chat_history"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    student_id: int = Field(foreign_key="user.id", nullable=False)
+    question: str
+    answer: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    student: "User" = Relationship(back_populates="chats")
+
+
+class ChatSession(SQLModel, table=True):
+    __tablename__ = "chat_session"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    student_id: int = Field(foreign_key="user.id", nullable=False)
+    title: str = Field(max_length=255, default="New Chat")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    student: "User" = Relationship()
+    messages: List["ChatMessage"] = Relationship(back_populates="session")
+
+
+class ChatMessage(SQLModel, table=True):
+    __tablename__ = "chat_message"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    session_id: int = Field(foreign_key="chat_session.id", nullable=False)
+    role: str = Field(max_length=20)
+    content: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    session: ChatSession = Relationship(back_populates="messages")
+
+
+class Practice(SQLModel, table=True):
+    __tablename__ = "practice"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    student_id: int = Field(foreign_key="user.id", nullable=False)
+    topic: str = Field(max_length=255)
+    questions: Any = Field(sa_column=Column(JSON), default_factory=list)
+    answers: Any = Field(sa_column=Column(JSON), default_factory=dict)
+    student_answers: Any = Field(sa_column=Column(JSON), default_factory=dict)
+    feedback: Any = Field(sa_column=Column(JSON), default_factory=dict)
+    score: int = Field(default=0)
+    status: str = Field(default="not_submitted")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    student: "User" = Relationship(back_populates="practices")

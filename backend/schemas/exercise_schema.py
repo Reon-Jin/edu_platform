@@ -38,4 +38,13 @@ class ExerciseOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class ExerciseQuestionsOut(BaseModel):
+    id: int
+    subject: str
+    prompt: List[QuestionBlock]
+
+    class Config:
+        from_attributes = True
