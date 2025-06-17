@@ -15,7 +15,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
-from backend.models import Exercise, Homework
+from backend.models import Exercise, Homework, Submission
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
@@ -101,6 +101,7 @@ def save_and_assign_exercise(
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+        _ = hw.exercise  # ensure relationship loaded before session closes
         return hw
 
 
@@ -195,13 +196,17 @@ def assign_homework(exercise_id: int) -> Homework:
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+        _ = hw.exercise  # load exercise relation for response
         return hw
 
 
 def stats_for_exercise(exercise_id: int) -> Dict[str, Any]:
-    from backend.models import Submission
     with Session(engine) as sess:
-        subs = sess.exec(select(Submission).where(Submission.homework_id == Homework.id)).all()
+        subs = sess.exec(
+            select(Submission)
+            .join(Submission.homework)
+            .where(Homework.exercise_id == exercise_id)
+        ).all()
         total = len(subs)
         avg = sum(s.score for s in subs) / total if total else 0
         return {"total_submissions": total, "average_score": avg}
