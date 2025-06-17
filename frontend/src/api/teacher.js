@@ -43,7 +43,7 @@ export async function downloadCoursewarePdf(cw_id) {
 /**
  * 生成练习题（JSON）
  * @param {{ topic: string, num_mcq: number, num_fill_blank: number, num_short_answer: number, num_programming: number }} params
- * @returns {Promise<{ exercise_id: number, questions: any[], answers: any }>}
+ * @returns {Promise<{ topic: string, questions: any[], answers: any }>}
  */
 export async function generateExerciseJson({
   topic,
@@ -52,7 +52,7 @@ export async function generateExerciseJson({
   num_short_answer,
   num_programming,
 }) {
-  const resp = await api.post("/teacher/generate", {
+  const resp = await api.post("/teacher/exercise/generate", {
     topic,
     num_mcq,
     num_fill_blank,
@@ -76,7 +76,7 @@ export async function downloadExercisePdf({
   num_programming,
 }) {
   const resp = await api.post(
-    "/teacher/generate",
+    "/teacher/exercise/generate",
     {
       topic,
       num_mcq,
@@ -107,6 +107,79 @@ export async function assignExercise(exerciseId) {
  */
 export async function fetchExerciseStats(exerciseId) {
   const resp = await api.get(`/teacher/exercise/${exerciseId}/stats`);
+  return resp.data;
+}
+
+/**
+ * 保存练习（不布置）
+ * @param {{topic: string, questions: any[], answers: any}} data
+ * @returns {Promise<{id: number}>}
+ */
+export async function saveExercise({ topic, questions, answers }) {
+  const resp = await api.post("/teacher/exercise/save", {
+    topic,
+    questions,
+    answers,
+  });
+  return resp.data;
+}
+
+/**
+ * 保存练习并布置作业
+ * @param {{topic: string, questions: any[], answers: any}} data
+ * @returns {Promise<any>} 作业信息
+ */
+export async function saveAndAssignExercise({ topic, questions, answers }) {
+  const resp = await api.post("/teacher/exercise/save_and_assign", {
+    topic,
+    questions,
+    answers,
+  });
+  return resp.data;
+}
+
+/**
+ * 获取练习列表
+ * @returns {Promise<Array>}
+ */
+export async function fetchExerciseList() {
+  const resp = await api.get("/teacher/exercise/list");
+  return resp.data;
+}
+
+/**
+ * 获取练习预览详情
+ * @param {number} exId
+ * @returns {Promise<any>}
+ */
+export async function fetchExercisePreview(exId) {
+  const resp = await api.get(`/teacher/exercise/preview/${exId}`);
+  return resp.data;
+}
+
+/**
+ * 下载练习题目 PDF
+ * @param {number} exId
+ * @returns {Promise<Blob>}
+ */
+export async function downloadQuestionsPdf(exId) {
+  const resp = await api.get(
+    `/teacher/exercise/${exId}/download/questions`,
+    { responseType: "blob" }
+  );
+  return resp.data;
+}
+
+/**
+ * 下载练习答案 PDF
+ * @param {number} exId
+ * @returns {Promise<Blob>}
+ */
+export async function downloadAnswersPdf(exId) {
+  const resp = await api.get(
+    `/teacher/exercise/${exId}/download/answers`,
+    { responseType: "blob" }
+  );
   return resp.data;
 }
 

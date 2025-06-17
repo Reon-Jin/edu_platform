@@ -14,6 +14,14 @@ export default function TeacherPage() {
     navigate("/teacher/lesson/list");  // 跳转到课程列表页面
   };
 
+  const handleExercise = () => {
+    navigate("/teacher/exercise");
+  };
+
+  const handleExerciseList = () => {
+    navigate("/teacher/exercise/list");
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -24,6 +32,12 @@ export default function TeacherPage() {
           </button>
           <button className="button" onClick={handleLessonList}>
             课程列表
+          </button>
+          <button className="button" onClick={handleExercise}>
+            练习生成
+          </button>
+          <button className="button" onClick={handleExerciseList}>
+            练习列表
           </button>
         </div>
       </div>
