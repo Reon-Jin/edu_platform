@@ -9,8 +9,12 @@ export default function StudentHomeworks() {
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get("/student/homeworks");
-      setList(resp.data);
+      try {
+        const resp = await api.get("/student/homeworks");
+        setList(resp.data);
+      } catch (err) {
+        console.error(err);
+      }
     };
     load();
   }, []);

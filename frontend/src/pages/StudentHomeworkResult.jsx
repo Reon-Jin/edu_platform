@@ -16,7 +16,8 @@ export default function StudentHomeworkResult() {
         setData(resp.data);
       } catch (err) {
         console.error(err);
-        setError("加载失败");
+        const detail = err.response?.data?.detail;
+        setError(detail ? `加载失败：${detail}` : "加载失败");
       }
     };
     load();

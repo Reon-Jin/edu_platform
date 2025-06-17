@@ -16,4 +16,16 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
+// 全局响应拦截：未授权时跳转登录
+instance.interceptors.response.use(
+  (resp) => resp,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;
