@@ -32,3 +32,28 @@ def call_deepseek_api(prompt: str, model: str = "deepseek-chat", temperature: fl
         return resp.json()
     else:
         raise Exception(f"API 请求失败，状态码: {resp.status_code}, 错误信息: {resp.text}")
+
+
+def call_deepseek_api_chat(messages, model: str = "deepseek-chat", temperature: float = 0.7, max_tokens: int = 4096):
+    """调用 Deepseek 聊天接口（多轮对话）"""
+    url = settings.DEEPSEEK_ENDPOINT
+    headers = {
+        "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+    print(">>> Deepseek 请求 URL：", url)
+    print(">>> Deepseek 请求头：", headers)
+    print(">>> Deepseek 请求体：", data)
+    resp = requests.post(url, headers=headers, json=data, timeout=100, allow_redirects=False)
+    print(">>> Deepseek 返回状态码：", resp.status_code)
+    print(">>> Deepseek 返回体：", resp.text)
+    if resp.status_code == 200:
+        return resp.json()
+    else:
+        raise Exception(f"API 请求失败，状态码: {resp.status_code}, 错误信息: {resp.text}")

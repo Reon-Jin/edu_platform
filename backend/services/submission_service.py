@@ -88,6 +88,15 @@ def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
             })
     return out
 
+
+def get_homework_exercise(hw_id: int) -> Optional[Exercise]:
+    """根据作业ID获取练习内容"""
+    with Session(engine) as sess:
+        hw = sess.get(Homework, hw_id)
+        if not hw:
+            return None
+        return sess.get(Exercise, hw.exercise_id)
+
 def get_submission_by_hw_student(homework_id: int, student_id: int) -> Optional[Submission]:
     """
     获取某学生对某作业的提交，并预先加载 homework 和 exercise，

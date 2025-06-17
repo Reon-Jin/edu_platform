@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import { Link } from "react-router-dom";
 import "../index.css";
 
 export default function StudentChatHistory() {
@@ -7,7 +8,7 @@ export default function StudentChatHistory() {
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get("/student/ai/history");
+      const resp = await api.get("/student/ai/sessions");
       setHistory(resp.data);
     };
     load();
@@ -20,7 +21,7 @@ export default function StudentChatHistory() {
         <ul>
           {history.map((item) => (
             <li key={item.id}>
-              Q: {item.question} <br />A: {item.answer}
+              <Link to={`/student/ai/${item.id}`}>{item.title}</Link>
             </li>
           ))}
         </ul>

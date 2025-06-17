@@ -37,6 +37,14 @@ export default function StudentHomeworks() {
                 <td>{hw.homework_id}</td>
                 <td>{hw.status}</td>
                 <td>
+                  {hw.status === "not_submitted" && (
+                    <button
+                      className="button"
+                      onClick={() => navigate(`answer/${hw.homework_id}`)}
+                    >
+                      答题
+                    </button>
+                  )}
                   {hw.status === "completed" && (
                     <button
                       className="button"
