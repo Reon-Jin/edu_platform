@@ -68,6 +68,9 @@ export default function LoginPage() {
             {loading ? "登录中…" : "登录"}
           </button>
         </form>
+        <Link className="link" to="/register">
+          还没有账号？立即注册
+        </Link>
       </div>
     </div>
   );
