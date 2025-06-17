@@ -26,7 +26,11 @@ export default function StudentHomeworkResult() {
   if (error) return <div>{error}</div>;
   if (!data) return <div>加载中...</div>;
 
-  const { exercise, student_answers, feedback } = data;
+  const { exercise, student_answers, feedback, score } = data;
+  const results = feedback.results || {};
+
+  const fmt = (r) =>
+    r === "correct" || r === "正确" || r === true ? "对" : "错";
 
   const questions = [];
   exercise.prompt.forEach((block) => {
@@ -39,6 +43,7 @@ export default function StudentHomeworkResult() {
     <div className="container">
       <div className="card">
         <h2>作业结果</h2>
+        <div>总分：{score}</div>
         <div className="actions">
           {questions.map((q) => (
             <button
@@ -63,6 +68,7 @@ export default function StudentHomeworkResult() {
             )}
             <div>我的答案：{String(student_answers[activeItem.id])}</div>
             <div>标准答案：{String(exercise.answers[activeItem.id])}</div>
+            <div>结果：{fmt(results[activeItem.id])}</div>
             <div>解析：{feedback.explanations[activeItem.id]}</div>
           </div>
         )}
