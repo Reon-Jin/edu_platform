@@ -115,3 +115,12 @@ def get_submission_by_hw_student(homework_id: int, student_id: int) -> Optional[
         sub.homework   = hw
 
         return sub
+
+def get_homework_with_exercise(hw_id: int) -> Optional[Homework]:
+    """获取作业并加载其关联的练习题"""
+    with Session(engine) as sess:
+        hw = sess.get(Homework, hw_id)
+        if not hw:
+            return None
+        _ = hw.exercise  # ensure relationship loaded
+        return hw

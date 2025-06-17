@@ -7,13 +7,15 @@ from backend.schemas.submission_schema import (
     SubmitRequest,
     SubmissionStatusOut,
     HomeworkStudentOut,
-    HomeworkResultOut
+    HomeworkResultOut,
+    ExerciseOut,
 )
 from backend.services.submission_service import (
     list_student_homeworks,
     submit_homework,
     grade_submission,
-    get_submission_by_hw_student
+    get_submission_by_hw_student,
+    get_homework_with_exercise
 )
 
 router = APIRouter(prefix="/student", tags=["homework"])
@@ -21,6 +23,13 @@ router = APIRouter(prefix="/student", tags=["homework"])
 @router.get("/homeworks", response_model=List[HomeworkStudentOut])
 def api_list(user=Depends(get_current_user)):
     return list_student_homeworks(user.id)
+
+@router.get("/homeworks/{hw_id}", response_model=ExerciseOut)
+def api_homework(hw_id: int, user=Depends(get_current_user)):
+    hw = get_homework_with_exercise(hw_id)
+    if not hw:
+        raise HTTPException(status_code=404, detail="作业不存在")
+    return hw.exercise
 
 @router.post(
     "/homeworks/{hw_id}/submit",

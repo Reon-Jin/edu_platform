@@ -12,6 +12,8 @@ import ExercisePreview from "../pages/ExercisePreview";
 import ExerciseStats from "../pages/ExerciseStats";
 import RegisterPage from "../pages/RegisterPage";
 import StudentHomeworks from "../pages/StudentHomeworks";
+import HomeworkSubmit from "../pages/HomeworkSubmit";
+import HomeworkResult from "../pages/HomeworkResult";
 import AdminPage from "../pages/AdminPage";
 
 // 受保护路由：检查是否已登录且角色匹配
@@ -52,7 +54,19 @@ export default function AppRouter() {
       />
       
       {/* 学生视图 */}
-      <Route path="/student/*" element={<StudentHomeworks />} />
+      <Route
+        path="/student/*"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <Routes>
+              <Route path="/" element={<StudentHomeworks />} />
+              <Route path="homeworks/:hw_id/submit" element={<HomeworkSubmit />} />
+              <Route path="homeworks/:hw_id/result" element={<HomeworkResult />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ProtectedRoute>
+        }
+      />
       {/* 管理员视图 */}
       <Route path="/admin/*" element={<AdminPage />} />
       
