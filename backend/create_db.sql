@@ -168,6 +168,35 @@ CREATE TABLE `courseware` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `chat_history`;
+CREATE TABLE `chat_history` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `student_id` INT NOT NULL,
+  `question` TEXT NOT NULL,
+  `answer` LONGTEXT NOT NULL,
+  `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  KEY `idx_ch_student` (`student_id`),
+  CONSTRAINT `fk_chat_student` FOREIGN KEY (`student_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `practice`;
+CREATE TABLE `practice` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `student_id` INT NOT NULL,
+  `topic` VARCHAR(255) NOT NULL,
+  `questions` JSON NOT NULL,
+  `answers` JSON NOT NULL,
+  `student_answers` JSON,
+  `feedback` JSON,
+  `score` INT DEFAULT 0,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'not_submitted',
+  `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  KEY `idx_practice_student` (`student_id`),
+  CONSTRAINT `fk_practice_student` FOREIGN KEY (`student_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 --
 -- Dumping data for table `user`
