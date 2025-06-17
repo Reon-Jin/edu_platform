@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
+import "../index.css";
 
 export default function StudentChatHistory() {
   const [history, setHistory] = useState([]);
@@ -13,15 +14,17 @@ export default function StudentChatHistory() {
   }, []);
 
   return (
-    <div>
-      <h2>历史记录</h2>
-      <ul>
-        {history.map((item) => (
-          <li key={item.id}>
-            Q: {item.question} <br />A: {item.answer}
-          </li>
-        ))}
-      </ul>
+    <div className="container">
+      <div className="card">
+        <h2>历史记录</h2>
+        <ul>
+          {history.map((item) => (
+            <li key={item.id}>
+              Q: {item.question} <br />A: {item.answer}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
