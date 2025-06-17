@@ -6,6 +6,7 @@ export default function StudentHomeworkResult() {
   const { hw_id } = useParams();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [activeId, setActiveId] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -25,29 +26,39 @@ export default function StudentHomeworkResult() {
 
   const { exercise, student_answers, feedback } = data;
 
+  const questions = [];
+  exercise.prompt.forEach((block) => {
+    block.items.forEach((item) => questions.push(item));
+  });
+
+  const activeItem = questions.find((q) => String(q.id) === String(activeId));
+
   return (
     <div>
       <h2>作业结果</h2>
-      {exercise.prompt.map((block, bIdx) => (
-        <div key={bIdx} style={{ marginBottom: "1rem" }}>
-          <strong>{block.type}</strong>
-          {block.items.map((item) => (
-            <div key={item.id} style={{ marginLeft: "1rem" }}>
-              <div>{item.question}</div>
-              {item.options && (
-                <ul>
-                  {item.options.map((opt, idx) => (
-                    <li key={idx}>{opt}</li>
-                  ))}
-                </ul>
-              )}
-              <div>我的答案：{String(student_answers[item.id])}</div>
-              <div>标准答案：{String(exercise.answers[item.id])}</div>
-              <div>解析：{feedback.explanations[item.id]}</div>
-            </div>
-          ))}
+      <div style={{ marginBottom: "1rem" }}>
+        {questions.map((q) => (
+          <button key={q.id} onClick={() => setActiveId(q.id)} style={{ marginRight: "0.5rem" }}>
+            {q.id}
+          </button>
+        ))}
+      </div>
+      {activeItem && (
+        <div>
+          <h3>题号 {activeItem.id}</h3>
+          <div>{activeItem.question}</div>
+          {activeItem.options && (
+            <ul>
+              {activeItem.options.map((opt, idx) => (
+                <li key={idx}>{opt}</li>
+              ))}
+            </ul>
+          )}
+          <div>我的答案：{String(student_answers[activeItem.id])}</div>
+          <div>标准答案：{String(exercise.answers[activeItem.id])}</div>
+          <div>解析：{feedback.explanations[activeItem.id]}</div>
         </div>
-      ))}
+      )}
     </div>
   );
 }

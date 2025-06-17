@@ -50,3 +50,11 @@ def api_submit(pid: int, req: PracticeSubmitRequest, user: User = Depends(get_cu
         raise HTTPException(404, "practice not found")
     return PracticeOut(id=pr.id, topic=pr.topic, questions=pr.questions, answers=pr.answers, status=pr.status, feedback=pr.feedback, score=pr.score)
 
+
+from backend.services.analysis_service import analyze_student_practice
+
+router_analysis = APIRouter(prefix="/student", tags=["student-analysis"])
+
+@router_analysis.get("/analysis")
+def api_analysis(user: User = Depends(get_current_user)):
+    return analyze_student_practice(user.id)

@@ -9,7 +9,7 @@ from backend.auth import router as auth_router
 from backend.routers.lesson_router import router as lesson_router
 from backend.routers.exercise_router import router as exercise_router
 from backend.routers.homework_router import router as homework_router
-from backend.routers.student_router import router, router_practice
+from backend.routers.student_router import router, router_practice, router_analysis
 
 app = FastAPI()
 
@@ -27,6 +27,7 @@ app.include_router(exercise_router)
 app.include_router(homework_router)
 app.include_router(router)
 app.include_router(router_practice)
+app.include_router(router_analysis)
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 

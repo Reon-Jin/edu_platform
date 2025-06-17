@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function EvaluateAssistant() {
   const [analysis, setAnalysis] = useState("");
   const [req, setReq] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +15,7 @@ export default function EvaluateAssistant() {
         setAnalysis(resp.data.analysis || JSON.stringify(resp.data));
       } catch (err) {
         console.error(err);
+        setError("加载分析失败");
       }
     };
     load();
@@ -27,6 +29,7 @@ export default function EvaluateAssistant() {
   return (
     <div>
       <h2>评测助手</h2>
+      {error && <div>{error}</div>}
       <div>{analysis}</div>
       <div>
         <input value={req} onChange={(e) => setReq(e.target.value)} placeholder="练习要求" />
