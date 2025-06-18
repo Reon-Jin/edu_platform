@@ -12,7 +12,7 @@ import ExercisePreview from "../pages/ExercisePreview";
 import ExerciseStats from "../pages/ExerciseStats";
 import TeacherStudents from "../pages/TeacherStudents";
 import TeacherStudentDetail from "../pages/TeacherStudentDetail";
-import TeacherStudentPracticeDetail from "../pages/TeacherStudentPracticeDetail";
+import TeacherStudentHomeworkDetail from "../pages/TeacherStudentHomeworkDetail";
 import RegisterPage from "../pages/RegisterPage";
 import StudentPage from "../pages/StudentPage";
 import StudentHomeworks from "../pages/StudentHomeworks";
@@ -58,7 +58,7 @@ export default function AppRouter() {
               <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
               <Route path="students" element={<TeacherStudents />} />
               <Route path="students/:sid" element={<TeacherStudentDetail />} />
-              <Route path="students/:sid/practice/:pid" element={<TeacherStudentPracticeDetail />} />
+              <Route path="students/:sid/homework/:hw_id" element={<TeacherStudentHomeworkDetail />} />
               <Route path="*" element={<Navigate to="lesson" replace />} />
             </Routes>
           </ProtectedRoute>

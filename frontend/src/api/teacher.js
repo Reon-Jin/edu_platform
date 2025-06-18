@@ -217,13 +217,13 @@ export async function fetchStudentAnalysis(sid) {
 }
 
 /** 获取学生已完成练习列表 */
-export async function fetchStudentPractices(sid) {
-  const resp = await api.get(`/teacher/students/${sid}/practices`);
+export async function fetchStudentHomeworks(sid) {
+  const resp = await api.get(`/teacher/students/${sid}/homeworks`);
   return resp.data;
 }
 
-/** 获取某次练习详情 */
-export async function fetchStudentPracticeDetail(sid, pid) {
-  const resp = await api.get(`/teacher/students/${sid}/practice/${pid}`);
+/** 获取某次作业详情 */
+export async function fetchStudentHomeworkDetail(sid, hwId) {
+  const resp = await api.get(`/teacher/students/${sid}/homework/${hwId}`);
   return resp.data;
 }

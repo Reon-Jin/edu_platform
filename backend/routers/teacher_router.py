@@ -7,9 +7,14 @@ from pydantic import BaseModel
 
 from backend.auth import get_current_user
 from backend.config import engine
-from backend.models import User, Practice
-from backend.services.analysis_service import analyze_student_practice
-from backend.schemas.student_schema import PracticeOut
+from backend.models import User
+from backend.services.analysis_service import analyze_student_homeworks
+from backend.services.submission_service import (
+    list_completed_submissions,
+    get_submission_by_hw_student,
+)
+from backend.schemas.exercise_schema import ExerciseOut
+from backend.schemas.submission_schema import HomeworkResultOut
 
 router = APIRouter(prefix="/teacher/students", tags=["student-data"])
 
@@ -19,12 +24,12 @@ class StudentMeta(BaseModel):
     class Config:
         from_attributes = True
 
-class PracticeMeta(BaseModel):
-    id: int
-    topic: str
-    status: str
+class SubmissionMeta(BaseModel):
+    homework_id: int
+    subject: str
     score: int
-    created_at: datetime
+    submitted_at: datetime
+
     class Config:
         from_attributes = True
 
@@ -41,23 +46,34 @@ def list_students(current: User = Depends(get_current_user)):
 def student_analysis(sid: int, current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return analyze_student_practice(sid)
+    return analyze_student_homeworks(sid)
 
-@router.get("/{sid}/practices", response_model=List[PracticeMeta])
-def student_practices(sid: int, current: User = Depends(get_current_user)):
+@router.get("/{sid}/homeworks", response_model=List[SubmissionMeta])
+def student_homeworks(sid: int, current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    with Session(engine) as sess:
-        stmt = select(Practice).where(Practice.student_id == sid, Practice.status == "completed")
-        prs = sess.exec(stmt).all()
-        return [PracticeMeta.model_validate(p, from_attributes=True) for p in prs]
+    subs = list_completed_submissions(sid)
+    return [
+        SubmissionMeta(
+            homework_id=s.homework_id,
+            subject=s.homework.exercise.subject,
+            score=s.score,
+            submitted_at=s.submitted_at,
+        )
+        for s in subs
+    ]
 
-@router.get("/{sid}/practice/{pid}", response_model=PracticeOut)
-def practice_detail(sid: int, pid: int, current: User = Depends(get_current_user)):
+@router.get("/{sid}/homework/{hw_id}", response_model=HomeworkResultOut)
+def homework_detail(sid: int, hw_id: int, current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    with Session(engine) as sess:
-        pr = sess.get(Practice, pid)
-        if not pr or pr.student_id != sid:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="练习不存在")
-        return PracticeOut.model_validate(pr, from_attributes=True)
+    sub = get_submission_by_hw_student(hw_id, sid)
+    if not sub or sub.status != "completed":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="作业不存在")
+    ex_data = ExerciseOut.model_validate(sub.homework.exercise, from_attributes=True)
+    return HomeworkResultOut(
+        exercise=ex_data,
+        student_answers=sub.answers,
+        feedback=sub.feedback,
+        score=sub.score,
+    )
