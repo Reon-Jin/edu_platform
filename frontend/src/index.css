@@ -111,3 +111,19 @@ th {
 td {
   text-align: left;
 }
+
+/* Small icon button used for history delete actions */
+.icon-button {
+  width: auto;
+  padding: 0.25rem 0.5rem;
+  margin-top: 0;
+  font-size: 1rem;
+  border: 1px solid #d2d2d7;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: #f0f0f0;
+}
