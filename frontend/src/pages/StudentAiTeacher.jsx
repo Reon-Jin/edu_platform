@@ -91,18 +91,18 @@ export default function StudentAiTeacher() {
   return (
     <div className="container">
       <div className="card" style={{ display: "flex" }}>
-        <div style={{ width: "180px", marginRight: "1rem" }}>
+        <div style={{ width: "180px", marginRight: "1rem", borderRight: "1px solid #e5e5e5", paddingRight: "1rem" }}>
           <button className="button" onClick={newChat} style={{ width: "100%" }}>新建聊天</button>
           <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
-            {sessions.map((s) => (
-              <li key={s.id} style={{ display: "flex", marginBottom: "0.5rem" }}>
+            {sessions.map((s, idx) => (
+              <li key={s.id} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
                 <span
                   style={{ cursor: "pointer", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                   onClick={() => navigate(`/student/ai/${s.id}`)}
                 >
-                  {s.title}
+                  {s.title || `对话${idx + 1}`}
                 </span>
-                <button className="button" onClick={() => delSession(s.id)} style={{ marginLeft: "0.25rem" }}>×</button>
+                <button className="icon-button" onClick={() => delSession(s.id)} style={{ marginLeft: "0.25rem" }}>×</button>
               </li>
             ))}
           </ul>

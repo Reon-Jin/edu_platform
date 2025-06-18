@@ -1,5 +1,6 @@
 from typing import List
 from sqlmodel import Session, select
+from sqlalchemy import func
 from backend.config import engine
 from backend.models import ChatHistory, ChatSession, ChatMessage
 from backend.utils.deepseek_client import call_deepseek_api, call_deepseek_api_chat
@@ -22,8 +23,17 @@ def list_history(student_id: int) -> List[ChatHistory]:
 
 
 def create_session(student_id: int) -> ChatSession:
+    """Create a new chat session for a student.
+
+    The title is assigned based on the number of existing sessions so that
+    the front end can display sequentially numbered history entries.
+    """
     with Session(engine) as sess:
-        session = ChatSession(student_id=student_id, title=f"Chat {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}")
+        count = sess.exec(
+            select(func.count()).select_from(ChatSession).where(ChatSession.student_id == student_id)
+        ).one()
+        title = f"对话{count + 1}"
+        session = ChatSession(student_id=student_id, title=title)
         sess.add(session)
         sess.commit()
         sess.refresh(session)
