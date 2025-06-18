@@ -14,6 +14,15 @@ export default function StudentChatHistory() {
     load();
   }, []);
 
+  const del = async (id) => {
+    try {
+      await api.delete(`/student/ai/session/${id}`);
+      setHistory((prev) => prev.filter((h) => h.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -22,6 +31,13 @@ export default function StudentChatHistory() {
           {history.map((item) => (
             <li key={item.id}>
               <Link to={`/student/ai/${item.id}`}>{item.title}</Link>
+              <button
+                className="button"
+                style={{ marginLeft: "0.5rem" }}
+                onClick={() => del(item.id)}
+              >
+                删除
+              </button>
             </li>
           ))}
         </ul>

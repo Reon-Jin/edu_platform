@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api/api";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../index.css";
@@ -51,12 +51,30 @@ export default function StudentAiTeacher() {
     if (!question || !current) return;
     const q = question;
     setQuestion("");
-    // 先展示用户消息，再异步获取 AI 回复
+    // 先展示用户消息
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     try {
-      const resp = await api.post(`/student/ai/session/${current}/ask`, { question: q });
-      const aiMsg = { role: resp.data.role, content: resp.data.content };
-      setMessages((prev) => [...prev, aiMsg]);
+      await api.post(`/student/ai/session/${current}/ask`, { question: q });
+      const r = await api.get(`/student/ai/session/${current}`);
+      setMessages(r.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const delSession = async (id) => {
+    try {
+      await api.delete(`/student/ai/session/${id}`);
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+      if (id === current) {
+        if (sessions.length > 1) {
+          const next = sessions.filter((s) => s.id !== id)[0];
+          navigate(`/student/ai/${next.id}`);
+        } else {
+          const resp = await api.post("/student/ai/session");
+          navigate(`/student/ai/${resp.data.id}`);
+        }
+      }
     } catch (err) {
       console.error(err);
     }
@@ -72,23 +90,36 @@ export default function StudentAiTeacher() {
 
   return (
     <div className="container">
-      <div className="card">
-        <h2>AI 教师</h2>
-        <div className="actions" style={{ justifyContent: "space-between" }}>
-          <button className="button" onClick={newChat}>新建聊天</button>
-          <select value={current || ""} onChange={(e) => navigate(`/student/ai/${e.target.value}`)}>
+      <div className="card" style={{ display: "flex" }}>
+        <div style={{ width: "180px", marginRight: "1rem" }}>
+          <button className="button" onClick={newChat} style={{ width: "100%" }}>新建聊天</button>
+          <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
             {sessions.map((s) => (
-              <option key={s.id} value={s.id}>{s.title}</option>
+              <li key={s.id} style={{ display: "flex", marginBottom: "0.5rem" }}>
+                <span
+                  style={{ cursor: "pointer", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  onClick={() => navigate(`/student/ai/${s.id}`)}
+                >
+                  {s.title}
+                </span>
+                <button className="button" onClick={() => delSession(s.id)} style={{ marginLeft: "0.25rem" }}>×</button>
+              </li>
             ))}
-          </select>
-          <Link className="button" to="history">历史记录</Link>
+          </ul>
         </div>
-        <div style={{ marginTop: "1rem", minHeight: "300px" }}>
-          {messages.map((m, idx) => (
-            <div key={idx} style={{ marginBottom: "1rem" }}>
-              <strong>{m.role === "user" ? "我" : "AI"}:</strong>
-              <div className="markdown-preview">
-                <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
+        <div style={{ flex: 1 }}>
+          <h2>AI 教师</h2>
+          <div style={{ marginTop: "1rem", minHeight: "300px" }}>
+            {messages.map((m, idx) => (
+              <div
+                key={m.id || idx}
+                style={{ display: "flex", marginBottom: "1rem" }}
+              >
+              <div style={{ flex: 1 }}>
+                <strong>{m.role === "user" ? "我" : "AI"}:</strong>
+                <div className="markdown-preview">
+                  <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
+                </div>
               </div>
             </div>
           ))}
@@ -100,8 +131,9 @@ export default function StudentAiTeacher() {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="请输入问题"
         />
-        <div className="actions">
-          <button className="button" onClick={send}>发送</button>
+          <div className="actions">
+            <button className="button" onClick={send}>发送</button>
+          </div>
         </div>
       </div>
     </div>
