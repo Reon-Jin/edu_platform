@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../api/api";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -12,6 +12,7 @@ export default function StudentAiTeacher() {
   const [current, setCurrent] = useState(null);
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState("");
+  const endRef = useRef(null);
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -40,14 +41,22 @@ export default function StudentAiTeacher() {
     loadMsgs();
   }, [current]);
 
+  useEffect(() => {
+    if (endRef.current) {
+      endRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   const send = async () => {
     if (!question || !current) return;
     const q = question;
     setQuestion("");
+    // 先展示用户消息，再异步获取 AI 回复
+    setMessages((prev) => [...prev, { role: "user", content: q }]);
     try {
       const resp = await api.post(`/student/ai/session/${current}/ask`, { question: q });
       const aiMsg = { role: resp.data.role, content: resp.data.content };
-      setMessages((prev) => [...prev, { role: "user", content: q }, aiMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
     } catch (err) {
       console.error(err);
     }
@@ -83,6 +92,7 @@ export default function StudentAiTeacher() {
               </div>
             </div>
           ))}
+          <div ref={endRef} />
         </div>
         <input
           className="input"
