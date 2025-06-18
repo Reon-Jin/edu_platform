@@ -203,3 +203,27 @@ export async function fetchLessonPreview(cw_id) {
   const resp = await api.get(`/teacher/lesson/preview/${cw_id}`);
   return resp.data;  // 返回课件详细信息
 }
+
+/** 列出所有学生 */
+export async function fetchStudentList() {
+  const resp = await api.get('/teacher/students');
+  return resp.data;
+}
+
+/** 获取学生学情分析 */
+export async function fetchStudentAnalysis(sid) {
+  const resp = await api.get(`/teacher/students/${sid}/analysis`);
+  return resp.data;
+}
+
+/** 获取学生已完成练习列表 */
+export async function fetchStudentHomeworks(sid) {
+  const resp = await api.get(`/teacher/students/${sid}/homeworks`);
+  return resp.data;
+}
+
+/** 获取某次作业详情 */
+export async function fetchStudentHomeworkDetail(sid, hwId) {
+  const resp = await api.get(`/teacher/students/${sid}/homework/${hwId}`);
+  return resp.data;
+}
