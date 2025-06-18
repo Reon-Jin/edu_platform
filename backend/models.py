@@ -2,7 +2,7 @@
 from typing import Optional, Any, List
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, JSON, LargeBinary
+from sqlalchemy import Column, JSON, LargeBinary, Text
 
 class Role(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -93,11 +93,12 @@ class Courseware(SQLModel, table=True):
 
 class ChatHistory(SQLModel, table=True):
     __tablename__ = "chat_history"
+    __table_args__ = {"mysql_charset": "utf8mb4"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     student_id: int = Field(foreign_key="user.id", nullable=False)
-    question: str
-    answer: str
+    question: str = Field(sa_column=Column(Text(collation="utf8mb4_unicode_ci")))
+    answer: str = Field(sa_column=Column(Text(collation="utf8mb4_unicode_ci")))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     student: "User" = Relationship(back_populates="chats")
@@ -105,6 +106,7 @@ class ChatHistory(SQLModel, table=True):
 
 class ChatSession(SQLModel, table=True):
     __tablename__ = "chat_session"
+    __table_args__ = {"mysql_charset": "utf8mb4"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     student_id: int = Field(foreign_key="user.id", nullable=False)
@@ -117,11 +119,12 @@ class ChatSession(SQLModel, table=True):
 
 class ChatMessage(SQLModel, table=True):
     __tablename__ = "chat_message"
+    __table_args__ = {"mysql_charset": "utf8mb4"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     session_id: int = Field(foreign_key="chat_session.id", nullable=False)
     role: str = Field(max_length=20)
-    content: str
+    content: str = Field(sa_column=Column(Text(collation="utf8mb4_unicode_ci")))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     session: ChatSession = Relationship(back_populates="messages")
