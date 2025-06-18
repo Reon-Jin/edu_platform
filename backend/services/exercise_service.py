@@ -199,9 +199,14 @@ def assign_homework(exercise_id: int) -> Homework:
 
 
 def stats_for_exercise(exercise_id: int) -> Dict[str, Any]:
+    """Return statistics for submissions of a given exercise."""
     from backend.models import Submission
     with Session(engine) as sess:
-        subs = sess.exec(select(Submission).where(Submission.homework_id == Homework.id)).all()
+        subs = sess.exec(
+            select(Submission)
+            .join(Homework, Submission.homework_id == Homework.id)
+            .where(Homework.exercise_id == exercise_id)
+        ).all()
         total = len(subs)
-        avg = sum(s.score for s in subs) / total if total else 0
+        avg = sum(s.score for s in subs) / total if total else 0.0
         return {"total_submissions": total, "average_score": avg}

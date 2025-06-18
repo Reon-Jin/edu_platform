@@ -1,4 +1,4 @@
-# process_word.py
+# prepare_knowledge.py
 # 将 Word (.docx 和 .doc) 文档目录转换为若干长文本段落的 TXT 文件，便于语义检索
 # 支持递归子目录，保持输出目录结构一致
 # 对 .docx 使用 python-docx，对 .doc 使用 antiword 或 Windows COM（pywin32）
