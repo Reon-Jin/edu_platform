@@ -79,15 +79,3 @@ def delete_session(student_id: int, session_id: int) -> bool:
         return True
 
 
-def delete_message(student_id: int, message_id: int) -> bool:
-    """Delete a single chat message"""
-    with Session(engine) as sess:
-        msg = sess.get(ChatMessage, message_id)
-        if not msg:
-            return False
-        session = sess.get(ChatSession, msg.session_id)
-        if not session or session.student_id != student_id:
-            return False
-        sess.delete(msg)
-        sess.commit()
-        return True

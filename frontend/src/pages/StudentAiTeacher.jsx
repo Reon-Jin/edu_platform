@@ -62,10 +62,19 @@ export default function StudentAiTeacher() {
     }
   };
 
-  const delMsg = async (id) => {
+  const delSession = async (id) => {
     try {
-      await api.delete(`/student/ai/message/${id}`);
-      setMessages((prev) => prev.filter((m) => m.id !== id));
+      await api.delete(`/student/ai/session/${id}`);
+      setSessions((prev) => prev.filter((s) => s.id !== id));
+      if (id === current) {
+        if (sessions.length > 1) {
+          const next = sessions.filter((s) => s.id !== id)[0];
+          navigate(`/student/ai/${next.id}`);
+        } else {
+          const resp = await api.post("/student/ai/session");
+          navigate(`/student/ai/${resp.data.id}`);
+        }
+      }
     } catch (err) {
       console.error(err);
     }
@@ -81,37 +90,37 @@ export default function StudentAiTeacher() {
 
   return (
     <div className="container">
-      <div className="card">
-        <h2>AI 教师</h2>
-        <div className="actions" style={{ justifyContent: "space-between" }}>
-          <button className="button" onClick={newChat}>新建聊天</button>
-          <select value={current || ""} onChange={(e) => navigate(`/student/ai/${e.target.value}`)}>
+      <div className="card" style={{ display: "flex" }}>
+        <div style={{ width: "180px", marginRight: "1rem" }}>
+          <button className="button" onClick={newChat} style={{ width: "100%" }}>新建聊天</button>
+          <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
             {sessions.map((s) => (
-              <option key={s.id} value={s.id}>{s.title}</option>
+              <li key={s.id} style={{ display: "flex", marginBottom: "0.5rem" }}>
+                <span
+                  style={{ cursor: "pointer", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  onClick={() => navigate(`/student/ai/${s.id}`)}
+                >
+                  {s.title}
+                </span>
+                <button className="button" onClick={() => delSession(s.id)} style={{ marginLeft: "0.25rem" }}>×</button>
+              </li>
             ))}
-          </select>
+          </ul>
         </div>
-        <div style={{ marginTop: "1rem", minHeight: "300px" }}>
-          {messages.map((m, idx) => (
-            <div
-              key={m.id || idx}
-              style={{ display: "flex", marginBottom: "1rem" }}
-            >
+        <div style={{ flex: 1 }}>
+          <h2>AI 教师</h2>
+          <div style={{ marginTop: "1rem", minHeight: "300px" }}>
+            {messages.map((m, idx) => (
+              <div
+                key={m.id || idx}
+                style={{ display: "flex", marginBottom: "1rem" }}
+              >
               <div style={{ flex: 1 }}>
                 <strong>{m.role === "user" ? "我" : "AI"}:</strong>
                 <div className="markdown-preview">
                   <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
                 </div>
               </div>
-              {m.id && (
-                <button
-                  className="button"
-                  style={{ marginLeft: "0.5rem", height: "fit-content" }}
-                  onClick={() => delMsg(m.id)}
-                >
-                  ×
-                </button>
-              )}
             </div>
           ))}
           <div ref={endRef} />
@@ -122,8 +131,9 @@ export default function StudentAiTeacher() {
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="请输入问题"
         />
-        <div className="actions">
-          <button className="button" onClick={send}>发送</button>
+          <div className="actions">
+            <button className="button" onClick={send}>发送</button>
+          </div>
         </div>
       </div>
     </div>
