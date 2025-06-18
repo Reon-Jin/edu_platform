@@ -16,3 +16,11 @@ python -m uvicorn backend.main:app --reload --port 8000
 ```bash
 npm run dev
 ```
+
+## Prepare knowledge base
+
+Convert Word documents to text snippets for the lesson generator:
+
+```bash
+python backend/scripts/prepare_knowledge.py
+```
