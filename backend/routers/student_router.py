@@ -18,6 +18,7 @@ from backend.services.chat_service import (
     list_sessions,
     get_messages,
     ask_in_session,
+    delete_session,
 )
 from backend.services.practice_service import (
     generate_practice, list_practices, get_practice, submit_practice
@@ -58,6 +59,14 @@ def api_get_messages(sid: int, user: User = Depends(get_current_user)):
 def api_ask_in_session(sid: int, req: AskRequest, user: User = Depends(get_current_user)):
     msg = ask_in_session(user.id, sid, req.question)
     return MessageOut(id=msg.id, session_id=msg.session_id, role=msg.role, content=msg.content, created_at=msg.created_at)
+
+
+@router.delete("/session/{sid}")
+def api_delete_session(sid: int, user: User = Depends(get_current_user)):
+    ok = delete_session(user.id, sid)
+    if not ok:
+        raise HTTPException(404, "session not found")
+    return {"status": "ok"}
 
 router_practice = APIRouter(prefix="/student/practice", tags=["student-practice"])
 

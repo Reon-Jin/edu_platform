@@ -55,6 +55,7 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
         sess.commit()
         msgs = sess.exec(select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at)).all()
         conv = [{"role": m.role, "content": m.content} for m in msgs]
+        conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
         resp = call_deepseek_api_chat(conv)
         answer = resp["choices"][0]["message"]["content"]
         ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)
@@ -62,3 +63,17 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
         sess.commit()
         sess.refresh(ai_msg)
         return ai_msg
+
+
+def delete_session(student_id: int, session_id: int) -> bool:
+    """Delete chat session and its messages"""
+    with Session(engine) as sess:
+        session = sess.get(ChatSession, session_id)
+        if not session or session.student_id != student_id:
+            return False
+        msgs = sess.exec(select(ChatMessage).where(ChatMessage.session_id == session_id)).all()
+        for m in msgs:
+            sess.delete(m)
+        sess.delete(session)
+        sess.commit()
+        return True

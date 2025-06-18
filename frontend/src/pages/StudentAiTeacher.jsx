@@ -81,7 +81,6 @@ export default function StudentAiTeacher() {
               <option key={s.id} value={s.id}>{s.title}</option>
             ))}
           </select>
-          <Link className="button" to="history">历史记录</Link>
         </div>
         <div style={{ marginTop: "1rem", minHeight: "300px" }}>
           {messages.map((m, idx) => (
