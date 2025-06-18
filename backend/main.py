@@ -9,6 +9,7 @@ from backend.auth import router as auth_router
 from backend.routers.lesson_router import router as lesson_router
 from backend.routers.exercise_router import router as exercise_router
 from backend.routers.homework_router import router as homework_router
+from backend.routers.teacher_router import router as teacher_student_router
 from backend.routers.student_router import router, router_practice, router_analysis
 
 app = FastAPI()
@@ -29,6 +30,7 @@ app.include_router(auth_router, prefix="/auth")
 app.include_router(lesson_router)
 app.include_router(exercise_router)
 app.include_router(homework_router)
+app.include_router(teacher_student_router)
 app.include_router(router)
 app.include_router(router_practice)
 app.include_router(router_analysis)

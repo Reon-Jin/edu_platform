@@ -22,6 +22,10 @@ export default function TeacherPage() {
     navigate("/teacher/exercise/list");
   };
 
+  const handleStudentData = () => {
+    navigate("/teacher/students");
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -38,6 +42,9 @@ export default function TeacherPage() {
           </button>
           <button className="button" onClick={handleExerciseList}>
             练习列表
+          </button>
+          <button className="button" onClick={handleStudentData}>
+            学情数据
           </button>
         </div>
       </div>

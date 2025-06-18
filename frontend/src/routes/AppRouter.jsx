@@ -10,6 +10,9 @@ import ExercisePage from "../pages/ExercisePage";
 import ExerciseList from "../pages/ExerciseList";
 import ExercisePreview from "../pages/ExercisePreview";
 import ExerciseStats from "../pages/ExerciseStats";
+import TeacherStudents from "../pages/TeacherStudents";
+import TeacherStudentDetail from "../pages/TeacherStudentDetail";
+import TeacherStudentPracticeDetail from "../pages/TeacherStudentPracticeDetail";
 import RegisterPage from "../pages/RegisterPage";
 import StudentPage from "../pages/StudentPage";
 import StudentHomeworks from "../pages/StudentHomeworks";
@@ -53,6 +56,9 @@ export default function AppRouter() {
               <Route path="exercise/list" element={<ExerciseList />} />
               <Route path="exercise/preview/:ex_id" element={<ExercisePreview />} />
               <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
+              <Route path="students" element={<TeacherStudents />} />
+              <Route path="students/:sid" element={<TeacherStudentDetail />} />
+              <Route path="students/:sid/practice/:pid" element={<TeacherStudentPracticeDetail />} />
               <Route path="*" element={<Navigate to="lesson" replace />} />
             </Routes>
           </ProtectedRoute>
