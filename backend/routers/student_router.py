@@ -19,6 +19,7 @@ from backend.services.chat_service import (
     get_messages,
     ask_in_session,
     delete_session,
+    delete_message,
 )
 from backend.services.practice_service import (
     generate_practice, list_practices, get_practice, submit_practice
@@ -66,6 +67,14 @@ def api_delete_session(sid: int, user: User = Depends(get_current_user)):
     ok = delete_session(user.id, sid)
     if not ok:
         raise HTTPException(404, "session not found")
+    return {"status": "ok"}
+
+
+@router.delete("/message/{mid}")
+def api_delete_message(mid: int, user: User = Depends(get_current_user)):
+    ok = delete_message(user.id, mid)
+    if not ok:
+        raise HTTPException(404, "message not found")
     return {"status": "ok"}
 
 router_practice = APIRouter(prefix="/student/practice", tags=["student-practice"])

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "../api/api";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../index.css";
@@ -51,12 +51,21 @@ export default function StudentAiTeacher() {
     if (!question || !current) return;
     const q = question;
     setQuestion("");
-    // 先展示用户消息，再异步获取 AI 回复
+    // 先展示用户消息
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     try {
-      const resp = await api.post(`/student/ai/session/${current}/ask`, { question: q });
-      const aiMsg = { role: resp.data.role, content: resp.data.content };
-      setMessages((prev) => [...prev, aiMsg]);
+      await api.post(`/student/ai/session/${current}/ask`, { question: q });
+      const r = await api.get(`/student/ai/session/${current}`);
+      setMessages(r.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const delMsg = async (id) => {
+    try {
+      await api.delete(`/student/ai/message/${id}`);
+      setMessages((prev) => prev.filter((m) => m.id !== id));
     } catch (err) {
       console.error(err);
     }
@@ -84,11 +93,25 @@ export default function StudentAiTeacher() {
         </div>
         <div style={{ marginTop: "1rem", minHeight: "300px" }}>
           {messages.map((m, idx) => (
-            <div key={idx} style={{ marginBottom: "1rem" }}>
-              <strong>{m.role === "user" ? "我" : "AI"}:</strong>
-              <div className="markdown-preview">
-                <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
+            <div
+              key={m.id || idx}
+              style={{ display: "flex", marginBottom: "1rem" }}
+            >
+              <div style={{ flex: 1 }}>
+                <strong>{m.role === "user" ? "我" : "AI"}:</strong>
+                <div className="markdown-preview">
+                  <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
+                </div>
               </div>
+              {m.id && (
+                <button
+                  className="button"
+                  style={{ marginLeft: "0.5rem", height: "fit-content" }}
+                  onClick={() => delMsg(m.id)}
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
           <div ref={endRef} />
