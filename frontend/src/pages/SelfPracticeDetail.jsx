@@ -54,10 +54,10 @@ export default function SelfPracticeDetail() {
                 </button>
               </div>
               <div style={{ marginTop: "1rem" }}>
-                {practice.questions.map((block, bIdx) => (
+                {(practice.questions || []).map((block, bIdx) => (
                   <div key={bIdx} style={{ marginBottom: "1rem" }}>
                     <strong>{block.type}</strong>
-                    {block.items.map((item, i) => (
+                    {(block.items || []).map((item, i) => (
                       <div key={i} style={{ marginLeft: "1rem" }}>
                         {item.question}
                         {item.options && (
@@ -67,7 +67,11 @@ export default function SelfPracticeDetail() {
                             ))}
                           </ul>
                         )}
-                        <div>答案：{practice.answers[String(item.id)]}</div>
+                        <div>
+                          答案：
+                          {practice.answers[item.id] ??
+                            practice.answers[String(item.id)]}
+                        </div>
                       </div>
                     ))}
                   </div>
