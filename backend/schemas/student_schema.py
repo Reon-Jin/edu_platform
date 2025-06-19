@@ -35,7 +35,11 @@ class MessageOut(BaseModel):
         from_attributes = True
 
 class PracticeGenerateRequest(BaseModel):
-    requirement: str
+    topic: str
+    num_mcq: int = 0
+    num_fill_blank: int = 0
+    num_short_answer: int = 0
+    num_programming: int = 0
 
 class PracticeSubmitRequest(BaseModel):
     answers: Dict[str, Any]

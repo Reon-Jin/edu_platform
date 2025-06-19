@@ -10,8 +10,8 @@ export async function fetchChatHistory() {
   return resp.data;
 }
 
-export async function generateSelfPractice(requirement) {
-  const resp = await api.post("/student/self_practice/generate", { requirement });
+export async function generateSelfPractice(params) {
+  const resp = await api.post("/student/self_practice/generate", params);
   return resp.data;
 }
 

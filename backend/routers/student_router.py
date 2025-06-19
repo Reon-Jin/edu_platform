@@ -78,7 +78,14 @@ router_practice = APIRouter(prefix="/student/self_practice", tags=["student-self
 
 @router_practice.post("/generate", response_model=PracticeOut)
 def api_generate(req: PracticeGenerateRequest, user: User = Depends(get_current_user)):
-    pr = generate_practice(user.id, req.requirement)
+    pr = generate_practice(
+        user.id,
+        topic=req.topic,
+        num_mcq=req.num_mcq,
+        num_fill_blank=req.num_fill_blank,
+        num_short_answer=req.num_short_answer,
+        num_programming=req.num_programming,
+    )
     return PracticeOut(
         id=pr.id,
         topic=pr.topic,

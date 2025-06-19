@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { fetchSelfPracticeList, downloadSelfPracticePdf } from "../api/student";
+import { Link } from "react-router-dom";
+import { fetchSelfPracticeList } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeList() {
   const [list, setList] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -31,29 +30,9 @@ export default function SelfPracticeList() {
               <tr key={p.id}>
                 <td>{p.topic}</td>
                 <td>
-                  <button
-                    className="button"
-                    onClick={() => navigate(`/student/self_practice/${p.id}`)}
-                  >
+                  <Link className="button" to={`/student/self_practice/${p.id}`}>
                     查看
-                  </button>
-                  <button
-                    className="button"
-                    style={{ marginLeft: "0.5rem" }}
-                    onClick={async () => {
-                      const blob = await downloadSelfPracticePdf(p.id);
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `self_practice_${p.id}.pdf`;
-                      document.body.appendChild(a);
-                      a.click();
-                      a.remove();
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    下载 PDF
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}
