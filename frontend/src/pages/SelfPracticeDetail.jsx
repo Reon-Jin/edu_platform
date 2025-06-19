@@ -67,7 +67,7 @@ export default function SelfPracticeDetail() {
                             ))}
                           </ul>
                         )}
-                        <div>答案：{practice.answers[item.id]}</div>
+                        <div>答案：{practice.answers[String(item.id)]}</div>
                       </div>
                     ))}
                   </div>
