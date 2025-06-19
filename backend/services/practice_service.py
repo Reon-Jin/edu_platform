@@ -4,8 +4,7 @@ from typing import Dict, Any, List
 from sqlmodel import Session, select
 from backend.config import engine
 from backend.models import Practice
-from backend.utils.deepseek_client import call_deepseek_api
-from backend.services.exercise_service import _build_pdf
+from backend.services.exercise_service import _build_pdf, preview_exercise
 from io import BytesIO
 
 
@@ -16,17 +15,25 @@ def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
     return json.loads(text)
 
 
-def generate_practice(student_id: int, requirement: str) -> Practice:
-    prompt = (
-        f"请根据以下要求生成练习题，并返回 JSON：{requirement}\n"
-        "{\"questions\":[], \"answers\":{}}"
+def generate_practice(
+    student_id: int,
+    topic: str,
+    num_mcq: int = 0,
+    num_fill_blank: int = 0,
+    num_short_answer: int = 0,
+    num_programming: int = 0,
+) -> Practice:
+    data = preview_exercise(
+        topic=topic,
+        num_mcq=num_mcq,
+        num_fill_blank=num_fill_blank,
+        num_short_answer=num_short_answer,
+        num_programming=num_programming,
     )
-    resp = call_deepseek_api(prompt)
-    data = _parse_model_response(resp)
     with Session(engine) as sess:
         practice = Practice(
             student_id=student_id,
-            topic=requirement,
+            topic=topic,
             questions=data.get("questions", []),
             answers=data.get("answers", {}),
         )
