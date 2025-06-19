@@ -3,14 +3,14 @@ import { useParams } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
 
-export default function StudentPracticeDetail() {
+export default function SelfPracticeDetail() {
   const { id } = useParams();
   const [practice, setPractice] = useState(null);
   const [answers, setAnswers] = useState({});
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get(`/student/practice/list`);
+      const resp = await api.get(`/student/self_practice/list`);
       const item = resp.data.find((p) => String(p.id) === id);
       if (item) setPractice(item);
     };
@@ -18,7 +18,7 @@ export default function StudentPracticeDetail() {
   }, [id]);
 
   const submit = async () => {
-    await api.post(`/student/practice/${id}/submit`, { answers });
+    await api.post(`/student/self_practice/${id}/submit`, { answers });
     alert("已提交");
   };
 

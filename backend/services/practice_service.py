@@ -7,16 +7,20 @@ from backend.models import Practice
 from backend.utils.deepseek_client import call_deepseek_api
 
 
+def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
+    content: str = resp["choices"][0]["message"]["content"]
+    text = re.sub(r"^```(?:json)?\s*", "", content)
+    text = re.sub(r"\s*```$", "", text)
+    return json.loads(text)
+
+
 def generate_practice(student_id: int, requirement: str) -> Practice:
     prompt = (
         f"请根据以下要求生成练习题，并返回 JSON：{requirement}\n"
         "{\"questions\":[], \"answers\":{}}"
     )
     resp = call_deepseek_api(prompt)
-    content = resp["choices"][0]["message"]["content"]
-    text = re.sub(r"^```(?:json)?\s*", "", content)
-    text = re.sub(r"\s*```$", "", text)
-    data = json.loads(text)
+    data = _parse_model_response(resp)
     with Session(engine) as sess:
         practice = Practice(
             student_id=student_id,

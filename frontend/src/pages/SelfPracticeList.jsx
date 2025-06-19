@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
 
-export default function StudentPracticeList() {
+export default function SelfPracticeList() {
   const [list, setList] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get("/student/practice/list");
+      const resp = await api.get("/student/self_practice/list");
       setList(resp.data);
     };
     load();
@@ -35,7 +35,7 @@ export default function StudentPracticeList() {
                 <td>
                   <button
                     className="button"
-                    onClick={() => navigate(`/student/practice/${p.id}`)}
+                    onClick={() => navigate(`/student/self_practice/${p.id}`)}
                   >
                     查看
                   </button>

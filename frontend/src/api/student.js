@@ -10,17 +10,17 @@ export async function fetchChatHistory() {
   return resp.data;
 }
 
-export async function generatePractice(requirement) {
-  const resp = await api.post("/student/practice/generate", { requirement });
+export async function generateSelfPractice(requirement) {
+  const resp = await api.post("/student/self_practice/generate", { requirement });
   return resp.data;
 }
 
-export async function fetchPracticeList() {
-  const resp = await api.get("/student/practice/list");
+export async function fetchSelfPracticeList() {
+  const resp = await api.get("/student/self_practice/list");
   return resp.data;
 }
 
-export async function submitPractice(id, answers) {
-  const resp = await api.post(`/student/practice/${id}/submit`, { answers });
+export async function submitSelfPractice(id, answers) {
+  const resp = await api.post(`/student/self_practice/${id}/submit`, { answers });
   return resp.data;
 }

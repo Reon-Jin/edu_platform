@@ -70,7 +70,7 @@ def api_delete_session(sid: int, user: User = Depends(get_current_user)):
 
 
 
-router_practice = APIRouter(prefix="/student/practice", tags=["student-practice"])
+router_practice = APIRouter(prefix="/student/self_practice", tags=["student-self_practice"])
 
 @router_practice.post("/generate", response_model=PracticeOut)
 def api_generate(req: PracticeGenerateRequest, user: User = Depends(get_current_user)):
@@ -95,14 +95,14 @@ def api_list(user: User = Depends(get_current_user)):
 def api_submit(pid: int, req: PracticeSubmitRequest, user: User = Depends(get_current_user)):
     pr = submit_practice(pid, user.id, req.answers)
     if not pr:
-        raise HTTPException(404, "practice not found")
+        raise HTTPException(404, "self practice not found")
     return PracticeOut(id=pr.id, topic=pr.topic, questions=pr.questions, answers=pr.answers, status=pr.status, feedback=pr.feedback, score=pr.score)
 
 
-from backend.services.analysis_service import analyze_student_practice
+from backend.services.analysis_service import analyze_student_homeworks
 
 router_analysis = APIRouter(prefix="/student", tags=["student-analysis"])
 
 @router_analysis.get("/analysis")
 def api_analysis(user: User = Depends(get_current_user)):
-    return analyze_student_practice(user.id)
+    return analyze_student_homeworks(user.id)
