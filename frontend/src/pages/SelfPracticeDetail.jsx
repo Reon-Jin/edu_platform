@@ -6,55 +6,76 @@ import "../index.css";
 export default function SelfPracticeDetail() {
   const { id } = useParams();
   const [practice, setPractice] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
-      const data = await getSelfPractice(id);
-      setPractice(data);
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getSelfPractice(id);
+        setPractice(data);
+      } catch (err) {
+        console.error(err);
+        setError("加载失败");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id]);
 
-  if (!practice) return <div className="container">加载中...</div>;
+  const handleDownload = async () => {
+    const blob = await downloadSelfPracticePdf(id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `self_practice_${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="container">
       <div className="card">
-        <h2>{practice.topic}</h2>
-        {practice.questions.map((block, bIdx) => (
-          <div key={bIdx} style={{ marginBottom: "1rem" }}>
-            <strong>{block.type}</strong>
-            {block.items.map((item) => (
-              <div key={item.id} style={{ marginLeft: "1rem" }}>
-                <div>{item.question}</div>
-                {item.options && (
-                  <ul>
-                    {item.options.map((opt, idx) => (
-                      <li key={idx}>{opt}</li>
-                    ))}
-                  </ul>
-                )}
-                <div>答案：{practice.answers[item.id]}</div>
+        <h2>随练预览</h2>
+        {error && <div className="error">{error}</div>}
+        {loading ? (
+          <div>加载中...</div>
+        ) : (
+          practice && (
+            <>
+              <div className="actions">
+                <button className="button" onClick={handleDownload}>
+                  下载答案 PDF
+                </button>
               </div>
-            ))}
-          </div>
-        ))}
-        <button
-          className="button"
-          onClick={async () => {
-            const blob = await downloadSelfPracticePdf(id);
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `self_practice_${id}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-          }}
-        >
-          下载 PDF
-        </button>
+              <div style={{ marginTop: "1rem" }}>
+                {practice.questions.map((block, bIdx) => (
+                  <div key={bIdx} style={{ marginBottom: "1rem" }}>
+                    <strong>{block.type}</strong>
+                    {block.items.map((item, i) => (
+                      <div key={i} style={{ marginLeft: "1rem" }}>
+                        {item.question}
+                        {item.options && (
+                          <ul>
+                            {item.options.map((opt, j) => (
+                              <li key={j}>{opt}</li>
+                            ))}
+                          </ul>
+                        )}
+                        <div>答案：{practice.answers[item.id]}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </>
+          )
+        )}
       </div>
     </div>
   );
