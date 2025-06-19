@@ -5,6 +5,8 @@ from sqlmodel import Session, select
 from backend.config import engine
 from backend.models import Practice
 from backend.utils.deepseek_client import call_deepseek_api
+from backend.services.exercise_service import _build_pdf
+from io import BytesIO
 
 
 def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
@@ -63,3 +65,10 @@ def submit_practice(practice_id: int, student_id: int, answers: Dict[str, Any]) 
         sess.commit()
         sess.refresh(pr)
         return pr
+
+
+def download_practice_pdf(pr: Practice) -> bytes:
+    """Generate a PDF containing questions and answers for the practice."""
+    buffer = BytesIO()
+    _build_pdf(buffer, f"自定义随练 #{pr.id}", pr.questions or [], answers=pr.answers or {})
+    return buffer.getvalue()

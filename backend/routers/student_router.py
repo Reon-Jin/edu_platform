@@ -21,8 +21,12 @@ from backend.services.chat_service import (
     delete_session,
 )
 from backend.services.practice_service import (
-    generate_practice, list_practices, get_practice, submit_practice
+    generate_practice, list_practices, get_practice, submit_practice,
+    download_practice_pdf
 )
+from fastapi.responses import StreamingResponse
+from urllib.parse import quote
+import io
 
 router = APIRouter(prefix="/student/ai", tags=["student-ai"])
 
@@ -90,6 +94,25 @@ def api_list(user: User = Depends(get_current_user)):
     for pr in prs:
         out.append(PracticeOut(id=pr.id, topic=pr.topic, questions=pr.questions, answers=pr.answers, status=pr.status))
     return out
+
+@router_practice.get("/{pid}", response_model=PracticeOut)
+def api_detail(pid: int, user: User = Depends(get_current_user)):
+    pr = get_practice(pid, user.id)
+    if not pr:
+        raise HTTPException(404, "self practice not found")
+    return PracticeOut(id=pr.id, topic=pr.topic, questions=pr.questions, answers=pr.answers, status=pr.status)
+
+@router_practice.get("/{pid}/download", response_class=StreamingResponse)
+def api_download(pid: int, user: User = Depends(get_current_user)):
+    pr = get_practice(pid, user.id)
+    if not pr:
+        raise HTTPException(404, "self practice not found")
+    pdf_bytes = download_practice_pdf(pr)
+    raw_name = f"self_practice_{pid}.pdf"
+    fallback = "self_practice.pdf"
+    quoted = quote(raw_name, safe="")
+    headers = {"Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"}
+    return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf", headers=headers)
 
 @router_practice.post("/{pid}/submit", response_model=PracticeOut)
 def api_submit(pid: int, req: PracticeSubmitRequest, user: User = Depends(get_current_user)):

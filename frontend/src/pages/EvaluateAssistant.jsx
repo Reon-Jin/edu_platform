@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
+import { generateSelfPractice } from "../api/student";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -30,8 +31,8 @@ export default function EvaluateAssistant() {
   }, []);
 
   const gen = async () => {
-    const resp = await api.post("/student/self_practice/generate", { requirement: req });
-    alert("已生成并保存随练ID:" + resp.data.id);
+    const data = await generateSelfPractice(req);
+    alert("已生成并保存随练ID:" + data.id);
   };
 
   return (

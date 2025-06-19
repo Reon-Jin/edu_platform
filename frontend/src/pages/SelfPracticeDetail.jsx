@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../api/api";
+import { getSelfPractice, downloadSelfPracticePdf } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeDetail() {
   const { id } = useParams();
   const [practice, setPractice] = useState(null);
-  const [answers, setAnswers] = useState({});
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get(`/student/self_practice/list`);
-      const item = resp.data.find((p) => String(p.id) === id);
-      if (item) setPractice(item);
+      const data = await getSelfPractice(id);
+      setPractice(data);
     };
     load();
   }, [id]);
-
-  const submit = async () => {
-    await api.post(`/student/self_practice/${id}/submit`, { answers });
-    alert("已提交");
-  };
 
   if (!practice) return <div className="container">加载中...</div>;
 
@@ -41,25 +34,27 @@ export default function SelfPracticeDetail() {
                     ))}
                   </ul>
                 )}
-                <input
-                  className="input"
-                  onChange={(e) =>
-                    setAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))
-                  }
-                />
+                <div>答案：{practice.answers[item.id]}</div>
               </div>
             ))}
           </div>
         ))}
-        {practice.status !== "completed" && (
-          <button className="button" onClick={submit}>提交</button>
-        )}
-        {practice.status === "completed" && (
-          <div>
-            <h3>批改结果</h3>
-            <pre>{JSON.stringify(practice.feedback, null, 2)}</pre>
-          </div>
-        )}
+        <button
+          className="button"
+          onClick={async () => {
+            const blob = await downloadSelfPracticePdf(id);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `self_practice_${id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          下载 PDF
+        </button>
       </div>
     </div>
   );

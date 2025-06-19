@@ -20,7 +20,14 @@ export async function fetchSelfPracticeList() {
   return resp.data;
 }
 
-export async function submitSelfPractice(id, answers) {
-  const resp = await api.post(`/student/self_practice/${id}/submit`, { answers });
+export async function getSelfPractice(id) {
+  const resp = await api.get(`/student/self_practice/${id}`);
+  return resp.data;
+}
+
+export async function downloadSelfPracticePdf(id) {
+  const resp = await api.get(`/student/self_practice/${id}/download`, {
+    responseType: "blob",
+  });
   return resp.data;
 }

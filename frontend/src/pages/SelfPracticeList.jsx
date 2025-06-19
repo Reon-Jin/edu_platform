@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/api";
+import { fetchSelfPracticeList, downloadSelfPracticePdf } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeList() {
@@ -9,8 +9,8 @@ export default function SelfPracticeList() {
 
   useEffect(() => {
     const load = async () => {
-      const resp = await api.get("/student/self_practice/list");
-      setList(resp.data);
+      const data = await fetchSelfPracticeList();
+      setList(data);
     };
     load();
   }, []);
@@ -23,7 +23,6 @@ export default function SelfPracticeList() {
           <thead>
             <tr>
               <th>主题</th>
-              <th>状态</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -31,13 +30,29 @@ export default function SelfPracticeList() {
             {list.map((p) => (
               <tr key={p.id}>
                 <td>{p.topic}</td>
-                <td>{p.status}</td>
                 <td>
                   <button
                     className="button"
                     onClick={() => navigate(`/student/self_practice/${p.id}`)}
                   >
                     查看
+                  </button>
+                  <button
+                    className="button"
+                    style={{ marginLeft: "0.5rem" }}
+                    onClick={async () => {
+                      const blob = await downloadSelfPracticePdf(p.id);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `self_practice_${p.id}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    下载 PDF
                   </button>
                 </td>
               </tr>
