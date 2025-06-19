@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchSelfPracticeList } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeList() {
   const [list, setList] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -31,12 +30,9 @@ export default function SelfPracticeList() {
               <tr key={p.id}>
                 <td>{p.topic}</td>
                 <td>
-                  <button
-                    className="button"
-                    onClick={() => navigate(`/student/self_practice/${p.id}`)}
-                  >
+                  <Link className="button" to={`/student/self_practice/${p.id}`}>
                     查看
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}
