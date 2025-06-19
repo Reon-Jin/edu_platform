@@ -33,7 +33,7 @@ export default function SelfPracticeList() {
                 <td>
                   <button
                     className="button"
-                    onClick={() => navigate(`self_practice/${p.id}`)}
+                    onClick={() => navigate(`/student/self_practice/${p.id}`)}
                   >
                     查看
                   </button>
