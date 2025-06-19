@@ -5,6 +5,15 @@ from sqlmodel import Session, select
 from backend.config import engine
 from backend.models import Practice
 from backend.utils.deepseek_client import call_deepseek_api
+from backend.services.exercise_service import _build_pdf
+from io import BytesIO
+
+
+def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
+    content: str = resp["choices"][0]["message"]["content"]
+    text = re.sub(r"^```(?:json)?\s*", "", content)
+    text = re.sub(r"\s*```$", "", text)
+    return json.loads(text)
 
 
 def generate_practice(student_id: int, requirement: str) -> Practice:
@@ -13,10 +22,7 @@ def generate_practice(student_id: int, requirement: str) -> Practice:
         "{\"questions\":[], \"answers\":{}}"
     )
     resp = call_deepseek_api(prompt)
-    content = resp["choices"][0]["message"]["content"]
-    text = re.sub(r"^```(?:json)?\s*", "", content)
-    text = re.sub(r"\s*```$", "", text)
-    data = json.loads(text)
+    data = _parse_model_response(resp)
     with Session(engine) as sess:
         practice = Practice(
             student_id=student_id,
@@ -59,3 +65,10 @@ def submit_practice(practice_id: int, student_id: int, answers: Dict[str, Any]) 
         sess.commit()
         sess.refresh(pr)
         return pr
+
+
+def download_practice_pdf(pr: Practice) -> bytes:
+    """Generate a PDF containing questions and answers for the practice."""
+    buffer = BytesIO()
+    _build_pdf(buffer, f"自定义随练 #{pr.id}", pr.questions or [], answers=pr.answers or {})
+    return buffer.getvalue()

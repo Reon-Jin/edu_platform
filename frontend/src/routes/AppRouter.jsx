@@ -21,8 +21,8 @@ import StudentHomeworkAnswer from "../pages/StudentHomeworkAnswer";
 import StudentAiTeacher from "../pages/StudentAiTeacher";
 import StudentChatHistory from "../pages/StudentChatHistory";
 import EvaluateAssistant from "../pages/EvaluateAssistant";
-import StudentPracticeList from "../pages/StudentPracticeList";
-import StudentPracticeDetail from "../pages/StudentPracticeDetail";
+import SelfPracticeList from "../pages/SelfPracticeList";
+import SelfPracticeDetail from "../pages/SelfPracticeDetail";
 import AdminPage from "../pages/AdminPage";
 
 // 受保护路由：检查是否已登录且角色匹配
@@ -79,8 +79,8 @@ export default function AppRouter() {
               <Route path="ai/:sessionId" element={<StudentAiTeacher />} />
               <Route path="ai/history" element={<StudentChatHistory />} />
               <Route path="evaluate" element={<EvaluateAssistant />} />
-              <Route path="practice" element={<StudentPracticeList />} />
-              <Route path="practice/:id" element={<StudentPracticeDetail />} />
+              <Route path="self_practice" element={<SelfPracticeList />} />
+              <Route path="self_practice/:id" element={<SelfPracticeDetail />} />
               <Route path="*" element={<Navigate to="/student" replace />} />
             </Routes>
           </ProtectedRoute>
