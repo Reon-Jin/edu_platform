@@ -1,68 +1,33 @@
 # backend/services/lesson_service.py
 
 import os
-import re
-from typing import List
+from typing import List, Tuple
 
 import backend.utils.deepseek_client as _ds
 from backend.config import settings
+from backend.utils import rag_pipeline
+
+INDEX_DB = os.path.join(settings.KNOWLEDGE_BASE_DIR, "index.db")
 
 
-def load_knowledge_texts() -> List[str]:
-    """
-    从本地知识库目录读取所有 .txt 文件，返回文本列表。
-    """
-    kb_dir = settings.KNOWLEDGE_BASE_DIR
-    texts: List[str] = []
-    if not os.path.isdir(kb_dir):
-        return texts
-    for fn in os.listdir(kb_dir):
-        if fn.lower().endswith(".txt"):
-            path = os.path.join(kb_dir, fn)
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
-                    if content:
-                        texts.append(content)
-            except Exception:
-                continue
-    return texts
+def _retrieve_snippets(topic: str) -> List[Tuple[str, str]]:
+    """使用 RAG 索引检索与主题最相关的文本片段"""
+    if not os.path.isfile(INDEX_DB):
+        raise RuntimeError("知识库索引不存在，请先运行 prepare_knowledge.py")
+    return rag_pipeline.retrieve(topic, INDEX_DB, top_k=5)
 
 
-def _extract_keywords(topic: str) -> List[str]:
-    """
-    提取连续的中文或英文/数字/点号关键词，用于匹配知识库。
-    """
-    # 匹配中文字符块 或 包含字母数字和点号的词
-    return re.findall(r"[\u4e00-\u9fa5]+|[A-Za-z0-9\.]+", topic)
-
-
-def _find_relevant_snippets(topic: str, texts: List[str]) -> List[str]:
-    """
-    从 texts 中筛选出所有包含任意关键词的段落，保持段落完整。
-    """
-    keywords = _extract_keywords(topic)
-    relevant: List[str] = []
-    for text in texts:
-        low = text.lower()
-        # 若段落中包含任一关键词，则视为相关
-        if any(k.lower() in low for k in keywords):
-            snippet = text.strip()
-            relevant.append(snippet)
-    return relevant
-
-
-def _build_prompt(topic: str, knowledge_texts: List[str]) -> str:
+def _build_prompt(topic: str, knowledge_texts: List[Tuple[str, str]]) -> str:
     """
     构建发送给 Deepseek 的 prompt：
     - 列出所有相关知识库片段
     - 指示模型详实补全并输出纯 Markdown
     """
-    snippets = _find_relevant_snippets(topic, knowledge_texts)
+    snippets = knowledge_texts
     if snippets:
         header = (
             f"以下是与“{topic}”相关的本地知识库内容，共 {len(snippets)} 条（仅供参考）：\n\n"
-            + "\n".join(f"- {s}" for s in snippets)
+            + "\n".join(f"- [{doc}] {text}" for doc, text in snippets)
             + "\n\n"
         )
     else:
@@ -89,11 +54,8 @@ async def generate_lesson(topic: str) -> str:
     """
     调用 Deepseek API，根据主题生成教案 Markdown 文本。
     """
-    texts = load_knowledge_texts()
-    if not texts:
-        raise RuntimeError("本地知识库为空或无法读取")
-
-    prompt = _build_prompt(topic, texts)
+    snippets = _retrieve_snippets(topic)
+    prompt = _build_prompt(topic, snippets)
     result = _ds.call_deepseek_api(prompt=prompt)
     markdown_content = result["choices"][0]["message"]["content"]
     return markdown_content
