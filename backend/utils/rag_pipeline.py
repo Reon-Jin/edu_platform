@@ -84,14 +84,49 @@ def _fetch_vectors(conn, ids: List[int]) -> np.ndarray:
 
 
 def retrieve(query: str, db_path: str, top_k: int = 5) -> List[Tuple[str, str]]:
-    """先通过 FTS5 过滤，再按向量相似度排序"""
+    """使用 FTS5 与向量检索，若命中小标题则返回整段内容"""
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-    cur.execute('SELECT rowid, doc, content FROM chunks WHERE chunks MATCH ?', (query,))
+
+    tokens = word_tokenize(query)
+    fts_query = " OR ".join(tokens) if tokens else query
+
+    # ---- 尝试匹配小标题 ----
+    if tokens:
+        sec_query = " OR ".join(f"section:{t}" for t in tokens)
+        cur.execute(
+            'SELECT DISTINCT doc, section FROM chunks WHERE chunks MATCH ?',
+            (sec_query,),
+        )
+        sec_rows = cur.fetchall()
+        if sec_rows:
+            sections = []
+            for doc, sec in sec_rows:
+                cur.execute(
+                    'SELECT content FROM chunks WHERE doc=? AND section=?',
+                    (doc, sec),
+                )
+                texts = [r[0] for r in cur.fetchall()]
+                sections.append((doc, " ".join(texts)))
+
+            model = get_model()
+            q_vec = model.encode(query)
+            vecs = model.encode([txt for _, txt in sections])
+            sims = vecs @ q_vec
+            idxs = sims.argsort()[-top_k:][::-1]
+            conn.close()
+            return [sections[i] for i in idxs]
+
+    # ---- 常规检索 ----
+    cur.execute(
+        'SELECT rowid, doc, content FROM chunks WHERE chunks MATCH ?',
+        (fts_query,),
+    )
     rows = cur.fetchall()
-    if not rows:
-        conn.close()
-        return []
+    # 若结果过少，降级为遍历所有向量
+    if len(rows) < top_k:
+        cur.execute('SELECT rowid, doc, content FROM chunks')
+        rows = cur.fetchall()
 
     ids = [r[0]-1 for r in rows]  # rowid 从1开始，与向量表索引对应
     vecs = _fetch_vectors(conn, ids)
