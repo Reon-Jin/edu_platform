@@ -93,28 +93,41 @@ def _extract_pdf_text(file_path: str) -> str:
 
 
 def _segment_text(content: str) -> List[str]:
-    """根据空行和列表项拆分文本段落。"""
+    """根据空行和列表项拆分文本段落，并尽量保持标题与其正文连在一起。"""
     content = content.replace("\r\n", "\n")
     lines = content.split("\n")
     segments: List[str] = []
     buf: List[str] = []
     bullet_re = re.compile(r"^[-*•]|^\d+[\.、]")
-    for ln in lines:
-        stripped = ln.strip()
+    heading_re = re.compile(r"^#{1,6}\s+")
+    i = 0
+    n = len(lines)
+    while i < n:
+        stripped = lines[i].strip()
         if not stripped:
+            if buf and all(heading_re.match(x) for x in buf) and i + 1 < n:
+                i += 1
+                continue
             if buf:
                 segments.append(" ".join(buf))
                 buf = []
+            i += 1
             continue
+
         if bullet_re.match(stripped):
             if buf:
                 segments.append(" ".join(buf))
                 buf = []
             segments.append(stripped)
-        else:
-            buf.append(stripped)
+            i += 1
+            continue
+
+        buf.append(stripped)
+        i += 1
+
     if buf:
         segments.append(" ".join(buf))
+
     return segments
 
 

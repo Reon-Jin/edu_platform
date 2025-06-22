@@ -21,4 +21,5 @@ npm run dev
 
 Place your `.txt`, `.docx`, `.doc` or `.pdf` files under `backend/knowledge`.
 Files are automatically scanned when generating lessons. Texts are split by
-paragraphs and bullet points, and duplicate segments are removed.
+paragraphs or bullet lists, with headings kept together with their following
+content, and duplicate segments are removed.
