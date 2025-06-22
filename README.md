@@ -19,5 +19,6 @@ npm run dev
 
 ## Knowledge base
 
-Place your `.txt`, `.docx`, `.doc` or `.pdf` files under `backend/knowledge`. They
-will be automatically loaded when generating lessons.
+Place your `.txt`, `.docx`, `.doc` or `.pdf` files under `backend/knowledge`.
+Files are automatically scanned when generating lessons. Texts are split by
+paragraphs and bullet points, and duplicate segments are removed.

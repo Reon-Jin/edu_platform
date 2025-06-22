@@ -6,19 +6,20 @@ import math
 import subprocess
 from collections import Counter, defaultdict
 from functools import lru_cache
-from typing import List, Tuple
+from typing import List, Tuple, Set
 
 import backend.utils.deepseek_client as _ds
 from backend.config import settings
 
 
 def load_knowledge_texts() -> List[str]:
-    """从本地知识库目录读取支持的文件类型并按段落拆分。"""
+    """从本地知识库目录读取支持的文件类型并按段落拆分，去除重复。"""
     kb_dir = settings.KNOWLEDGE_BASE_DIR
     texts: List[str] = []
     if not os.path.isdir(kb_dir):
         return texts
 
+    seen: Set[str] = set()
     for root, _, files in os.walk(kb_dir):
         for fn in files:
             path = os.path.join(root, fn)
@@ -36,9 +37,10 @@ def load_knowledge_texts() -> List[str]:
             except Exception:
                 continue
 
-            for para in re.split(r"\n{2,}", content):
-                para = para.strip()
-                if para:
+            for para in _segment_text(content):
+                norm = re.sub(r"\s+", "", para)
+                if norm and norm not in seen:
+                    seen.add(norm)
                     texts.append(para)
     return texts
 
@@ -88,6 +90,32 @@ def _extract_pdf_text(file_path: str) -> str:
         if text:
             chunks.append(text)
     return "\n\n".join(chunks)
+
+
+def _segment_text(content: str) -> List[str]:
+    """根据空行和列表项拆分文本段落。"""
+    content = content.replace("\r\n", "\n")
+    lines = content.split("\n")
+    segments: List[str] = []
+    buf: List[str] = []
+    bullet_re = re.compile(r"^[-*•]|^\d+[\.、]")
+    for ln in lines:
+        stripped = ln.strip()
+        if not stripped:
+            if buf:
+                segments.append(" ".join(buf))
+                buf = []
+            continue
+        if bullet_re.match(stripped):
+            if buf:
+                segments.append(" ".join(buf))
+                buf = []
+            segments.append(stripped)
+        else:
+            buf.append(stripped)
+    if buf:
+        segments.append(" ".join(buf))
+    return segments
 
 
 def _extract_keywords(topic: str) -> List[str]:
