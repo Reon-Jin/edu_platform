@@ -15,3 +15,5 @@ python-multipart
 wkhtmltopdf
 cryptography
 reportlab
+python-docx
+PyPDF2

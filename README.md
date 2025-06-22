@@ -17,10 +17,7 @@ python -m uvicorn backend.main:app --reload --port 8000
 npm run dev
 ```
 
-## Prepare knowledge base
+## Knowledge base
 
-Convert Word documents to text snippets for the lesson generator:
-
-```bash
-python backend/scripts/prepare_knowledge.py
-```
+Place your `.txt`, `.docx`, `.doc` or `.pdf` files under `backend/knowledge`. They
+will be automatically loaded when generating lessons.
