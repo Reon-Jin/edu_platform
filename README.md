@@ -19,7 +19,7 @@ npm run dev
 
 ## Prepare knowledge base
 
-Convert Word documents to text snippets for the lesson generator:
+Build the lesson knowledge base and RAG index:
 
 ```bash
 python backend/scripts/prepare_knowledge.py
