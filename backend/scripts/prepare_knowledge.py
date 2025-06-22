@@ -11,12 +11,17 @@ import sqlite3
 from pathlib import Path
 from typing import List
 
+# 自动下载 NLTK 分词模型，避免 LookupError: punkt_tab not found
+import nltk
+nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+
 from docx import Document
 from backend.utils import rag_pipeline
 
-INPUT_DIR = "word_files"
-OUTPUT_DIR = "knowledge"
-INDEX_DB = "knowledge/index.db"
+INPUT_DIR = "../word_files"
+OUTPUT_DIR = "../knowledge"
+INDEX_DB = "../knowledge/index.db"
 MAX_LENGTH = 2000
 ANTIWORD_CMD = "antiword"
 
@@ -58,6 +63,7 @@ def merge_paragraphs(text: str) -> str:
 
 
 def chunk_by_length(text: str, max_len: int = MAX_LENGTH) -> List[str]:
+    # 基于固定字符数切片，若需按 token 切片，可在 rag_pipeline 中调整
     chunks = []
     for i in range(0, len(text), max_len):
         chunk = text[i : i + max_len].strip()
@@ -92,6 +98,7 @@ def process_directory() -> None:
 
 
 def build_index() -> None:
+    # 在索引前确保 NLTK 资源可用
     kb_path = Path(OUTPUT_DIR)
     rag_pipeline.build_index(str(kb_path), INDEX_DB)
     print(f"Index built at {INDEX_DB}")
