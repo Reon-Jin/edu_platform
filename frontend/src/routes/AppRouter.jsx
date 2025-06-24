@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom"; 
 import LoginPage from "../pages/LoginPage";
-import TeacherPage from "../pages/TeacherPage"; 
+import TeacherDashboard from "../pages/TeacherDashboard";
 import TeacherLesson from "../pages/TeacherLesson";
 import LessonList from "../pages/LessonList";
 import LessonPreview from "../pages/LessonPreview";
@@ -48,7 +48,7 @@ export default function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={["teacher"]}>
             <Routes>
-              <Route path="/" element={<TeacherPage />} />
+              <Route path="/" element={<TeacherDashboard />} />
               <Route path="lesson" element={<TeacherLesson />} />
               <Route path="lesson/list" element={<LessonList />} />
               <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />

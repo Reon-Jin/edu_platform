@@ -3,7 +3,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom"; // 不需要再使用 BrowserRouter
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import TeacherPage from "./pages/TeacherPage"; // TeacherPage 路由
+import TeacherDashboard from "./pages/TeacherDashboard";
 import TeacherLesson from "./pages/TeacherLesson";
 import LessonList from "./pages/LessonList"; 
 import LessonPreview from "./pages/LessonPreview";
@@ -31,7 +31,7 @@ export default function App() {
         element={
           <ProtectedRoute allowedRoles={["teacher"]}>
             <Routes>
-              <Route path="/" element={<TeacherPage />} />  {/* TeacherPage 路由 */}
+              <Route path="/" element={<TeacherDashboard />} />
               <Route path="lesson" element={<TeacherLesson />} />
               <Route path="lesson/list" element={<LessonList />} />
               <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />  {/* 课件预览页面 */}

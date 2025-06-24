@@ -13,7 +13,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import StudentPage from '../pages/StudentPage';
-import TeacherPage from '../pages/TeacherPage';
+import TeacherDashboard from '../pages/TeacherDashboard';
 import AdminPage from '../pages/AdminPage';
 
 export default function AppRouter() {
@@ -23,7 +23,7 @@ export default function AppRouter() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/student" element={<StudentPage />} />
-        <Route path="/teacher" element={<TeacherPage />} />
+        <Route path="/teacher" element={<TeacherDashboard />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>
