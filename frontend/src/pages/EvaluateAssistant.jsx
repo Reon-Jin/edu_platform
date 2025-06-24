@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/api";
 import { generateSelfPractice } from "../api/student";
 import { useNavigate } from "react-router-dom";
+import NavButtons from "../components/NavButtons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../index.css";
@@ -65,6 +66,7 @@ export default function EvaluateAssistant() {
     <div className="container">
       <div className="card">
         <h2>评测助手</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         <div className="markdown-preview" style={{ minHeight: '6rem', marginBottom: '1rem' }}>
           {analysisLoading ? '正在努力为您分析学习情况…' : (

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchExerciseStats } from "../api/teacher";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function ExerciseStats() {
   const { ex_id } = useParams();
@@ -30,6 +31,7 @@ export default function ExerciseStats() {
     <div className="container">
       <div className="card">
         <h2>练习统计</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>

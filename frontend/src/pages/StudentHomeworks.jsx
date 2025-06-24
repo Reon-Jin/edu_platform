@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function StudentHomeworks() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function StudentHomeworks() {
     <div className="container">
       <div className="card">
         <h2>我的作业</h2>
+        <NavButtons />
         <table>
           <thead>
             <tr>

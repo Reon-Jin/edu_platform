@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudentList } from '../api/teacher';
 import '../index.css';
+import NavButtons from '../components/NavButtons';
 
 export default function TeacherStudents() {
   const [list, setList] = useState([]);
@@ -30,6 +31,7 @@ export default function TeacherStudents() {
     <div className="container">
       <div className="card">
         <h2>学生列表</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>

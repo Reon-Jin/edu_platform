@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getSelfPractice, downloadSelfPracticePdf } from "../api/student";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function SelfPracticeDetail() {
   const { id } = useParams();
@@ -42,6 +43,7 @@ export default function SelfPracticeDetail() {
     <div className="container">
       <div className="card">
         <h2>随练预览</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>

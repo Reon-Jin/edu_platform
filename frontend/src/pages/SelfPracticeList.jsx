@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchSelfPracticeList } from "../api/student";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function SelfPracticeList() {
   const [list, setList] = useState([]);
@@ -18,6 +19,7 @@ export default function SelfPracticeList() {
     <div className="container">
       <div className="card">
         <h2>我的随练</h2>
+        <NavButtons />
         <table>
           <thead>
             <tr>

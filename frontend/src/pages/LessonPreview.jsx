@@ -6,6 +6,7 @@ import { fetchLessonPreview, downloadCoursewarePdf } from "../api/teacher";  // 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 用于支持 GitHub 风格的 Markdown（包括表格）
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function LessonPreview() {
   const { cw_id } = useParams();  // 获取课件 ID
@@ -54,6 +55,7 @@ export default function LessonPreview() {
     <div className="container">
       <div className="card">
         <h2>教案预览</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}  {/* 错误显示 */}
         {loading ? (
           <div>加载中...</div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchLessonList } from "../api/teacher";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function LessonList() {
   const [lessons, setLessons] = useState([]);
@@ -30,6 +31,7 @@ export default function LessonList() {
     <div className="container">
       <div className="card">
         <h2>我的教案列表</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}  {/* 错误显示 */}
         {loading ? (
           <div>加载中...</div>

@@ -7,6 +7,7 @@ import {
   downloadAnswersPdf,
 } from "../api/teacher";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function ExercisePage() {
   const [form, setForm] = useState({
@@ -122,6 +123,7 @@ export default function ExercisePage() {
     <div className="container">
       <div className="card">
         <h2>练习题生成</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleGenerate}>
           <label>

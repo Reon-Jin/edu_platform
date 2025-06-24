@@ -4,6 +4,7 @@ import { fetchStudentAnalysis, fetchStudentHomeworks } from '../api/teacher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import '../index.css';
+import NavButtons from '../components/NavButtons';
 
 export default function TeacherStudentDetail() {
   const { sid } = useParams();
@@ -39,6 +40,7 @@ export default function TeacherStudentDetail() {
     <div className="container">
       <div className="card">
         <h2>学生 {sid} 学情</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         <div className="markdown-preview" style={{ minHeight: '6rem' }}>
           {analysisLoading ? '加载中...' : (

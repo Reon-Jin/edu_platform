@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function StudentHomeworkAnswer() {
   const { hw_id } = useParams();
@@ -92,6 +93,7 @@ export default function StudentHomeworkAnswer() {
     <div className="container">
       <div className="card">
         <h2>{exercise.subject}</h2>
+        <NavButtons />
         <div className="actions" style={{ flexWrap: "wrap" }}>
           {flat.map((q, idx) => (
             <button

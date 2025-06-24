@@ -3,6 +3,7 @@ import { prepareLessonMarkdown, downloadCoursewarePdf, saveCourseware } from "..
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
 import "../index.css";  // 引用全局样式
+import NavButtons from "../components/NavButtons";
 
 export default function TeacherLesson() {
   const [topic, setTopic] = useState("");
@@ -66,6 +67,7 @@ export default function TeacherLesson() {
     <div className="container">
       <div className="card">
         <h2>教案备课</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         {saved && <div className="success">教案已保存！</div>}
         <form onSubmit={handleGenerate}>

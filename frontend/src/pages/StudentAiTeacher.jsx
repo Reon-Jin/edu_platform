@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function StudentAiTeacher() {
   const { sessionId } = useParams();
@@ -109,6 +110,7 @@ export default function StudentAiTeacher() {
         </div>
         <div style={{ flex: 1 }}>
           <h2>AI 教师</h2>
+          <NavButtons />
           <div style={{ marginTop: "1rem", minHeight: "300px" }}>
             {messages.map((m, idx) => (
               <div

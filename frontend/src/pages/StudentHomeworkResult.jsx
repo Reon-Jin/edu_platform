@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function StudentHomeworkResult() {
   const { hw_id } = useParams();
@@ -43,6 +44,7 @@ export default function StudentHomeworkResult() {
     <div className="container">
       <div className="card">
         <h2>作业结果</h2>
+        <NavButtons />
         <div>总分：{score}</div>
         <div className="actions">
           {questions.map((q) => (

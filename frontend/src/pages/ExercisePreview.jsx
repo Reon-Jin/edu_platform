@@ -7,6 +7,7 @@ import {
   assignExercise,
 } from "../api/teacher";
 import "../index.css";
+import NavButtons from "../components/NavButtons";
 
 export default function ExercisePreview() {
   const { ex_id } = useParams();
@@ -85,6 +86,7 @@ export default function ExercisePreview() {
     <div className="container">
       <div className="card">
         <h2>练习预览</h2>
+        <NavButtons />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>
