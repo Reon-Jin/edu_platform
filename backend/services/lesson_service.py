@@ -14,7 +14,7 @@ def _retrieve_snippets(topic: str) -> List[Tuple[str, str]]:
     """使用 RAG 索引检索与主题最相关的文本片段"""
     if not os.path.isfile(INDEX_DB):
         raise RuntimeError("知识库索引不存在，请先运行 prepare_knowledge.py")
-    return rag_pipeline.retrieve(topic, INDEX_DB, top_k=20)
+    return rag_pipeline.retrieve(topic, INDEX_DB, top_k=5)
 
 
 def _build_prompt(topic: str, knowledge_texts: List[Tuple[str, str]]) -> str:
