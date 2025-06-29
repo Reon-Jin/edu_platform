@@ -22,7 +22,7 @@ export default function TeacherLayout() {
   return (
     <>
       <button
-        className="button toggle-btn"
+        className={`button toggle-btn${open ? " shifted" : ""}`}
         onClick={() => setOpen(!open)}
         style={{ width: "auto" }}
       >
@@ -36,7 +36,7 @@ export default function TeacherLayout() {
         <button className="button" onClick={() => nav("/teacher/exercise/list")}>练习列表</button>
         <button className="button" onClick={() => nav("/teacher/students")}>学情数据</button>
         <div style={{ flex: 1 }} />
-        <button className="button" onClick={logout}>登出</button>
+        <button className="button logout-btn" onClick={logout}>登出</button>
       </div>
       <div>
         <Outlet />
