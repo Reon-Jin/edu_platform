@@ -145,5 +145,6 @@ export default function StudentAiTeacher() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
