@@ -29,6 +29,13 @@ export default function TeacherStudents() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>学生列表</h2>
         {error && <div className="error">{error}</div>}
         {loading ? (

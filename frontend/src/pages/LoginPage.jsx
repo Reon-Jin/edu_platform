@@ -20,6 +20,7 @@ export default function LoginPage() {
       const { access_token, role } = await login(form); // 登录成功返回token与role
       localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
+      localStorage.setItem("username", form.username);
 
       // 根据角色跳转
       if (role === "teacher") {

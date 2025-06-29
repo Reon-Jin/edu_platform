@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/api";
 import "../index.css";
 
 export default function StudentHomeworkResult() {
   const { hw_id } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [activeId, setActiveId] = useState(null);
@@ -42,6 +43,13 @@ export default function StudentHomeworkResult() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>作业结果</h2>
         <div>总分：{score}</div>
         <div className="actions">

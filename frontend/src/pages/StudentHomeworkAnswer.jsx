@@ -91,6 +91,13 @@ export default function StudentHomeworkAnswer() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>{exercise.subject}</h2>
         <div className="actions" style={{ flexWrap: "wrap" }}>
           {flat.map((q, idx) => (

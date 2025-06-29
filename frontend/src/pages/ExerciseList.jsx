@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchExerciseList } from "../api/teacher";
 import "../index.css";
 
@@ -7,6 +7,7 @@ export default function ExerciseList() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -28,6 +29,13 @@ export default function ExerciseList() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>我的练习列表</h2>
         {error && <div className="error">{error}</div>}
         {loading ? (

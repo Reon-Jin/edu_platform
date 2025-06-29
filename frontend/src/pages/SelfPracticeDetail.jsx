@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getSelfPractice, downloadSelfPracticePdf } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [practice, setPractice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +42,13 @@ export default function SelfPracticeDetail() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>随练预览</h2>
         {error && <div className="error">{error}</div>}
         {loading ? (

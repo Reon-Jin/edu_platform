@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 
 export default function StudentChatHistory() {
   const [history, setHistory] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -26,6 +27,13 @@ export default function StudentChatHistory() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>历史记录</h2>
         <ul>
           {history.map((item) => (
