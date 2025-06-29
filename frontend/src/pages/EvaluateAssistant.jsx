@@ -64,13 +64,7 @@ export default function EvaluateAssistant() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
+        {/* 菜单布局下无需返回按钮 */}
         <h2>评测助手</h2>
         {error && <div className="error">{error}</div>}
         <div className="markdown-preview" style={{ minHeight: '6rem', marginBottom: '1rem' }}>

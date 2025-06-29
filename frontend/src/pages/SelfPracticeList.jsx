@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchSelfPracticeList } from "../api/student";
 import "../index.css";
 
 export default function SelfPracticeList() {
   const [list, setList] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -18,13 +17,6 @@ export default function SelfPracticeList() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
         <h2>我的随练</h2>
         <table>
           <thead>

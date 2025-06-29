@@ -2,7 +2,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom"; 
 import LoginPage from "../pages/LoginPage";
-import TeacherPage from "../pages/TeacherPage"; 
+import TeacherLayout from "../pages/TeacherLayout";
 import TeacherLesson from "../pages/TeacherLesson";
 import LessonList from "../pages/LessonList";
 import LessonPreview from "../pages/LessonPreview";
@@ -14,7 +14,7 @@ import TeacherStudents from "../pages/TeacherStudents";
 import TeacherStudentDetail from "../pages/TeacherStudentDetail";
 import TeacherStudentHomeworkDetail from "../pages/TeacherStudentHomeworkDetail";
 import RegisterPage from "../pages/RegisterPage";
-import StudentPage from "../pages/StudentPage";
+import StudentLayout from "../pages/StudentLayout";
 import StudentHomeworks from "../pages/StudentHomeworks";
 import StudentHomeworkResult from "../pages/StudentHomeworkResult";
 import StudentHomeworkAnswer from "../pages/StudentHomeworkAnswer";
@@ -47,45 +47,45 @@ export default function AppRouter() {
         path="/teacher/*"
         element={
           <ProtectedRoute allowedRoles={["teacher"]}>
-            <Routes>
-              <Route path="/" element={<TeacherPage />} />
-              <Route path="lesson" element={<TeacherLesson />} />
-              <Route path="lesson/list" element={<LessonList />} />
-              <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />
-              <Route path="exercise" element={<ExercisePage />} />
-              <Route path="exercise/list" element={<ExerciseList />} />
-              <Route path="exercise/preview/:ex_id" element={<ExercisePreview />} />
-              <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
-              <Route path="students" element={<TeacherStudents />} />
-              <Route path="students/:sid" element={<TeacherStudentDetail />} />
-              <Route path="students/:sid/homework/:hw_id" element={<TeacherStudentHomeworkDetail />} />
-              <Route path="*" element={<Navigate to="lesson" replace />} />
-            </Routes>
+            <TeacherLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="lesson" element={<TeacherLesson />} />
+        <Route path="lesson/list" element={<LessonList />} />
+        <Route path="lesson/preview/:cw_id" element={<LessonPreview />} />
+        <Route path="exercise" element={<ExercisePage />} />
+        <Route path="exercise/list" element={<ExerciseList />} />
+        <Route path="exercise/preview/:ex_id" element={<ExercisePreview />} />
+        <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
+        <Route path="students" element={<TeacherStudents />} />
+        <Route path="students/:sid" element={<TeacherStudentDetail />} />
+        <Route path="students/:sid/homework/:hw_id" element={<TeacherStudentHomeworkDetail />} />
+        <Route index element={<Navigate to="lesson" replace />} />
+        <Route path="*" element={<Navigate to="lesson" replace />} />
+      </Route>
       
       {/* 学生视图 */}
       <Route
         path="/student/*"
         element={
           <ProtectedRoute allowedRoles={["student"]}>
-            <Routes>
-              <Route path="/" element={<StudentPage />} />
-              <Route path="homeworks" element={<StudentHomeworks />} />
-              <Route path="homeworks/answer/:hw_id" element={<StudentHomeworkAnswer />} />
-              <Route path="homeworks/result/:hw_id" element={<StudentHomeworkResult />} />
-              <Route path="ai" element={<StudentAiTeacher />} />
-              <Route path="ai/:sessionId" element={<StudentAiTeacher />} />
-              <Route path="ai/history" element={<StudentChatHistory />} />
-              <Route path="evaluate" element={<EvaluateAssistant />} />
-              <Route path="self_practice" element={<SelfPracticeList />} />
-              <Route path="self_practice/:id" element={<SelfPracticeDetail />} />
-              <Route path="*" element={<Navigate to="/student" replace />} />
-            </Routes>
+            <StudentLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="homeworks" element={<StudentHomeworks />} />
+        <Route path="homeworks/answer/:hw_id" element={<StudentHomeworkAnswer />} />
+        <Route path="homeworks/result/:hw_id" element={<StudentHomeworkResult />} />
+        <Route path="ai" element={<StudentAiTeacher />} />
+        <Route path="ai/:sessionId" element={<StudentAiTeacher />} />
+        <Route path="ai/history" element={<StudentChatHistory />} />
+        <Route path="evaluate" element={<EvaluateAssistant />} />
+        <Route path="self_practice" element={<SelfPracticeList />} />
+        <Route path="self_practice/:id" element={<SelfPracticeDetail />} />
+        <Route index element={<Navigate to="homeworks" replace />} />
+        <Route path="*" element={<Navigate to="homeworks" replace />} />
+      </Route>
       {/* 管理员视图 */}
       <Route path="/admin/*" element={<AdminPage />} />
       
