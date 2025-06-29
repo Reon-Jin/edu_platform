@@ -5,6 +5,14 @@ import "../index.css";
 
 export default function TeacherPage() {
   const navigate = useNavigate();
+  const username = localStorage.getItem("username") || "";
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+    navigate("/login");
+  };
 
   const handlePrepare = () => {
     navigate("/teacher/lesson");  // 跳转到备课页面
@@ -29,6 +37,16 @@ export default function TeacherPage() {
   return (
     <div className="container">
       <div className="card">
+        <div style={{ textAlign: "right" }}>
+          您好，教师{username}
+          <button
+            className="button"
+            style={{ width: "auto", marginLeft: "1rem" }}
+            onClick={logout}
+          >
+            登出
+          </button>
+        </div>
         <h2>教师中心</h2>
         <div className="actions">
           <button className="button" onClick={handlePrepare}>

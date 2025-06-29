@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 // src/pages/LessonPreview.jsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { fetchLessonPreview, downloadCoursewarePdf } from "../api/teacher";  // 确保导入 downloadCoursewarePdf 函数
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 用于支持 GitHub 风格的 Markdown（包括表格）
@@ -13,6 +13,7 @@ export default function LessonPreview() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");  // 用于显示错误信息
   const [downloadLoading, setDownloadLoading] = useState(false);  // 控制下载按钮的 loading 状态
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadPreview = async () => {
@@ -53,6 +54,13 @@ export default function LessonPreview() {
   return (
     <div className="container">
       <div className="card">
+        <button
+          className="button"
+          style={{ width: "auto", marginBottom: "1rem" }}
+          onClick={() => navigate(-1)}
+        >
+          返回
+        </button>
         <h2>教案预览</h2>
         {error && <div className="error">{error}</div>}  {/* 错误显示 */}
         {loading ? (
