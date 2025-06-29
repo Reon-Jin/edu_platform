@@ -22,13 +22,6 @@ export default function StudentHomeworks() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
         <h2>我的作业</h2>
         <table>
           <thead>

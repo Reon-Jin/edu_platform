@@ -1,6 +1,6 @@
 // src/pages/LessonList.jsx
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchLessonList } from "../api/teacher";
 import "../index.css";
 
@@ -8,7 +8,6 @@ export default function LessonList() {
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");  // 用于显示错误信息
-  const navigate = useNavigate();
 
   useEffect(() => {
     const loadLessons = async () => {
@@ -30,13 +29,6 @@ export default function LessonList() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
         <h2>我的教案列表</h2>
         {error && <div className="error">{error}</div>}  {/* 错误显示 */}
         {loading ? (

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import {
   generateExerciseJson,
   saveExercise,
@@ -23,7 +23,6 @@ export default function ExercisePage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [assigned, setAssigned] = useState(false);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -123,13 +122,6 @@ export default function ExercisePage() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
         <h2>练习题生成</h2>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleGenerate}>

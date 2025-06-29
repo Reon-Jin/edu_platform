@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { prepareLessonMarkdown, downloadCoursewarePdf, saveCourseware } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
@@ -12,7 +12,6 @@ export default function TeacherLesson() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [cwId, setCwId] = useState(null);  // 用于保存课件的 ID
-  const navigate = useNavigate();
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -67,13 +66,6 @@ export default function TeacherLesson() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
         <h2>教案备课</h2>
         {error && <div className="error">{error}</div>}
         {saved && <div className="success">教案已保存！</div>}
