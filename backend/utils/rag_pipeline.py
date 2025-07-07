@@ -88,7 +88,8 @@ def retrieve(query: str, db_path: str, top_k: int = 5) -> List[Tuple[str, str]]:
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    tokens = word_tokenize(query)
+    tokens = [re.sub(r"[^\w]+", "", t) for t in word_tokenize(query)]
+    tokens = [t for t in tokens if t]
     fts_query = " OR ".join(tokens) if tokens else query
 
     # ---- 尝试匹配小标题 ----
