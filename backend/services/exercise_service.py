@@ -3,7 +3,7 @@
 import os
 import json
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from io import BytesIO
 
 from sqlmodel import Session, select
@@ -17,10 +17,47 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
 from backend.models import Exercise, Homework
 from backend.utils.deepseek_client import call_deepseek_api
-from backend.config import engine
+from backend.config import engine, settings
+from backend.utils import rag_pipeline
 
 # 注册内置中文字体
 pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+
+INDEX_DB = os.path.join(settings.KNOWLEDGE_BASE_DIR, "index.db")
+
+
+def _retrieve_snippets(topic: str) -> List[Tuple[str, str]]:
+    """Retrieve knowledge snippets related to the topic."""
+    if not os.path.isfile(INDEX_DB):
+        raise RuntimeError("知识库索引不存在，请先运行 prepare_knowledge.py")
+    return rag_pipeline.retrieve(topic, INDEX_DB, top_k=5)
+
+
+def _build_prompt(
+    topic: str,
+    parts_desc: List[str],
+    snippets: List[Tuple[str, str]],
+) -> str:
+    if snippets:
+        header = (
+            f"以下是与“{topic}”相关的本地知识库内容，共 {len(snippets)} 条（仅供参考）：\n\n"
+            + "\n".join(f"- [{doc}] {text}" for doc, text in snippets)
+            + "\n\n"
+        )
+    else:
+        header = (
+            f"本地知识库中未找到与“{topic}”相关的内容，"
+            "请结合专业教学经验补充完整知识点。\n\n"
+        )
+
+    return (
+        "你是教师的出题助手，请结合以下知识库片段和自身教学经验，为主题设计练习题。\n\n"
+        f"{header}"
+        f"主题：{topic}\n"
+        f"{''.join(parts_desc)}\n\n"
+        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[...] }），"
+        "answers（对象，键为题目 id，值为参考答案）。"
+    )
 
 
 def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
@@ -47,11 +84,8 @@ def preview_exercise(
     if num_programming:
         parts.append(f"生成 {num_programming} 道编程题，并提供参考代码答案；")
 
-    prompt = (
-        f"请根据主题“{topic}”{''.join(parts)}\n\n"
-        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[...] }），"
-        "answers（对象，键为题目 id，值为参考答案）。"
-    )
+    snippets = _retrieve_snippets(topic)
+    prompt = _build_prompt(topic, parts, snippets)
     resp = call_deepseek_api(prompt)
     data = _parse_model_response(resp)
     return {
