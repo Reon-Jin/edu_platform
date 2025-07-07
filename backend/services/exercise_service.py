@@ -55,8 +55,9 @@ def _build_prompt(
         f"{header}"
         f"主题：{topic}\n"
         f"{''.join(parts_desc)}\n\n"
-        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[...] }），"
+        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[{"\"id\"":\"...\",\"question\":\"...\",\"options\":[]}] }），"
         "answers（对象，键为题目 id，值为参考答案）。"
+        "请确保字段名称使用 question 而非 text。"
     )
 
 
@@ -64,7 +65,18 @@ def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
     content: str = resp["choices"][0]["message"]["content"]
     text = re.sub(r"^```(?:json)?\s*", "", content)
     text = re.sub(r"\s*```$", "", text)
-    return json.loads(text)
+    data = json.loads(text)
+    for block in data.get("questions", []):
+        if not isinstance(block, dict):
+            continue
+        for item in block.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            if "question" not in item and "text" in item:
+                item["question"] = item.pop("text")
+            if "id" in item:
+                item["id"] = str(item["id"])
+    return data
 
 
 def preview_exercise(
