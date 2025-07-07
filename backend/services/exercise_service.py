@@ -53,11 +53,9 @@ def _build_prompt(
     return (
         "你是教师的出题助手，请结合以下知识库片段和自身教学经验，为主题设计练习题。\n\n"
         f"{header}"
-        f"主题：{topic}\n"
-        f"{''.join(parts_desc)}\n\n"
-        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[{"\"id\"":\"...\",\"question\":\"...\",\"options\":[]}] }），"
+        f"主题是“{topic}”{''.join(parts_desc)}\n\n"
+        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[...] }），"
         "answers（对象，键为题目 id，值为参考答案）。"
-        "请确保字段名称使用 question 而非 text。"
     )
 
 
