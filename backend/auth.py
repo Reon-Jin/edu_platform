@@ -66,6 +66,8 @@ def login_for_access_token(
             detail="用户名或密码错误",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if user.status != "normal":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="账号状态异常")
     # 生成 JWT
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": str(user.id), "exp": expire}

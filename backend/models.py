@@ -14,6 +14,7 @@ class User(SQLModel, table=True):
     username: str = Field(max_length=50, nullable=False, unique=True)
     password: str = Field(nullable=False)
     role_id: Optional[int] = Field(default=None, foreign_key="role.id")
+    status: str = Field(default="normal", max_length=20)
 
     role: Optional[Role] = Relationship(back_populates="users")
     exercises: List["Exercise"]     = Relationship(back_populates="teacher")
@@ -81,6 +82,7 @@ class Courseware(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     teacher_id: int   = Field(foreign_key="user.id", nullable=False)
     topic: str        = Field(max_length=255)
+    is_public: bool   = Field(default=False)
     # 去掉 nullable，只保留 sa_column
     markdown: str     = Field(sa_column=Column(JSON))
     pdf: Optional[bytes] = Field(

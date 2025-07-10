@@ -222,9 +222,13 @@ async def list_coursewares(
 ):
     if not current_user.role or current_user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师角色访问")
-    stmt = select(Courseware).where(Courseware.teacher_id == current_user.id).order_by(Courseware.created_at.desc())
+    stmt = select(Courseware).where(
+        (Courseware.teacher_id == current_user.id) | (Courseware.is_public == True)
+    ).order_by(Courseware.created_at.desc())
     items = session.exec(stmt).all()
-    return [CoursewareMeta(id=c.id, topic=c.topic, created_at=c.created_at) for c in items]
+    def name(c: Courseware):
+        return c.topic + (" (public)" if c.is_public and c.teacher_id != current_user.id else "")
+    return [CoursewareMeta(id=c.id, topic=name(c), created_at=c.created_at) for c in items]
 
 
 @router.get(
