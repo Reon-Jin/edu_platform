@@ -13,18 +13,16 @@ from backend.routers.teacher_router import router as teacher_student_router
 from backend.routers.student_router import router, router_practice, router_analysis
 
 app = FastAPI()
-
-@app.on_event("startup")
-def on_startup():
-    SQLModel.metadata.create_all(engine)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
 )
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(lesson_router)
