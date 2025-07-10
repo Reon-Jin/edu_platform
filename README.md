@@ -9,7 +9,7 @@ npm=10.9.2
 
 ## launch backend fastapi
 ```bash
-python -m uvicorn backend.main:app --reload --port 8000
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ## launch frontend
