@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import select, Session
+from sqlalchemy import text
 from datetime import datetime, timedelta
 import jwt
 from pydantic import BaseModel
@@ -59,14 +60,28 @@ def login_for_access_token(
     sess: Session = Depends(get_session),
 ):
     # 验证用户名/密码
-    user = sess.exec(select(User).where(User.username == form_data.username)).first()
+    try:
+        user = sess.exec(select(User).where(User.username == form_data.username)).first()
+    except Exception as exc:
+        # 兼容旧数据库未包含 status 字段的情况
+        if "status" in str(exc):
+            row = sess.exec(
+                text("SELECT id, username, password, role_id FROM user WHERE username=:u"),
+                {"u": form_data.username},
+            ).first()
+            if row:
+                user = User(id=row.id, username=row.username, password=row.password, role_id=row.role_id, status="normal")
+            else:
+                user = None
+        else:
+            raise
     if not user or user.password != form_data.password:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if user.status != "normal":
+    if getattr(user, "status", "normal") != "normal":
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="账号状态异常")
     # 生成 JWT
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
