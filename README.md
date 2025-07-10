@@ -10,11 +10,13 @@ npm=10.9.2
 ## launch backend fastapi
 ```bash
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+# Backend will be available at http://127.0.0.1:8000
 ```
 
 ## launch frontend
 ```bash
 npm run dev
+# Development server runs at http://127.0.0.1:5173
 ```
 
 ## Prepare knowledge base
