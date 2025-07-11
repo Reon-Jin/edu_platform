@@ -101,7 +101,7 @@ def save_and_assign_exercise(
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
-
+        sess.refresh(ex)
         # 预先加载关联的 Exercise，避免在 Session 关闭后触发惰性加载
         hw.exercise = ex
 
