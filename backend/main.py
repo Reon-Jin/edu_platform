@@ -11,6 +11,7 @@ from backend.routers.exercise_router import router as exercise_router
 from backend.routers.homework_router import router as homework_router
 from backend.routers.teacher_router import router as teacher_student_router
 from backend.routers.student_router import router, router_practice, router_analysis
+from backend.routers.admin_router import router as admin_router
 
 app = FastAPI()
 app.add_middleware(
@@ -32,6 +33,7 @@ app.include_router(teacher_student_router)
 app.include_router(router)
 app.include_router(router_practice)
 app.include_router(router_analysis)
+app.include_router(admin_router)
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 
@@ -42,6 +44,6 @@ async def ping():
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path:str, request:Request):
     if full_path.startswith(("docs","openapi.json","redoc",
-                             "static","auth","lesson","teacher","student","ping")):
+                             "static","auth","lesson","teacher","student","admin","ping")):
         raise HTTPException(404)
     return FileResponse("backend/static/index.html")
