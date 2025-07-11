@@ -59,30 +59,31 @@ def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     sess: Session = Depends(get_session),
 ):
-    # 验证用户名/密码
-    try:
-        user = sess.exec(select(User).where(User.username == form_data.username)).first()
-    except Exception as exc:
-        # 兼容旧数据库未包含 status 字段的情况
-        if "status" in str(exc):
-            row = sess.exec(
-                text("SELECT id, username, password, role_id FROM user WHERE username=:u"),
-                {"u": form_data.username},
-            ).first()
-            if row:
-                user = User(id=row.id, username=row.username, password=row.password, role_id=row.role_id, status="normal")
-            else:
-                user = None
-        else:
-            raise
-    if not user or user.password != form_data.password:
+    # 兼容旧表结构，通过原生查询以避免缺失 status 字段导致报错
+    row = sess.exec(
+        text("SELECT * FROM user WHERE username=:u"),
+        {"u": form_data.username},
+    ).first()
+    if not row:
+        user_data = None
+    else:
+        data = row._mapping if hasattr(row, "_mapping") else row
+        user_data = {
+            "id": data.get("id"),
+            "username": data.get("username"),
+            "password": data.get("password"),
+            "role_id": data.get("role_id"),
+            "status": data.get("status", "normal"),
+        }
+    if not user_data or user_data["password"] != form_data.password:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if getattr(user, "status", "normal") != "normal":
+    if user_data["status"] != "normal":
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="账号状态异常")
+    user = User(**user_data)
     # 生成 JWT
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": str(user.id), "exp": expire}
@@ -113,9 +114,23 @@ def get_current_user(
     except jwt.PyJWTError:
         raise credentials_exception
 
-    user = sess.get(User, int(user_id))
-    if not user:
+    try:
+        row = sess.exec(
+            text("SELECT * FROM user WHERE id=:i"),
+            {"i": int(user_id)},
+        ).first()
+    except Exception:
+        row = None
+    if not row:
         raise credentials_exception
+    data = row._mapping if hasattr(row, "_mapping") else row
+    user = User(
+        id=data.get("id"),
+        username=data.get("username"),
+        password=data.get("password"),
+        role_id=data.get("role_id"),
+        status=data.get("status", "normal"),
+    )
     return user
 
 @router.get("/me")
