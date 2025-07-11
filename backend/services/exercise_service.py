@@ -101,6 +101,10 @@ def save_and_assign_exercise(
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
+        # 预先加载关联的 Exercise，避免在 Session 关闭后触发惰性加载
+        hw.exercise = ex
+
         return hw
 
 
@@ -195,6 +199,11 @@ def assign_homework(exercise_id: int) -> Homework:
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
+        # 加载关联的 Exercise，防止 DetachedInstanceError
+        ex = sess.get(Exercise, exercise_id)
+        hw.exercise = ex
+
         return hw
 
 
