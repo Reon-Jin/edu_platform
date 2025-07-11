@@ -87,7 +87,14 @@ export default function AppRouter() {
         <Route path="*" element={<Navigate to="homeworks" replace />} />
       </Route>
       {/* 管理员视图 */}
-      <Route path="/admin/*" element={<AdminPage />} />
+      <Route
+        path="/admin/*"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
       
       <Route path="*" element={<Navigate to="/login" replace />} />  
     </Routes>

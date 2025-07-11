@@ -227,7 +227,7 @@ CREATE TABLE `practice` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'testuser','pass123',1),(2,'stu1','123',1),(3,'tea1','123',2),(4,'tea2','123',2);
+INSERT INTO `user` VALUES (1,'testuser','pass123',1),(2,'stu1','123',1),(3,'tea1','123',2),(4,'tea2','123',2),(5,'mng1','123',3);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
