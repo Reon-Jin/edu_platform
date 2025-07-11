@@ -25,6 +25,8 @@ export default function LoginPage() {
       // 根据角色跳转
       if (role === "teacher") {
         navigate("/teacher");
+      } else if (role === "admin") {
+        navigate("/admin");
       } else {
         navigate("/student");
       }
