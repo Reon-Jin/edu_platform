@@ -4,19 +4,32 @@ from typing import Dict, Any, List
 from io import BytesIO
 
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from reportlab.pdfbase.ttfonts import TTFont
+from pathlib import Path
 
 from backend.models import Exercise, Homework
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
-# 注册 ReportLab 自带的 CJK 字体
-pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+# 尝试加载系统中可用的中文字体，优先使用 NotoSansCJK
+DEFAULT_FONT = "STSong-Light"
+try:
+    noto = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
+    if noto.exists():
+        pdfmetrics.registerFont(TTFont("NotoSansCJK", str(noto)))
+        DEFAULT_FONT = "NotoSansCJK"
+except Exception:
+    pass
+
+# 始终注册内置的 STSong 作为后备
+pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
 
 
 def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
@@ -49,7 +62,7 @@ def preview_exercise(
 
     prompt = (
         f"请根据主题“{topic}”{''.join(parts)}\n\n"
-        "请以 JSON 格式返回：questions（列表，每项 {\"type\":..., \"items\":[...] }），"
+        '请以 JSON 格式返回：questions（列表，每项 {"type":..., "items":[...] }），'
         "answers（对象，键为题目 id，值为参考答案）。"
     )
     resp = call_deepseek_api(prompt)
@@ -105,12 +118,9 @@ def save_and_assign_exercise(
 
         # 重新加载，预加载 exercise 关系
         hw = sess.exec(
-            select(Homework).options(
-                # 这里需要在 Homework model 上定义 relationship to Exercise
-                # e.g. exercise = Relationship(back_populates="homeworks")
-                # Raiload exercise 字段
-                Homework.exercise
-            ).where(Homework.id == hw.id)
+            select(Homework)
+            .options(selectinload(Homework.exercise))
+            .where(Homework.id == hw.id)
         ).one()
         return hw
 
@@ -123,9 +133,9 @@ def get_exercise(ex_id: int) -> Exercise:
 def get_homework(homework_id: int) -> Homework:
     with Session(engine) as sess:
         return sess.exec(
-            select(Homework).options(Homework.exercise).where(
-                Homework.id == homework_id
-            )
+            select(Homework)
+            .options(selectinload(Homework.exercise))
+            .where(Homework.id == homework_id)
         ).one_or_none()
 
 
@@ -139,34 +149,80 @@ def list_exercises(teacher_id: int) -> List[Exercise]:
         return sess.exec(stmt).all()
 
 
-def _build_pdf(buffer: BytesIO, title: str, blocks: List[Dict[str, Any]], answers: Dict[str, Any] = None):
+def _build_pdf(
+    buffer: BytesIO,
+    title: str,
+    blocks: List[Dict[str, Any]],
+    answers: Dict[str, Any] = None,
+):
     """
     用 ReportLab Platypus 构建 PDF，使用内置 CJK 字体。
     """
     doc = SimpleDocTemplate(
-        buffer, pagesize=letter,
-        leftMargin=50, rightMargin=50,
-        topMargin=60, bottomMargin=60
+        buffer,
+        pagesize=letter,
+        leftMargin=50,
+        rightMargin=50,
+        topMargin=60,
+        bottomMargin=60,
     )
     styles = getSampleStyleSheet()
-    normal = ParagraphStyle('Normal_CN', parent=styles['Normal'], fontName='STSong-Light', fontSize=12, leading=16)
-    title_style = ParagraphStyle('Title_CN', parent=styles['Heading1'], fontName='STSong-Light', fontSize=18, alignment=TA_CENTER, spaceAfter=18)
-    qtype = ParagraphStyle('QType_CN', parent=styles['Heading2'], fontName='STSong-Light', fontSize=14, alignment=TA_LEFT, spaceBefore=12, spaceAfter=6)
+    normal = ParagraphStyle(
+        "Normal_CN",
+        parent=styles["Normal"],
+        fontName=DEFAULT_FONT,
+        fontSize=12,
+        leading=16,
+        bulletFontName="Helvetica",  # bullet 字符使用基础字体，避免乱码
+    )
+    title_style = ParagraphStyle(
+        "Title_CN",
+        parent=styles["Heading1"],
+        fontName=DEFAULT_FONT,
+        fontSize=18,
+        alignment=TA_CENTER,
+        spaceAfter=18,
+    )
+    qtype = ParagraphStyle(
+        "QType_CN",
+        parent=styles["Heading2"],
+        fontName=DEFAULT_FONT,
+        fontSize=14,
+        alignment=TA_LEFT,
+        spaceBefore=12,
+        spaceAfter=6,
+        bulletFontName="Helvetica",
+    )
 
     story: List[Any] = [Paragraph(title, title_style)]
     for idx, block in enumerate(blocks, start=1):
-        story.append(Paragraph(f"{idx}. { (block.get('type') or '').replace('_',' ').title() }", qtype))
-        for item in block.get('items') or []:
-            story.append(Paragraph(item.get('question',''), normal, bulletText='•'))
-            story.append(Spacer(1,4))
-            for opt in item.get('options') or []:
-                story.append(Paragraph(opt, normal, bulletText='·'))
-            story.append(Spacer(1,8))
+        story.append(
+            Paragraph(
+                f"{idx}. { (block.get('type') or '').replace('_',' ').title() }", qtype
+            )
+        )
+        for item in block.get("items") or []:
+            story.append(
+                Paragraph(item.get("question", ""), normal, bulletText="\u2022")
+            )
+            story.append(Spacer(1, 4))
+            for opt in item.get("options") or []:
+                story.append(Paragraph(opt, normal, bulletText="-"))
+            story.append(Spacer(1, 8))
             if answers is not None:
-                ans = answers.get(str(item.get('id')), '')
+                ans = answers.get(str(item.get("id")), "")
                 story.append(Paragraph(f"答案：{ans}", normal))
-                story.append(Spacer(1,12))
+                story.append(Spacer(1, 12))
     doc.build(story)
+
+
+def render_exercise_pdf(
+    title: str, blocks: List[Dict[str, Any]], answers: Dict[str, Any] | None = None
+) -> bytes:
+    """Helper to render questions/answers into a PDF."""
+    buf = BytesIO()
+    _build_pdf(buf, title, blocks, answers=answers)
+    return buf.getvalue()
 
 
 def download_questions_pdf(ex: Exercise) -> bytes:
@@ -183,23 +239,31 @@ def download_answers_pdf(ex: Exercise) -> bytes:
 
 def assign_homework(exercise_id: int) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
+        ex = sess.get(Exercise, exercise_id)
+        if not ex:
+            raise ValueError("exercise not found")
+
         hw = Homework(exercise_id=exercise_id)
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
         hw = sess.exec(
-            select(Homework).options(Homework.exercise).where(Homework.id == hw.id)
+            select(Homework)
+            .options(selectinload(Homework.exercise))
+            .where(Homework.id == hw.id)
         ).one()
         return hw
 
 
 def stats_for_exercise(exercise_id: int) -> Dict[str, Any]:
     from backend.models import Submission
+
     with Session(engine) as sess:
         subs = sess.exec(
-            select(Submission).join(Homework, Submission.homework_id == Homework.id).where(
-                Homework.exercise_id == exercise_id
-            )
+            select(Submission)
+            .join(Homework, Submission.homework_id == Homework.id)
+            .where(Homework.exercise_id == exercise_id)
         ).all()
         total = len(subs)
         avg = sum(s.score for s in subs) / total if total else 0.0

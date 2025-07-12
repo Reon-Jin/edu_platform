@@ -9,6 +9,7 @@ class GenerateExerciseRequest(BaseModel):
     num_fill_blank: int = 0
     num_short_answer: int = 0
     num_programming: int = 0
+    export_pdf: bool = False
 
 
 class QuestionItem(BaseModel):
