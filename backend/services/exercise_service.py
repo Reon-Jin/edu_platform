@@ -169,6 +169,13 @@ def _build_pdf(buffer: BytesIO, title: str, blocks: List[Dict[str, Any]], answer
     doc.build(story)
 
 
+def render_exercise_pdf(title: str, blocks: List[Dict[str, Any]], answers: Dict[str, Any] | None = None) -> bytes:
+    """Helper to render questions/answers into a PDF."""
+    buf = BytesIO()
+    _build_pdf(buf, title, blocks, answers=answers)
+    return buf.getvalue()
+
+
 def download_questions_pdf(ex: Exercise) -> bytes:
     buf = BytesIO()
     _build_pdf(buf, f"练习 #{ex.id} 题目", ex.prompt or [], answers=None)

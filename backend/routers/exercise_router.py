@@ -12,7 +12,7 @@ from backend.services.exercise_service import (
     preview_exercise, save_exercise, save_and_assign_exercise,
     get_exercise, get_homework, list_exercises,
     download_questions_pdf, download_answers_pdf,
-    assign_homework, stats_for_exercise
+    assign_homework, stats_for_exercise, render_exercise_pdf
 )
 from backend.auth import get_current_user
 from backend.models import User
@@ -26,17 +26,25 @@ class SaveExerciseRequest(BaseModel):
     answers: dict
 
 
-@router.post("/generate", response_model=ExercisePreviewOut)
+@router.post("/generate")
 def api_generate(req: GenerateExerciseRequest, user: User = Depends(get_current_user)):
     if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return preview_exercise(
+    data = preview_exercise(
         topic=req.topic,
         num_mcq=req.num_mcq,
         num_fill_blank=req.num_fill_blank,
         num_short_answer=req.num_short_answer,
         num_programming=req.num_programming,
     )
+    if req.export_pdf:
+        pdf = render_exercise_pdf(f"练习：{req.topic}", data.get("questions", []), answers=data.get("answers", {}))
+        raw = f"exercise_{req.topic}.pdf"
+        headers = {
+            "Content-Disposition": f"attachment; filename=exercise.pdf; filename*=UTF-8''{quote(raw)}"
+        }
+        return StreamingResponse(io.BytesIO(pdf), media_type="application/pdf", headers=headers)
+    return data
 
 
 @router.post("/save", response_model=ExerciseOut)

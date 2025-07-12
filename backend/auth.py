@@ -99,6 +99,8 @@ def get_current_user(
     user = sess.get(User, int(user_id))
     if not user:
         raise credentials_exception
+    # Ensure role relationship is loaded before session closes
+    _ = user.role
     return user
 
 @router.get("/me")
