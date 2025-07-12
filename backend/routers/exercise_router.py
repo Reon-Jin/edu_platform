@@ -119,7 +119,10 @@ def api_assign(ex_id: int, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权布置")
-    return assign_homework(ex_id)
+    try:
+        return assign_homework(ex_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="未找到练习")
 
 
 @router.get("/{ex_id}/stats")

@@ -149,18 +149,41 @@ def _build_pdf(buffer: BytesIO, title: str, blocks: List[Dict[str, Any]], answer
         topMargin=60, bottomMargin=60
     )
     styles = getSampleStyleSheet()
-    normal = ParagraphStyle('Normal_CN', parent=styles['Normal'], fontName='STSong-Light', fontSize=12, leading=16)
-    title_style = ParagraphStyle('Title_CN', parent=styles['Heading1'], fontName='STSong-Light', fontSize=18, alignment=TA_CENTER, spaceAfter=18)
-    qtype = ParagraphStyle('QType_CN', parent=styles['Heading2'], fontName='STSong-Light', fontSize=14, alignment=TA_LEFT, spaceBefore=12, spaceAfter=6)
+    normal = ParagraphStyle(
+        'Normal_CN',
+        parent=styles['Normal'],
+        fontName='STSong-Light',
+        fontSize=12,
+        leading=16,
+        bulletFontName='Helvetica',  # bullet 字符使用基础字体，避免乱码
+    )
+    title_style = ParagraphStyle(
+        'Title_CN',
+        parent=styles['Heading1'],
+        fontName='STSong-Light',
+        fontSize=18,
+        alignment=TA_CENTER,
+        spaceAfter=18,
+    )
+    qtype = ParagraphStyle(
+        'QType_CN',
+        parent=styles['Heading2'],
+        fontName='STSong-Light',
+        fontSize=14,
+        alignment=TA_LEFT,
+        spaceBefore=12,
+        spaceAfter=6,
+        bulletFontName='Helvetica',
+    )
 
     story: List[Any] = [Paragraph(title, title_style)]
     for idx, block in enumerate(blocks, start=1):
         story.append(Paragraph(f"{idx}. { (block.get('type') or '').replace('_',' ').title() }", qtype))
         for item in block.get('items') or []:
-            story.append(Paragraph(item.get('question',''), normal, bulletText='•'))
+            story.append(Paragraph(item.get('question', ''), normal, bulletText='\u2022'))
             story.append(Spacer(1,4))
             for opt in item.get('options') or []:
-                story.append(Paragraph(opt, normal, bulletText='·'))
+                story.append(Paragraph(opt, normal, bulletText='-'))
             story.append(Spacer(1,8))
             if answers is not None:
                 ans = answers.get(str(item.get('id')), '')
@@ -190,10 +213,15 @@ def download_answers_pdf(ex: Exercise) -> bytes:
 
 def assign_homework(exercise_id: int) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
+        ex = sess.get(Exercise, exercise_id)
+        if not ex:
+            raise ValueError("exercise not found")
+
         hw = Homework(exercise_id=exercise_id)
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
         hw = sess.exec(
             select(Homework).options(Homework.exercise).where(Homework.id == hw.id)
         ).one()
