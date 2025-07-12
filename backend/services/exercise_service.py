@@ -14,6 +14,12 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.ttfonts import TTFont
 from pathlib import Path
 
+from backend.utils.pdf_utils import (
+    format_questions_html,
+    format_answers_html,
+    render_pdf,
+)
+
 from backend.models import Exercise, Homework
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
@@ -216,25 +222,30 @@ def _build_pdf(
     doc.build(story)
 
 
+def _build_html(title: str, blocks: List[Dict[str, Any]], answers: Dict[str, Any] | None = None) -> str:
+    parts = [f"<h1>{title}</h1>", format_questions_html(blocks)]
+    if answers is not None:
+        parts.append(format_answers_html(answers))
+    body = "".join(parts)
+    return f"<html><head><meta charset='utf-8'/></head><body>{body}</body></html>"
+
+
 def render_exercise_pdf(
     title: str, blocks: List[Dict[str, Any]], answers: Dict[str, Any] | None = None
 ) -> bytes:
     """Helper to render questions/answers into a PDF."""
-    buf = BytesIO()
-    _build_pdf(buf, title, blocks, answers=answers)
-    return buf.getvalue()
+    html = _build_html(title, blocks, answers)
+    return render_pdf(html)
 
 
 def download_questions_pdf(ex: Exercise) -> bytes:
-    buf = BytesIO()
-    _build_pdf(buf, f"练习 #{ex.id} 题目", ex.prompt or [], answers=None)
-    return buf.getvalue()
+    html = _build_html(f"练习 #{ex.id} 题目", ex.prompt or [], answers=None)
+    return render_pdf(html)
 
 
 def download_answers_pdf(ex: Exercise) -> bytes:
-    buf = BytesIO()
-    _build_pdf(buf, f"练习 #{ex.id} 答案", ex.prompt or [], answers=ex.answers or {})
-    return buf.getvalue()
+    html = _build_html(f"练习 #{ex.id} 答案", ex.prompt or [], answers=ex.answers or {})
+    return render_pdf(html)
 
 
 def assign_homework(exercise_id: int) -> Homework:
