@@ -1,19 +1,16 @@
-# backend/routers/exercise_router.py
-
 import io
 from typing import List
 from urllib.parse import quote
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from backend.schemas.exercise_schema import (
-    GenerateExerciseRequest, ExercisePreviewOut, ExerciseOut
-)
+from backend.schemas.exercise_schema import GenerateExerciseRequest, ExercisePreviewOut, ExerciseOut
 from backend.schemas.homework_schema import HomeworkOut
 from backend.services.exercise_service import (
     preview_exercise, save_exercise, save_and_assign_exercise,
-    get_exercise, list_exercises,
+    get_exercise, get_homework, list_exercises,
     download_questions_pdf, download_answers_pdf,
     assign_homework, stats_for_exercise
 )
@@ -29,16 +26,9 @@ class SaveExerciseRequest(BaseModel):
     answers: dict
 
 
-@router.post(
-    "/generate",
-    response_model=ExercisePreviewOut,
-    summary="生成并预览练习（不保存）"
-)
-def api_generate(
-    req: GenerateExerciseRequest,
-    user: User = Depends(get_current_user)
-):
-    if not user.role or user.role.name != "teacher":
+@router.post("/generate", response_model=ExercisePreviewOut)
+def api_generate(req: GenerateExerciseRequest, user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
     return preview_exercise(
         topic=req.topic,
@@ -49,157 +39,83 @@ def api_generate(
     )
 
 
-@router.post(
-    "/save",
-    response_model=ExerciseOut,
-    summary="保存练习（入库，不布置）"
-)
-def api_save(
-    req: SaveExerciseRequest,
-    user: User = Depends(get_current_user)
-):
-    if not user.role or user.role.name != "teacher":
+@router.post("/save", response_model=ExerciseOut)
+def api_save(req: SaveExerciseRequest, user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    ex = save_exercise(
-        teacher_id=user.id,
-        topic=req.topic,
-        questions=req.questions,
-        answers=req.answers
-    )
+    return save_exercise(user.id, req.topic, req.questions, req.answers)
+
+
+@router.post("/save_and_assign", response_model=HomeworkOut)
+def api_save_and_assign(req: SaveExerciseRequest, user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+    return save_and_assign_exercise(user.id, req.topic, req.questions, req.answers)
+
+
+@router.get("/list", response_model=List[ExerciseOut])
+def api_list(user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+    return list_exercises(user.id)
+
+
+@router.get("/preview/{ex_id}", response_model=ExerciseOut)
+def api_preview(ex_id: int, user: User = Depends(get_current_user)):
+    ex = get_exercise(ex_id)
+    if not ex or ex.teacher_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="未找到练习")
     return ex
 
 
-@router.post(
-    "/save_and_assign",
-    response_model=HomeworkOut,
-    summary="保存练习并布置作业"
-)
-def api_save_and_assign(
-    req: SaveExerciseRequest,
-    user: User = Depends(get_current_user)
-):
-    if not user.role or user.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    hw = save_and_assign_exercise(
-        teacher_id=user.id,
-        topic=req.topic,
-        questions=req.questions,
-        answers=req.answers
-    )
-    return hw
-
-
-@router.get(
-    "/list",
-    response_model=List[ExerciseOut],
-    summary="获取我的练习列表"
-)
-def api_list(
-    user: User = Depends(get_current_user)
-):
-    if not user.role or user.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return list_exercises(teacher_id=user.id)
-
-
-@router.get(
-    "/preview/{ex_id}",
-    response_model=ExerciseOut,
-    summary="预览已保存练习"
-)
-def api_preview(
-    ex_id: int,
-    user: User = Depends(get_current_user)
-):
+@router.get("/{ex_id}/download/questions", response_class=StreamingResponse)
+def api_download_questions(ex_id: int, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
-    if not ex or ex.teacher_id != user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="练习不存在或无权限")
-    return ex
-
-
-@router.get(
-    "/{ex_id}/download/questions",
-    response_class=StreamingResponse,
-    summary="下载练习题目 PDF"
-)
-def api_download_questions(
-    ex_id: int,
-    user: User = Depends(get_current_user)
-):
-    ex = get_exercise(ex_id)
-    if not ex or ex.teacher_id != user.id:
+    if not ex:
+        hw = get_homework(ex_id)
+        if not hw or hw.exercise.teacher_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
+        ex = hw.exercise
+    elif ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
 
-    # 同步生成 PDF bytes
-    pdf_bytes = download_questions_pdf(ex)
-
-    # 构造支持中文的下载文件名
-    raw_name = f"questions_{ex_id}.pdf"
-    fallback = "questions.pdf"
-    quoted = quote(raw_name, safe="")
+    data = download_questions_pdf(ex)
+    raw = f"questions_{ex.id}.pdf"
     headers = {
-        "Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"
+        "Content-Disposition": f"attachment; filename=questions.pdf; filename*=UTF-8''{quote(raw)}"
     }
-
-    return StreamingResponse(
-        io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
-        headers=headers
-    )
+    return StreamingResponse(io.BytesIO(data), media_type="application/pdf", headers=headers)
 
 
-@router.get(
-    "/{ex_id}/download/answers",
-    response_class=StreamingResponse,
-    summary="下载练习答案 PDF"
-)
-def api_download_answers(
-    ex_id: int,
-    user: User = Depends(get_current_user)
-):
+@router.get("/{ex_id}/download/answers", response_class=StreamingResponse)
+def api_download_answers(ex_id: int, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
-    if not ex or ex.teacher_id != user.id:
+    if not ex:
+        hw = get_homework(ex_id)
+        if not hw or hw.exercise.teacher_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
+        ex = hw.exercise
+    elif ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权下载")
 
-    pdf_bytes = download_answers_pdf(ex)
-
-    raw_name = f"answers_{ex_id}.pdf"
-    fallback = "answers.pdf"
-    quoted = quote(raw_name, safe="")
+    data = download_answers_pdf(ex)
+    raw = f"answers_{ex.id}.pdf"
     headers = {
-        "Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"
+        "Content-Disposition": f"attachment; filename=answers.pdf; filename*=UTF-8''{quote(raw)}"
     }
-
-    return StreamingResponse(
-        io.BytesIO(pdf_bytes),
-        media_type="application/pdf",
-        headers=headers
-    )
+    return StreamingResponse(io.BytesIO(data), media_type="application/pdf", headers=headers)
 
 
-@router.post(
-    "/{ex_id}/assign",
-    response_model=HomeworkOut,
-    summary="布置已有练习"
-)
-def api_assign(
-    ex_id: int,
-    user: User = Depends(get_current_user)
-):
+@router.post("/{ex_id}/assign", response_model=HomeworkOut)
+def api_assign(ex_id: int, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权布置")
     return assign_homework(ex_id)
 
 
-@router.get(
-    "/{ex_id}/stats",
-    summary="练习统计"
-)
-def api_stats(
-    ex_id: int,
-    user: User = Depends(get_current_user)
-):
+@router.get("/{ex_id}/stats")
+def api_stats(ex_id: int, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权查看")
