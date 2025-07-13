@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel
+from sqlalchemy import inspect, text
 
 from backend.config import engine
 from backend.auth import router as auth_router
@@ -24,6 +25,15 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
+    # Ensure new columns exist when upgrading from older versions
+    with engine.begin() as conn:
+        insp = inspect(conn)
+        if "courseware" in insp.get_table_names():
+            cols = {c["name"] for c in insp.get_columns("courseware")}
+            if "prep_start" not in cols:
+                conn.execute(text("ALTER TABLE courseware ADD COLUMN prep_start DATETIME"))
+            if "prep_end" not in cols:
+                conn.execute(text("ALTER TABLE courseware ADD COLUMN prep_end DATETIME"))
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(lesson_router)
