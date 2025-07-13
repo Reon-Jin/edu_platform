@@ -56,8 +56,8 @@ export default function AdminCoursewareEdit() {
   }
 
   return (
-    <div className="container">
-      <div className="card">
+    <div className="container edit-container">
+      <div className="card wide-card">
         <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>返回</button>
         {error && <div className="error">{error}</div>}
         <div className="edit-layout">

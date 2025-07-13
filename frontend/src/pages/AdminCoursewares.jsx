@@ -91,7 +91,11 @@ export default function AdminCoursewares() {
                     >
                       下载
                     </button>
-                    <Link className="button" style={{ marginTop: '0.5rem', display: 'block' }} to={`/admin/courseware/${c.id}/edit`}>
+                    <Link
+                      className="button"
+                      style={{ marginTop: '0.5rem' }}
+                      to={`/admin/courseware/${c.id}/edit`}
+                    >
                       编辑
                     </Link>
                   </td>
