@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCoursewares, shareCourseware } from '../api/admin';
+import { fetchCoursewares, shareCourseware, downloadCourseware } from '../api/admin';
+import { Link } from 'react-router-dom';
 import '../index.css';
 
 export default function AdminCoursewares() {
@@ -28,8 +29,25 @@ export default function AdminCoursewares() {
     try {
       await shareCourseware(cid);
       alert('已共享');
+      load();
     } catch (err) {
       alert('操作失败');
+    }
+  };
+
+  const handleDownload = async (cid, topic) => {
+    try {
+      const blob = await downloadCourseware(cid);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lesson_${topic}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('下载失败');
     }
   };
 
@@ -59,9 +77,27 @@ export default function AdminCoursewares() {
                   <td>{c.teacher_id}</td>
                   <td>{c.created_at}</td>
                   <td>
-                    <button className="button" onClick={() => handleShare(c.id)}>
-                      共享
+                    <button
+                      className="button"
+                      onClick={() => handleShare(c.id)}
+                      disabled={c.topic.endsWith('-public')}
+                    >
+                      {c.topic.endsWith('-public') ? '已共享' : '共享'}
                     </button>
+                    <button
+                      className="button"
+                      style={{ marginTop: '0.5rem' }}
+                      onClick={() => handleDownload(c.id, c.topic)}
+                    >
+                      下载
+                    </button>
+                    <Link
+                      className="button"
+                      style={{ marginTop: '0.5rem' }}
+                      to={`/admin/courseware/${c.id}/edit`}
+                    >
+                      编辑
+                    </Link>
                   </td>
                 </tr>
               ))}

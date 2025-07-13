@@ -22,6 +22,7 @@ router = APIRouter(prefix="/teacher/lesson", tags=["prepare"])
 
 # 缓存：避免重复调用大模型
 lesson_markdown_cache: Dict[str, str] = {}
+lesson_prep_start: Dict[int, datetime] = {}
 
 class LessonRequest(BaseModel):
     topic: str
@@ -120,6 +121,7 @@ async def prepare_lesson(
     if not topic:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="topic 不能为空")
 
+    lesson_prep_start[current_user.id] = datetime.utcnow()
     if topic not in lesson_markdown_cache:
         try:
             md_text = await generate_lesson(topic)
@@ -152,7 +154,14 @@ async def save_courseware(
     md_text = lesson_markdown_cache.get(topic) or await generate_lesson(topic)
     lesson_markdown_cache[topic] = md_text
 
-    cw = Courseware(teacher_id=current_user.id, topic=topic, markdown=md_text)
+    start_time = lesson_prep_start.pop(current_user.id, None)
+    cw = Courseware(
+        teacher_id=current_user.id,
+        topic=topic,
+        markdown=md_text,
+        prep_start=start_time,
+        prep_end=datetime.utcnow(),
+    )
     session.add(cw)
     session.commit()
     session.refresh(cw)

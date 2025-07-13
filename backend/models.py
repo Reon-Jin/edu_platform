@@ -87,6 +87,8 @@ class Courseware(SQLModel, table=True):
         sa_column=Column("pdf", LargeBinary)
     )
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    prep_start: Optional[datetime] = Field(default=None)
+    prep_end: Optional[datetime] = Field(default=None)
 
     teacher: User = Relationship(back_populates="coursewares")
 
@@ -145,3 +147,13 @@ class Practice(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     student: "User" = Relationship(back_populates="practices")
+
+
+class LoginEvent(SQLModel, table=True):
+    __tablename__ = "login_event"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    user: User = Relationship()

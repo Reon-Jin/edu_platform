@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 import AdminUsers from './AdminUsers';
 import AdminCoursewares from './AdminCoursewares';
+import AdminCoursewareEdit from './AdminCoursewareEdit';
 import AdminDashboard from './AdminDashboard';
 
 export default function AdminPage() {
@@ -11,6 +12,7 @@ export default function AdminPage() {
       <Route element={<AdminLayout />}>
         <Route path="users" element={<AdminUsers />} />
         <Route path="coursewares" element={<AdminCoursewares />} />
+        <Route path="courseware/:id/edit" element={<AdminCoursewareEdit />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />

@@ -35,6 +35,9 @@ export default function AdminDashboard() {
           <li>练习数量: {data.exercise_count}</li>
           <li>教师今日使用次数: {data.teacher_usage_today}</li>
           <li>学生今日使用次数: {data.student_usage_today}</li>
+          <li>教师本周使用次数: {data.teacher_usage_week}</li>
+          <li>学生本周使用次数: {data.student_usage_week}</li>
+          <li>教学效率指数(秒): {data.teaching_efficiency.toFixed ? data.teaching_efficiency.toFixed(2) : data.teaching_efficiency}</li>
         </ul>
       </div>
     </div>
