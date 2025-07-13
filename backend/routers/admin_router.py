@@ -1,16 +1,20 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
+import io
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from sqlalchemy import func
 from pydantic import BaseModel
 
 from backend.auth import get_current_user
 from backend.config import engine
+from backend.routers.lesson_router import _generate_and_store_pdf
 from backend.models import (
     User, Role, Courseware, Exercise, Homework, Submission,
-    ChatHistory, ChatSession, ChatMessage, Practice
+    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -29,6 +33,17 @@ class CoursewareMeta(BaseModel):
     id: int
     topic: str
     teacher_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CoursewarePreview(BaseModel):
+    id: int
+    topic: str
+    teacher_id: int
+    markdown: str
     created_at: datetime
 
     class Config:
@@ -125,6 +140,56 @@ def share_courseware(cid: int, current: User = Depends(get_current_user)):
         return {"status": "shared"}
 
 
+@router.get("/courseware/{cid}/preview", response_model=CoursewarePreview)
+def preview_courseware(cid: int, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    with Session(engine) as sess:
+        cw = sess.get(Courseware, cid)
+        if not cw:
+            raise HTTPException(404, "课件不存在")
+        return CoursewarePreview(id=cw.id, topic=cw.topic, teacher_id=cw.teacher_id, markdown=cw.markdown, created_at=cw.created_at)
+
+
+@router.get("/courseware/{cid}/download")
+def download_courseware(cid: int, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    with Session(engine) as sess:
+        cw = sess.get(Courseware, cid)
+        if not cw:
+            raise HTTPException(404, "课件不存在")
+        if not cw.pdf:
+            _generate_and_store_pdf(cw.id, cw.markdown)
+            sess.refresh(cw)
+        raw_name = f"lesson_{cw.topic}.pdf"
+        fallback = "lesson.pdf"
+        quoted = quote(raw_name, safe="")
+        headers = {"Content-Disposition": f"attachment; filename={fallback}; filename*=UTF-8''{quoted}"}
+        return StreamingResponse(io.BytesIO(cw.pdf), media_type="application/pdf", headers=headers)
+
+
+class CoursewareUpdate(BaseModel):
+    markdown: str
+
+
+@router.post("/courseware/{cid}/update", response_model=CoursewareMeta)
+def update_courseware(cid: int, data: CoursewareUpdate, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    with Session(engine) as sess:
+        cw = sess.get(Courseware, cid)
+        if not cw:
+            raise HTTPException(404, "课件不存在")
+        cw.markdown = data.markdown
+        cw.prep_start = cw.prep_start or datetime.utcnow()
+        cw.prep_end = datetime.utcnow()
+        sess.add(cw)
+        sess.commit()
+        _generate_and_store_pdf(cw.id, cw.markdown)
+        return CoursewareMeta(id=cw.id, topic=cw.topic, teacher_id=cw.teacher_id, created_at=cw.created_at)
+
+
 @router.get("/dashboard")
 def dashboard(current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "admin":
@@ -141,17 +206,29 @@ def dashboard(current: User = Depends(get_current_user)):
         cw_count = sess.exec(select(func.count()).select_from(Courseware)).one()
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
         teacher_today = sess.exec(
-            select(func.count()).select_from(Exercise).where(Exercise.created_at >= today)
+            select(func.count()).select_from(LoginEvent).join(User).join(Role)
+            .where(Role.name == "teacher", LoginEvent.created_at >= today)
         ).one()
         student_today = sess.exec(
-            select(func.count()).select_from(Submission).where(Submission.submitted_at >= today)
+            select(func.count()).select_from(LoginEvent).join(User).join(Role)
+            .where(Role.name == "student", LoginEvent.created_at >= today)
         ).one()
         teacher_week = sess.exec(
-            select(func.count()).select_from(Exercise).where(Exercise.created_at >= week_ago)
+            select(func.count()).select_from(LoginEvent).join(User).join(Role)
+            .where(Role.name == "teacher", LoginEvent.created_at >= week_ago)
         ).one()
         student_week = sess.exec(
-            select(func.count()).select_from(Submission).where(Submission.submitted_at >= week_ago)
+            select(func.count()).select_from(LoginEvent).join(User).join(Role)
+            .where(Role.name == "student", LoginEvent.created_at >= week_ago)
         ).one()
+
+        rows = sess.exec(
+            select(Courseware.prep_start, Courseware.prep_end)
+            .where(Courseware.prep_start != None, Courseware.prep_end != None)
+        ).all()
+        durations = [ (e - s).total_seconds() for s, e in rows if e >= s ]
+        efficiency = sum(durations) / len(durations) if durations else 0.0
+
     return {
         "teacher_count": teacher_count,
         "student_count": student_count,
@@ -161,4 +238,5 @@ def dashboard(current: User = Depends(get_current_user)):
         "student_usage_today": student_today,
         "teacher_usage_week": teacher_week,
         "student_usage_week": student_week,
+        "teaching_efficiency": efficiency,
     }

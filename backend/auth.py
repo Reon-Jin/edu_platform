@@ -8,7 +8,7 @@ import jwt
 from pydantic import BaseModel
 
 from backend.config import settings, engine
-from backend.models import User, Role
+from backend.models import User, Role, LoginEvent
 
 router = APIRouter(tags=["auth"])
 
@@ -73,6 +73,9 @@ def login_for_access_token(
     # 获取角色名
     db_role = sess.get(Role, user.role_id)
     role_name = db_role.name if db_role else ""
+    # 记录登录事件
+    sess.add(LoginEvent(user_id=user.id))
+    sess.commit()
     return {
         "access_token": token,
         "token_type": "bearer",

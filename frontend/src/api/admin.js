@@ -25,6 +25,21 @@ export async function shareCourseware(cid) {
   return resp.data;
 }
 
+export async function downloadCourseware(cid) {
+  const resp = await api.get(`/admin/courseware/${cid}/download`, { responseType: 'blob' });
+  return resp.data;
+}
+
+export async function fetchCoursewarePreview(cid) {
+  const resp = await api.get(`/admin/courseware/${cid}/preview`);
+  return resp.data;
+}
+
+export async function updateCourseware(cid, markdown) {
+  const resp = await api.post(`/admin/courseware/${cid}/update`, { markdown });
+  return resp.data;
+}
+
 export async function fetchDashboard() {
   const resp = await api.get('/admin/dashboard');
   return resp.data;
