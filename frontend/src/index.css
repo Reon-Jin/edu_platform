@@ -197,3 +197,25 @@ td {
 .logout-btn {
   margin-bottom: 1rem;
 }
+
+/* Layout for admin courseware editing */
+.edit-layout {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.edit-input {
+  flex: 1;
+  min-height: 60vh;
+}
+
+.preview-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-column .actions {
+  margin-top: 0;
+}

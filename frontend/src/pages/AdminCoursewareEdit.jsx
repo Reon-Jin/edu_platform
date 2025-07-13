@@ -60,13 +60,21 @@ export default function AdminCoursewareEdit() {
       <div className="card">
         <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>返回</button>
         {error && <div className="error">{error}</div>}
-        <textarea className="input" style={{ height: '200px' }} value={markdown} onChange={e => setMarkdown(e.target.value)} />
-        <div className="actions">
-          <button className="button" onClick={handleSave}>保存</button>
-          <button className="button" onClick={handleDownload}>下载 PDF</button>
-        </div>
-        <div className="markdown-preview">
-          <ReactMarkdown children={markdown} remarkPlugins={[remarkGfm]} />
+        <div className="edit-layout">
+          <textarea
+            className="input edit-input"
+            value={markdown}
+            onChange={e => setMarkdown(e.target.value)}
+          />
+          <div className="preview-column">
+            <div className="actions" style={{ marginTop: 0 }}>
+              <button className="button" onClick={handleSave}>保存</button>
+              <button className="button" onClick={handleDownload}>下载 PDF</button>
+            </div>
+            <div className="markdown-preview" style={{ marginTop: '1rem' }}>
+              <ReactMarkdown children={markdown} remarkPlugins={[remarkGfm]} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
