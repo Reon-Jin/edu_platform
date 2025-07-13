@@ -8,13 +8,14 @@ from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from sqlalchemy import func
 from pydantic import BaseModel
+from backend.schemas import TeacherSubjectAssign, TeacherSubjectOut
 
 from backend.auth import get_current_user
 from backend.config import engine
 from backend.routers.lesson_router import _generate_and_store_pdf
 from backend.models import (
     User, Role, Courseware, Exercise, Homework, Submission,
-    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent
+    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent, TeacherSubject
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -33,6 +34,7 @@ class CoursewareMeta(BaseModel):
     id: int
     topic: str
     teacher_id: int
+    subject: str | None = None
     created_at: datetime
 
     class Config:
@@ -75,6 +77,32 @@ def get_user(uid: int, current: User = Depends(get_current_user)):
         return UserInfo(id=user.id, username=user.username, role=rname)
 
 
+@router.get("/teachers/{tid}/subject", response_model=TeacherSubjectOut)
+def get_teacher_subject(tid: int, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    with Session(engine) as sess:
+        ts = sess.get(TeacherSubject, tid)
+        if not ts:
+            raise HTTPException(404, "not_found")
+        return TeacherSubjectOut(teacher_id=ts.teacher_id, subject=ts.subject)
+
+
+@router.post("/teachers/{tid}/subject", response_model=TeacherSubjectOut)
+def set_teacher_subject(tid: int, data: TeacherSubjectAssign, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    with Session(engine, expire_on_commit=False) as sess:
+        ts = sess.get(TeacherSubject, tid)
+        if not ts:
+            ts = TeacherSubject(teacher_id=tid, subject=data.subject)
+        else:
+            ts.subject = data.subject
+        sess.add(ts)
+        sess.commit()
+        return TeacherSubjectOut(teacher_id=ts.teacher_id, subject=ts.subject)
+
+
 @router.delete("/users/{uid}")
 def delete_user(uid: int, current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "admin":
@@ -115,7 +143,12 @@ def list_coursewares(current: User = Depends(get_current_user)):
     with Session(engine) as sess:
         stmt = select(Courseware)
         items = sess.exec(stmt).all()
-        return [CoursewareMeta(id=c.id, topic=c.topic, teacher_id=c.teacher_id, created_at=c.created_at) for c in items]
+        out = []
+        for c in items:
+            ts = sess.get(TeacherSubject, c.teacher_id)
+            subj = ts.subject if ts else None
+            out.append(CoursewareMeta(id=c.id, topic=c.topic, teacher_id=c.teacher_id, subject=subj, created_at=c.created_at))
+        return out
 
 
 @router.post("/courseware/{cid}/share")

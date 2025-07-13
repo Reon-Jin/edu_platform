@@ -20,7 +20,7 @@ from backend.utils.pdf_utils import (
     render_pdf,
 )
 
-from backend.models import Exercise, Homework
+from backend.models import Exercise, Homework, TeacherSubject, ClassHomework
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
@@ -88,9 +88,11 @@ def save_exercise(
 ) -> Exercise:
     # expire_on_commit=False 防止 commit 后实体被过期
     with Session(engine, expire_on_commit=False) as sess:
+        ts = sess.get(TeacherSubject, teacher_id)
+        subject = ts.subject if ts else topic
         ex = Exercise(
             teacher_id=teacher_id,
-            subject=topic,
+            subject=subject,
             prompt=questions,
             answers=answers,
         )
@@ -105,11 +107,14 @@ def save_and_assign_exercise(
     topic: str,
     questions: List[Dict[str, Any]],
     answers: Dict[str, Any],
+    class_ids: List[int] | None = None,
 ) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
+        ts = sess.get(TeacherSubject, teacher_id)
+        subject = ts.subject if ts else topic
         ex = Exercise(
             teacher_id=teacher_id,
-            subject=topic,
+            subject=subject,
             prompt=questions,
             answers=answers,
         )
@@ -121,6 +126,11 @@ def save_and_assign_exercise(
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
+        if class_ids:
+            for cid in class_ids:
+                sess.add(ClassHomework(class_id=cid, homework_id=hw.id))
+            sess.commit()
 
         # 重新加载，预加载 exercise 关系
         hw = sess.exec(
@@ -248,7 +258,7 @@ def download_answers_pdf(ex: Exercise) -> bytes:
     return render_pdf(html)
 
 
-def assign_homework(exercise_id: int) -> Homework:
+def assign_homework(exercise_id: int, class_ids: List[int] | None = None) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
         ex = sess.get(Exercise, exercise_id)
         if not ex:
@@ -258,6 +268,11 @@ def assign_homework(exercise_id: int) -> Homework:
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
+
+        if class_ids:
+            for cid in class_ids:
+                sess.add(ClassHomework(class_id=cid, homework_id=hw.id))
+            sess.commit()
 
         hw = sess.exec(
             select(Homework)

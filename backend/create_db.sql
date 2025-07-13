@@ -220,6 +220,47 @@ CREATE TABLE `practice` (
   CONSTRAINT `fk_practice_student` FOREIGN KEY (`student_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+DROP TABLE IF EXISTS `teacher_subject`;
+CREATE TABLE `teacher_subject` (
+  `teacher_id` INT NOT NULL,
+  `subject` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`teacher_id`),
+  CONSTRAINT `fk_ts_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `classroom`;
+CREATE TABLE `classroom` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `teacher_id` INT NOT NULL,
+  `name` VARCHAR(100) NOT NULL,
+  `capacity` INT DEFAULT 60,
+  `code` VARCHAR(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_class_code` (`code`),
+  KEY `idx_class_teacher` (`teacher_id`),
+  CONSTRAINT `fk_class_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `class_student`;
+CREATE TABLE `class_student` (
+  `class_id` INT NOT NULL,
+  `student_id` INT NOT NULL,
+  PRIMARY KEY (`class_id`,`student_id`),
+  KEY `idx_cs_student` (`student_id`),
+  CONSTRAINT `fk_cs_class` FOREIGN KEY (`class_id`) REFERENCES `classroom` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_cs_student` FOREIGN KEY (`student_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+DROP TABLE IF EXISTS `class_homework`;
+CREATE TABLE `class_homework` (
+  `class_id` INT NOT NULL,
+  `homework_id` INT NOT NULL,
+  PRIMARY KEY (`class_id`,`homework_id`),
+  KEY `idx_ch_hw` (`homework_id`),
+  CONSTRAINT `fk_ch_class` FOREIGN KEY (`class_id`) REFERENCES `classroom` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ch_hw` FOREIGN KEY (`homework_id`) REFERENCES `homework` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 --
 -- Dumping data for table `user`

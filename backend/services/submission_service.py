@@ -5,7 +5,7 @@ import re
 from typing import Dict, Any, List, Optional
 from sqlmodel import Session, select
 from backend.config import engine
-from backend.models import Exercise, Homework, Submission
+from backend.models import Exercise, Homework, Submission, ClassHomework
 from backend.utils.deepseek_client import call_deepseek_api
 
 def submit_homework(homework_id: int, student_id: int, answers: Dict[str, Any]) -> Submission:
@@ -62,13 +62,16 @@ def grade_submission(submission_id: int):
         sess.add(sub)
         sess.commit()
 
-def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
+def list_student_homeworks(student_id: int, class_id: int | None = None) -> List[Dict[str, Any]]:
     """
     列出所有作业及当前学生提交状态
     """
     out = []
     with Session(engine) as sess:
-        hws = sess.exec(select(Homework).order_by(Homework.assigned_at)).all()
+        stmt = select(Homework).order_by(Homework.assigned_at)
+        if class_id is not None:
+            stmt = stmt.join(ClassHomework, Homework.id == ClassHomework.homework_id).where(ClassHomework.class_id == class_id)
+        hws = sess.exec(stmt).all()
         for hw in hws:
             sub = sess.exec(
                 select(Submission)

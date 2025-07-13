@@ -13,6 +13,7 @@ from backend.routers.homework_router import router as homework_router
 from backend.routers.teacher_router import router as teacher_student_router
 from backend.routers.student_router import router, router_practice, router_analysis
 from backend.routers.admin_router import router as admin_router
+from backend.routers.class_router import router_teacher as class_router_teacher, router_student as class_router_student
 
 app = FastAPI()
 app.add_middleware(
@@ -40,9 +41,11 @@ app.include_router(lesson_router)
 app.include_router(exercise_router)
 app.include_router(homework_router)
 app.include_router(teacher_student_router)
+app.include_router(class_router_teacher)
 app.include_router(router)
 app.include_router(router_practice)
 app.include_router(router_analysis)
+app.include_router(class_router_student)
 app.include_router(admin_router)
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")

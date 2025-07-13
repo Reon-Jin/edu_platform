@@ -1,8 +1,11 @@
 # backend/models.py
-from typing import Optional, Any, List
+from typing import Optional, Any, List, TYPE_CHECKING
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON, LargeBinary, Text
+
+if TYPE_CHECKING:
+    from .models import TeacherSubject, Classroom, ClassStudent, ClassHomework
 
 class Role(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -21,6 +24,8 @@ class User(SQLModel, table=True):
     coursewares: List["Courseware"] = Relationship(back_populates="teacher")
     chats: List["ChatHistory"]   = Relationship(back_populates="student")
     practices: List["Practice"]  = Relationship(back_populates="student")
+    teacher_subject: Optional["TeacherSubject"] = Relationship(back_populates="teacher")
+    classes: List["Classroom"] = Relationship(back_populates="teacher")
 
 
 class Exercise(SQLModel, table=True):
@@ -157,3 +162,46 @@ class LoginEvent(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     user: User = Relationship()
+
+
+class TeacherSubject(SQLModel, table=True):
+    __tablename__ = "teacher_subject"
+
+    teacher_id: int = Field(foreign_key="user.id", primary_key=True)
+    subject: str = Field(max_length=100, nullable=False)
+
+    teacher: "User" = Relationship(back_populates="teacher_subject")
+
+
+class Classroom(SQLModel, table=True):
+    __tablename__ = "classroom"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    teacher_id: int = Field(foreign_key="user.id", nullable=False)
+    name: str = Field(max_length=100)
+    capacity: int = Field(default=60)
+    code: str = Field(max_length=6, nullable=False, unique=True)
+
+    teacher: "User" = Relationship(back_populates="classes")
+    students: List["ClassStudent"] = Relationship(back_populates="classroom")
+    homeworks: List["ClassHomework"] = Relationship(back_populates="classroom")
+
+
+class ClassStudent(SQLModel, table=True):
+    __tablename__ = "class_student"
+
+    class_id: int = Field(foreign_key="classroom.id", primary_key=True)
+    student_id: int = Field(foreign_key="user.id", primary_key=True)
+
+    classroom: Classroom = Relationship(back_populates="students")
+    student: "User" = Relationship()
+
+
+class ClassHomework(SQLModel, table=True):
+    __tablename__ = "class_homework"
+
+    class_id: int = Field(foreign_key="classroom.id", primary_key=True)
+    homework_id: int = Field(foreign_key="homework.id", primary_key=True)
+
+    classroom: Classroom = Relationship(back_populates="homeworks")
+    homework: Homework = Relationship()
