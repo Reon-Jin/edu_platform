@@ -308,3 +308,13 @@ td {
   margin-top: 1rem;
   font-weight: bold;
 }
+
+/* Preview area below generate button */
+.preview-area {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  overflow-x: auto;
+}

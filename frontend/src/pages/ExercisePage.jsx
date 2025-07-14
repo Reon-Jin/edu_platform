@@ -20,6 +20,7 @@ export default function ExercisePage() {
     num_programming: 0,
   });
   const [preview, setPreview] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [exId, setExId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +45,7 @@ export default function ExercisePage() {
     try {
       const data = await generateExerciseJson(form);
       setPreview(data);
+      setShowPreview(true);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.detail || "生成练习失败");
@@ -193,8 +195,8 @@ export default function ExercisePage() {
         </div>
       </form>
 
-        {preview && (
-          <div className="card" style={{ marginTop: "1rem" }}>
+        {showPreview && preview && (
+          <div className="preview-area card" style={{ marginTop: "1rem" }}>
             <div className="actions">
               <button className="button" onClick={handleSave} disabled={saved}>
                 {saved ? "已保存" : "保存练习"}
