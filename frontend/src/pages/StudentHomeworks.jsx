@@ -50,6 +50,8 @@ export default function StudentHomeworks() {
                         ? "badge-completed"
                         : hw.status === "overdue"
                         ? "badge-overdue"
+                        :hw.status === "grading"
+                        ? "badge-grading"
                         : ""
                     }`}
                   >

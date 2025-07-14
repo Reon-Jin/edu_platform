@@ -347,3 +347,7 @@ table tr:nth-child(even) {
 .badge-overdue {
   background-color: #EF4444;
 }
+
+.badge-grading {
+  background-color: #df5ae3;
+}
