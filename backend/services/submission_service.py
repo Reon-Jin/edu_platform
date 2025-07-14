@@ -70,14 +70,22 @@ def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
     with Session(engine) as sess:
         hws = sess.exec(select(Homework).order_by(Homework.assigned_at)).all()
         for hw in hws:
-            sub = sess.exec(
-                select(Submission)
-                .where(
-                    Submission.homework_id == hw.id,
-                    Submission.student_id == student_id,
-                )
-            ).first()
-            if not sub or not sub.answers:
+            sub = (
+                sess.exec(
+                    select(Submission)
+                    .where(
+                        Submission.homework_id == hw.id,
+                        Submission.student_id == student_id,
+                    )
+                    .order_by(Submission.submitted_at.desc())
+                ).first()
+            )
+
+            answers_empty = not sub or not sub.answers or all(
+                v in (None, "", []) for v in getattr(sub, "answers", {}).values()
+            )
+
+            if answers_empty:
                 status, sid = "not_submitted", None
             else:
                 status, sid = sub.status, sub.id
