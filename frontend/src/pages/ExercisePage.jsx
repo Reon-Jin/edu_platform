@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import Stepper from "../components/Stepper";
+import Tooltip from "../components/Tooltip";
 
 import {
   generateExerciseJson,
@@ -119,73 +121,80 @@ export default function ExercisePage() {
     }
   };
 
+  const total =
+    form.num_mcq +
+    form.num_fill_blank +
+    form.num_short_answer +
+    form.num_programming;
+
   return (
     <div className="container">
-      <div className="card">
-        <h2>练习题生成</h2>
-        {error && <div className="error">{error}</div>}
-        <form onSubmit={handleGenerate}>
-          <label>
-            主题
-            <input
-              className="input"
-              name="topic"
-              value={form.topic}
-              onChange={handleChange}
-              required
-            />
-          </label>
-          <label>
-            选择题数量
-            <input
-              className="input"
-              type="number"
-              name="num_mcq"
-              value={form.num_mcq}
-              onChange={handleChange}
-              min="0"
-            />
-          </label>
-          <label>
-            填空题数量
-            <input
-              className="input"
-              type="number"
-              name="num_fill_blank"
-              value={form.num_fill_blank}
-              onChange={handleChange}
-              min="0"
-            />
-          </label>
-          <label>
-            简答题数量
-            <input
-              className="input"
-              type="number"
-              name="num_short_answer"
-              value={form.num_short_answer}
-              onChange={handleChange}
-              min="0"
-            />
-          </label>
-          <label>
-            编程题数量
-            <input
-              className="input"
-              type="number"
-              name="num_programming"
-              value={form.num_programming}
-              onChange={handleChange}
-              min="0"
-            />
-          </label>
+      <form onSubmit={handleGenerate} style={{ width: "100%", maxWidth: "960px" }}>
+        <div className="card" style={{ marginBottom: "1rem" }}>
+          <h2>1. 输入主题</h2>
+          {error && <div className="error">{error}</div>}
+          <input
+            className="input"
+            name="topic"
+            value={form.topic}
+            onChange={handleChange}
+            required
+            placeholder="输入练习主题"
+          />
+        </div>
+        <div className="card">
+          <h2>2. 配置题量</h2>
+          <div className="grid-2">
+            <label>
+              选择题数量
+              <Tooltip text="单选或多选题目" />
+              <Stepper
+                value={form.num_mcq}
+                onChange={(v) => setForm((p) => ({ ...p, num_mcq: v }))}
+                min={0}
+                max={20}
+              />
+            </label>
+            <label>
+              填空题数量
+              <Tooltip text="在句子中留空填入答案" />
+              <Stepper
+                value={form.num_fill_blank}
+                onChange={(v) => setForm((p) => ({ ...p, num_fill_blank: v }))}
+                min={0}
+                max={20}
+              />
+            </label>
+            <label>
+              简答题数量
+              <Tooltip text="需要简短回答的题目" />
+              <Stepper
+                value={form.num_short_answer}
+                onChange={(v) => setForm((p) => ({ ...p, num_short_answer: v }))}
+                min={0}
+                max={20}
+              />
+            </label>
+            <label>
+              编程题数量
+              <Tooltip text="提交代码的题目" />
+              <Stepper
+                value={form.num_programming}
+                onChange={(v) => setForm((p) => ({ ...p, num_programming: v }))}
+                min={0}
+                max={20}
+              />
+            </label>
+          </div>
+          <div className="total-count">共计 {total} 题</div>
           <button className="button" type="submit" disabled={loading}>
             {loading ? "生成中…" : "生成练习"}
           </button>
-        </form>
+        </div>
+      </form>
 
         {preview && (
-          <>
+          <div className="card" style={{ marginTop: "1rem" }}>
             <div className="actions">
               <button className="button" onClick={handleSave} disabled={saved}>
                 {saved ? "已保存" : "保存练习"}
@@ -219,9 +228,8 @@ export default function ExercisePage() {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
-      </div>
     </div>
   );
 }
