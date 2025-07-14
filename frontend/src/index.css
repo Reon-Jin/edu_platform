@@ -53,7 +53,7 @@ html, body, #root {
   font-size: 1rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(90deg, #5b9df9, #2d74da);
+  background: linear-gradient(90deg, #2c9d9f, #09adb9);
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
