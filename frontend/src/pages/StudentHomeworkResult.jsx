@@ -57,38 +57,32 @@ export default function StudentHomeworkResult() {
           <div>总分：{score}</div>
         </div>
 
-        {exercise.prompt.map((block, bIdx) => {
-          const correctCount = block.items.reduce(
-            (acc, it) => acc + (fmt(results[it.id]) === "对" ? 1 : 0),
-            0
-          );
-          return (
-            <div className="section-card" key={bIdx}>
-              <div className={`section-header header-${block.type}`}>
-                {typeNames[block.type] || block.type}（{correctCount}/{block.items.length}）
-              </div>
-              <div className="section-content">
-                {block.items.map((item) => (
-                  <div key={item.id} style={{ display: "flex" }}>
-                    <button className="qbtn" onClick={() => setActiveId(item.id)}>
-                      {item.id}
-                      <span
-                        className={`result-badge ${fmt(results[item.id]) === "对" ? "result-correct" : "result-wrong"}`}
-                      >
-                        {fmt(results[item.id]) === "对" ? "✔" : "✖"}
-                      </span>
-                    </button>
-                    {block.type === "short_answer" && (
-                      <span className="score-badge">
-                        {fmt(results[item.id]) === "对" ? 1 : 0}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+        {exercise.prompt.map((block, bIdx) => (
+          <div className="section-card" key={bIdx}>
+            <div className={`section-header header-${block.type}`}>
+              {typeNames[block.type] || block.type}（{block.items.length}/{block.items.length}）
             </div>
-          );
-        })}
+            <div className="section-content">
+              {block.items.map((item) => (
+                <div key={item.id} style={{ display: "flex" }}>
+                  <button className="qbtn" onClick={() => setActiveId(item.id)}>
+                    {item.id}
+                    <span
+                      className={`result-badge ${fmt(results[item.id]) === "对" ? "result-correct" : "result-wrong"}`}
+                    >
+                      {fmt(results[item.id]) === "对" ? "✔" : "✖"}
+                    </span>
+                  </button>
+                  {block.type === "short_answer" && (
+                    <span className="score-badge">
+                      {fmt(results[item.id]) === "对" ? 1 : 0}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
 
         {activeItem && (
           <div style={{ marginTop: "1rem" }}>
@@ -101,28 +95,8 @@ export default function StudentHomeworkResult() {
                 ))}
               </ul>
             )}
-            <div>
-              我的答案：
-              {activeItem.options
-                ? (() => {
-                    const idx = parseInt(student_answers[activeItem.id], 10);
-                    return isNaN(idx)
-                      ? String(student_answers[activeItem.id])
-                      : String.fromCharCode(65 + idx);
-                  })()
-                : String(student_answers[activeItem.id])}
-            </div>
-            <div>
-              标准答案：
-              {activeItem.options
-                ? (() => {
-                    const idx = parseInt(exercise.answers[activeItem.id], 10);
-                    return isNaN(idx)
-                      ? String(exercise.answers[activeItem.id])
-                      : String.fromCharCode(65 + idx);
-                  })()
-                : String(exercise.answers[activeItem.id])}
-            </div>
+            <div>我的答案：{String(student_answers[activeItem.id])}</div>
+            <div>标准答案：{String(exercise.answers[activeItem.id])}</div>
             <div>结果：{fmt(results[activeItem.id])}</div>
             <div>解析：{feedback.explanations[activeItem.id]}</div>
           </div>
