@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   fetchExercisePreview,
@@ -22,7 +22,10 @@ export default function ExercisePreview() {
       setError("");
       try {
         const data = await fetchExercisePreview(ex_id);
-        setExercise(data);
+        // 后端现在返回 { topic, prompt, answers } 或 { topic, questions, answers }
+        // 这里统一把 questions 重命名为 prompt
+        const prompt = data.prompt ?? data.questions ?? [];
+        setExercise({ ...data, prompt });
       } catch (err) {
         console.error(err);
         setError("加载失败");
@@ -32,6 +35,17 @@ export default function ExercisePreview() {
     };
     load();
   }, [ex_id]);
+
+  // 按 type 分组，只在 exercise.prompt 改变时重新计算
+  const grouped = useMemo(() => {
+    if (!exercise) return {};
+    return (exercise.prompt).reduce((acc, block) => {
+      const { type, items } = block;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(...items);
+      return acc;
+    }, {});
+  }, [exercise]);
 
   const handleAssign = async () => {
     try {
@@ -81,6 +95,13 @@ export default function ExercisePreview() {
     navigate(`/teacher/exercise/stats/${ex_id}`);
   };
 
+  const typeLabels = {
+    single_choice: "选择题",
+    fill_blank: "填空题",
+    short_answer: "简答题",
+    programming: "编程题",
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -99,22 +120,39 @@ export default function ExercisePreview() {
           exercise && (
             <>
               <div className="actions">
-                <button className="button" onClick={handleAssign} disabled={assigned}>
+                <button
+                  className="button"
+                  onClick={handleAssign}
+                  disabled={assigned}
+                >
                   {assigned ? "已布置" : "布置作业"}
                 </button>
-                <button className="button" onClick={handleDownloadQ}>下载题目 PDF</button>
-                <button className="button" onClick={handleDownloadA}>下载答案 PDF</button>
-                <button className="button" onClick={goStats}>查看统计</button>
+                <button className="button" onClick={handleDownloadQ}>
+                  下载题目 PDF
+                </button>
+                <button className="button" onClick={handleDownloadA}>
+                  下载答案 PDF
+                </button>
+                <button className="button" onClick={goStats}>
+                  查看统计
+                </button>
               </div>
+
               <div style={{ marginTop: "1rem" }}>
-                {exercise.prompt.map((block, bIdx) => (
-                  <div key={bIdx} style={{ marginBottom: "1rem" }}>
-                    <strong>{block.type}</strong>
-                    {block.items.map((item, i) => (
-                      <div key={i} style={{ marginLeft: "1rem" }}>
+                {Object.entries(grouped).map(([type, items]) => (
+                  <div key={type} style={{ marginBottom: "2rem" }}>
+                    {/* 题型标题 */}
+                    <h3>{typeLabels[type] || type}</h3>
+                    {/* 题目列表 */}
+                    {items.map((item, idx) => (
+                      <div
+                        key={item.id ?? idx}
+                        style={{ margin: "0.5rem 0 1rem 1rem" }}
+                      >
+                        <strong>{idx + 1}. </strong>
                         {item.question}
-                        {item.options && (
-                          <ul>
+                        {item.options && item.options.length > 0 && (
+                          <ul style={{ marginTop: "0.5rem" }}>
                             {item.options.map((opt, j) => (
                               <li key={j}>{opt}</li>
                             ))}
