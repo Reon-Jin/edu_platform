@@ -21,6 +21,7 @@ class HomeworkStudentOut(BaseModel):
     assigned_at: datetime
     status: str                    # "not_submitted"/"grading"/"completed"
     submission_id: Optional[int]
+    subject: Optional[str] = None
 
     class Config:
         from_attributes = True

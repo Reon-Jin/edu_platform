@@ -7,6 +7,12 @@ export default function StudentHomeworks() {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
 
+  const statusMap = {
+    not_submitted: "未提交",
+    grading: "批改中",
+    completed: "已完成",
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -26,7 +32,7 @@ export default function StudentHomeworks() {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>标题</th>
               <th>状态</th>
               <th>操作</th>
             </tr>
@@ -34,8 +40,24 @@ export default function StudentHomeworks() {
           <tbody>
             {list.map((hw) => (
               <tr key={hw.homework_id}>
-                <td>{hw.homework_id}</td>
-                <td>{hw.status}</td>
+                <td>{hw.subject}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      hw.status === "not_submitted"
+                        ? "badge-not_submitted"
+                        : hw.status === "completed"
+                        ? "badge-completed"
+                        : hw.status === "overdue"
+                        ? "badge-overdue"
+                        :hw.status === "grading"
+                        ? "badge-grading"
+                        : ""
+                    }`}
+                  >
+                    {statusMap[hw.status] || hw.status}
+                  </span>
+                </td>
                 <td>
                   {hw.status === "not_submitted" && (
                     <button
