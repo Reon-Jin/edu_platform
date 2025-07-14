@@ -93,7 +93,7 @@ export default function StudentAiTeacher() {
       <div className="card" style={{ display: "flex", flexDirection: "column" }}>
         {/* 菜单布局下无需返回按钮 */}
         <div style={{ display: "flex" }}>
-          <div style={{ width: "180px", marginRight: "1rem", borderRight: "1px solid #e5e5e5", paddingRight: "1rem" }}>
+          <div style={{ width: "180px", marginRight: "1rem", borderRight: "1px solid #E2E8F0", paddingRight: "1rem" }}>
             <button className="button" onClick={newChat} style={{ width: "100%" }}>新建聊天</button>
             <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
             {sessions.map((s, idx) => (

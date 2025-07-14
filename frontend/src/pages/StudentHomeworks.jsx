@@ -41,7 +41,21 @@ export default function StudentHomeworks() {
             {list.map((hw) => (
               <tr key={hw.homework_id}>
                 <td>{hw.subject}</td>
-                <td>{statusMap[hw.status] || hw.status}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      hw.status === "not_submitted"
+                        ? "badge-not_submitted"
+                        : hw.status === "completed"
+                        ? "badge-completed"
+                        : hw.status === "overdue"
+                        ? "badge-overdue"
+                        : ""
+                    }`}
+                  >
+                    {statusMap[hw.status] || hw.status}
+                  </span>
+                </td>
                 <td>
                   {hw.status === "not_submitted" && (
                     <button
