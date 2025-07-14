@@ -95,7 +95,12 @@ export default function StudentHomeworkResult() {
                 ))}
               </ul>
             )}
-            <div>我的答案：{String(student_answers[activeItem.id])}</div>
+            <div>
+              我的答案：
+              {student_answers[activeItem.id] !== undefined
+                ? String(student_answers[activeItem.id])
+                : "未作答"}
+            </div>
             <div>标准答案：{String(exercise.answers[activeItem.id])}</div>
             <div>结果：{fmt(results[activeItem.id])}</div>
             <div>解析：{feedback.explanations[activeItem.id]}</div>

@@ -77,7 +77,7 @@ def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
                     Submission.student_id == student_id,
                 )
             ).first()
-            if not sub:
+            if not sub or not sub.answers:
                 status, sid = "not_submitted", None
             else:
                 status, sid = sub.status, sub.id
