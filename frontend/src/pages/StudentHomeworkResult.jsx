@@ -33,9 +33,15 @@ export default function StudentHomeworkResult() {
   const fmt = (r) =>
     r === "correct" || r === "正确" || r === true ? "对" : "错";
 
+  const typeNames = {
+    multiple_choice: "选择题",
+    fill_in_the_blank: "填空题",
+    short_answer: "简答题",
+  };
+
   const questions = [];
   exercise.prompt.forEach((block) => {
-    block.items.forEach((item) => questions.push(item));
+    block.items.forEach((item) => questions.push({ ...item, type: block.type }));
   });
 
   const activeItem = questions.find((q) => String(q.id) === String(activeId));
@@ -43,26 +49,41 @@ export default function StudentHomeworkResult() {
   return (
     <div className="container">
       <div className="card">
-        <button
-          className="button"
-          style={{ width: "auto", marginBottom: "1rem" }}
-          onClick={() => navigate(-1)}
-        >
-          返回
-        </button>
-        <h2>作业结果</h2>
-        <div>总分：{score}</div>
-        <div className="actions">
-          {questions.map((q) => (
-            <button
-              key={q.id}
-              className="button"
-              onClick={() => setActiveId(q.id)}
-            >
-              {q.id}
-            </button>
-          ))}
+        <div className="result-header">
+          <button className="button" style={{ width: "auto" }} onClick={() => navigate(-1)}>
+            返回
+          </button>
+          <h2 style={{ margin: 0 }}>作业结果</h2>
+          <div>总分：{score}</div>
         </div>
+
+        {exercise.prompt.map((block, bIdx) => (
+          <div className="section-card" key={bIdx}>
+            <div className={`section-header header-${block.type}`}>
+              {typeNames[block.type] || block.type}（{block.items.length}/{block.items.length}）
+            </div>
+            <div className="section-content">
+              {block.items.map((item) => (
+                <div key={item.id} style={{ display: "flex" }}>
+                  <button className="qbtn" onClick={() => setActiveId(item.id)}>
+                    {item.id}
+                    <span
+                      className={`result-badge ${fmt(results[item.id]) === "对" ? "result-correct" : "result-wrong"}`}
+                    >
+                      {fmt(results[item.id]) === "对" ? "✔" : "✖"}
+                    </span>
+                  </button>
+                  {block.type === "short_answer" && (
+                    <span className="score-badge">
+                      {fmt(results[item.id]) === "对" ? 1 : 0}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
         {activeItem && (
           <div style={{ marginTop: "1rem" }}>
             <h3>题号 {activeItem.id}</h3>

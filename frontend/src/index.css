@@ -351,3 +351,87 @@ table tr:nth-child(even) {
 .badge-grading {
   background-color: #df5ae3;
 }
+
+/* ----- Homework result styles ----- */
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+}
+
+.header-multiple_choice {
+  background: #e0f2ff;
+}
+
+.header-fill_in_the_blank {
+  background: #ecfdf5;
+}
+
+.header-short_answer {
+  background: #fff7ed;
+}
+
+.section-content {
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.qbtn {
+  position: relative;
+  width: 2.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qbtn:hover {
+  background: #eef2f8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.result-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.result-correct {
+  background: #22c55e;
+}
+
+.result-wrong {
+  background: #ef4444;
+}
+
+.score-badge {
+  align-self: center;
+  margin-left: 0.25rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #fb923c;
+  color: #fff;
+  font-size: 0.75rem;
+}
