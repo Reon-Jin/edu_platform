@@ -133,7 +133,7 @@ export default function ExercisePage() {
     <div className="container">
       <form onSubmit={handleGenerate} style={{ width: "100%", maxWidth: "960px" }}>
         <div className="card" style={{ marginBottom: "1rem" }}>
-          <h2>1. 输入主题</h2>
+          <h2>输入主题</h2>
           {error && <div className="error">{error}</div>}
           <input
             className="input"
@@ -145,7 +145,7 @@ export default function ExercisePage() {
           />
         </div>
         <div className="card">
-          <h2>2. 配置题量</h2>
+          <h2>配置题量</h2>
           <div className="grid-2">
             <label>
               选择题数量
