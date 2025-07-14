@@ -10,22 +10,7 @@ from backend.schemas.submission_schema import (
     HomeworkResultOut
 )
 from backend.schemas.exercise_schema import ExerciseOut, ExerciseQuestionsOut
-import json
-
-
-def _normalize_exercise(ex):
-    """Ensure JSON fields are parsed when loaded as strings."""
-    if isinstance(ex.prompt, str):
-        try:
-            ex.prompt = json.loads(ex.prompt)
-        except Exception:
-            pass
-    if isinstance(ex.answers, str):
-        try:
-            ex.answers = json.loads(ex.answers)
-        except Exception:
-            pass
-    return ex
+from backend.services.exercise_service import normalize_exercise
 from backend.services.submission_service import (
     list_student_homeworks,
     submit_homework,
@@ -74,7 +59,7 @@ def api_result(hw_id: int, user=Depends(get_current_user)):
     if sub.status != "completed":
         raise HTTPException(status_code=400, detail="作业尚在批改中")
     # sub.homework 及 sub.homework.exercise 已可访问
-    exercise = _normalize_exercise(sub.homework.exercise)
+    exercise = normalize_exercise(sub.homework.exercise)
     exercise_data = ExerciseOut.model_validate(exercise, from_attributes=True)
     return HomeworkResultOut(
         exercise=exercise_data,

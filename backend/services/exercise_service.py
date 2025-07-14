@@ -39,14 +39,26 @@ pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
 
 
 def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    从模型返回的 content 中提取首个完整 JSON 并解析。
-    """
+    """从模型响应中提取并解析 JSON。"""
     content = resp["choices"][0]["message"]["content"]
-    m = re.search(r"\{.*\}", content, flags=re.S)
-    if not m:
-        raise ValueError(f"无法解析模型响应 JSON：{content!r}")
-    return json.loads(m.group(0))
+    text = re.sub(r"^```(?:json)?\s*", "", content)
+    text = re.sub(r"\s*```$", "", text)
+    return json.loads(text)
+
+
+def normalize_exercise(ex: Exercise) -> Exercise:
+    """Parse JSON strings loaded from database into objects."""
+    if isinstance(ex.prompt, str):
+        try:
+            ex.prompt = json.loads(ex.prompt)
+        except Exception:
+            pass
+    if isinstance(ex.answers, str):
+        try:
+            ex.answers = json.loads(ex.answers)
+        except Exception:
+            pass
+    return ex
 
 
 def preview_exercise(
@@ -264,6 +276,7 @@ def assign_homework(exercise_id: int) -> Homework:
             .options(selectinload(Homework.exercise))
             .where(Homework.id == hw.id)
         ).one()
+        hw.exercise = normalize_exercise(hw.exercise)
         return hw
 
 
