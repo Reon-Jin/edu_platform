@@ -35,7 +35,7 @@ export default function StudentHomeworkResult() {
 
   const typeNames = {
     multiple_choice: "选择题",
-    fill_in_the_blank: "填空题",
+    fill_in_blank: "填空题",
     short_answer: "简答题",
   };
 
