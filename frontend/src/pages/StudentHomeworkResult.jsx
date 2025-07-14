@@ -30,6 +30,21 @@ export default function StudentHomeworkResult() {
   const { exercise, student_answers, feedback, score } = data;
   const results = feedback.results || {};
 
+  const optionLabel = (v) => {
+    if (v === undefined || v === null) return v;
+    if (Array.isArray(v)) return v.map(optionLabel).join(', ');
+    const n = Number(v);
+    if (!Number.isNaN(n)) {
+      return String.fromCharCode(65 + n);
+    }
+    const s = String(v).trim();
+    if (/^[0-9]+$/.test(s)) {
+      const m = parseInt(s, 10);
+      return String.fromCharCode(65 + m);
+    }
+    return s;
+  };
+
   const fmt = (r) =>
     r === "correct" || r === "正确" || r === true ? "对" : "错";
 
@@ -98,10 +113,10 @@ export default function StudentHomeworkResult() {
             <div>
               我的答案：
               {student_answers[activeItem.id] !== undefined
-                ? String(student_answers[activeItem.id])
+                ? optionLabel(student_answers[activeItem.id])
                 : "未作答"}
             </div>
-            <div>标准答案：{String(exercise.answers[activeItem.id])}</div>
+            <div>标准答案：{optionLabel(exercise.answers[activeItem.id])}</div>
             <div>结果：{fmt(results[activeItem.id])}</div>
             <div>解析：{feedback.explanations[activeItem.id]}</div>
           </div>
