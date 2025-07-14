@@ -70,7 +70,8 @@ def preview_exercise(
     prompt = (
         f"请根据主题“{topic}”{''.join(parts)}\n\n"
         '请以 JSON 格式返回：questions（列表，每项 {"type":..., "items":[...] }），'
-        '其中type指的是题型,你只能填multiple_choice,fill_in_blank,short_answer,coding四种.'
+        '其中type指的是题型,你只能填multiple_choice,fill_in_blank,short_answer,coding四种。'
+        '选择题每道有A,B,C,D四个选项。'
         "answers（对象，键为题目 id，值为参考答案）。请仅返回一段完整合法的 JSON，不要多余的文本，不要 markdown 标记，也不要截断。"
     )
     resp = call_deepseek_api(prompt)
