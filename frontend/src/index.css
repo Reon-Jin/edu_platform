@@ -10,10 +10,12 @@ html, body, #root {
 
 .container {
   display: flex;
+  flex-direction: column; /* stack children vertically */
   justify-content: center;
   align-items: center;
   min-height: 100%;
   padding: 2rem;
+  gap: 1rem; /* space between stacked elements */
 }
 
 .card {
