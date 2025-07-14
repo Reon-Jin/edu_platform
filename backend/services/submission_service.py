@@ -72,19 +72,25 @@ def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
         for hw in hws:
             sub = sess.exec(
                 select(Submission)
-                .where(Submission.homework_id == hw.id,
-                       Submission.student_id == student_id)
+                .where(
+                    Submission.homework_id == hw.id,
+                    Submission.student_id == student_id,
+                )
             ).first()
             if not sub:
                 status, sid = "not_submitted", None
             else:
                 status, sid = sub.status, sub.id
+
+            ex = sess.get(Exercise, hw.exercise_id)
+
             out.append({
-                "homework_id":   hw.id,
-                "exercise_id":   hw.exercise_id,
-                "assigned_at":   hw.assigned_at,
-                "status":        status,
-                "submission_id": sid
+                "homework_id": hw.id,
+                "exercise_id": hw.exercise_id,
+                "assigned_at": hw.assigned_at,
+                "status": status,
+                "submission_id": sid,
+                "subject": ex.subject if ex else None,
             })
     return out
 
