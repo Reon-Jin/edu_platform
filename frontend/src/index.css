@@ -4,7 +4,8 @@ html, body, #root {
   height: 100%;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-  background-color: #f0f4f8;
+  background-color: #F5F9FC;
+  color: #334155;
   animation: fade-in 0.5s ease-in-out;
 }
 
@@ -20,6 +21,7 @@ html, body, #root {
 
 .card {
   background: #fff;
+  border: 1px solid #E2E8F0;
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -33,7 +35,7 @@ html, body, #root {
   margin: 0 0 1.5rem;
   font-size: 2rem;
   text-align: center;
-  color: #1c1c1e;
+  color: #334155;
 }
 
 .input {
@@ -42,7 +44,7 @@ html, body, #root {
   margin-top: 1rem;
   margin-bottom: 1.5rem;
   font-size: 1rem;
-  border: 1px solid #d2d2d7;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   box-sizing: border-box;
 }
@@ -123,17 +125,21 @@ table {
 }
 
 table, th, td {
-  border: 1px solid #ccc;
+  border: 1px solid #E2E8F0;
   padding: 8px;
 }
 
 th {
   text-align: left;
-  background-color: #f0f0f0;
+  background-color: #E6FFFA;
 }
 
 td {
   text-align: left;
+}
+
+table tr:nth-child(even) {
+  background-color: #F0F9F9;
 }
 
 /* Small icon button used for history delete actions */
@@ -142,7 +148,7 @@ td {
   padding: 0.25rem 0.5rem;
   margin-top: 0;
   font-size: 1rem;
-  border: 1px solid #d2d2d7;
+  border: 1px solid #E2E8F0;
   border-radius: 4px;
   background: #fff;
   cursor: pointer;
@@ -244,7 +250,7 @@ td {
 .stepper-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid #d2d2d7;
+  border: 1px solid #E2E8F0;
   background: #fff;
   border-radius: 4px;
   cursor: pointer;
@@ -258,7 +264,7 @@ td {
   text-align: center;
   margin: 0 0.5rem;
   padding: 0.25rem 0.5rem;
-  border: 1px solid #d2d2d7;
+  border: 1px solid #E2E8F0;
   border-radius: 4px;
 }
 
@@ -319,4 +325,25 @@ td {
   background: #f9f9f9;
   border-radius: 8px;
   overflow-x: auto;
+}
+
+/* Badge styles for homework status */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 0.875rem;
+}
+
+.badge-not_submitted {
+  background-color: #F97316;
+}
+
+.badge-completed {
+  background-color: #22C55E;
+}
+
+.badge-overdue {
+  background-color: #EF4444;
 }
