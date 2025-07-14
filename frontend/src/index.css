@@ -233,3 +233,78 @@ td {
 .preview-column .actions {
   margin-top: 0;
 }
+
+/* Stepper component */
+.stepper {
+  display: flex;
+  align-items: center;
+}
+.stepper-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d2d2d7;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.stepper-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.stepper-input {
+  width: 60px;
+  text-align: center;
+  margin: 0 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #d2d2d7;
+  border-radius: 4px;
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  margin-left: 0.25rem;
+}
+.tooltip-icon {
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 12px;
+  background: #e0e0e0;
+  border-radius: 50%;
+  text-align: center;
+  cursor: pointer;
+}
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  background: #333;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  position: absolute;
+  z-index: 10;
+  white-space: nowrap;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+}
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Grid layout for question config */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.total-count {
+  text-align: right;
+  margin-top: 1rem;
+  font-weight: bold;
+}
