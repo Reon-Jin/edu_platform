@@ -14,6 +14,22 @@ from backend.services.submission_service import (
     get_submission_by_hw_student,
 )
 from backend.schemas.exercise_schema import ExerciseOut
+import json
+
+
+def _normalize_exercise(ex):
+    """Ensure JSON fields are parsed when loaded as strings."""
+    if isinstance(ex.prompt, str):
+        try:
+            ex.prompt = json.loads(ex.prompt)
+        except Exception:
+            pass
+    if isinstance(ex.answers, str):
+        try:
+            ex.answers = json.loads(ex.answers)
+        except Exception:
+            pass
+    return ex
 from backend.schemas.submission_schema import HomeworkResultOut
 
 router = APIRouter(prefix="/teacher/students", tags=["student-data"])
@@ -70,7 +86,8 @@ def homework_detail(sid: int, hw_id: int, current: User = Depends(get_current_us
     sub = get_submission_by_hw_student(hw_id, sid)
     if not sub or sub.status != "completed":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="作业不存在")
-    ex_data = ExerciseOut.model_validate(sub.homework.exercise, from_attributes=True)
+    ex = _normalize_exercise(sub.homework.exercise)
+    ex_data = ExerciseOut.model_validate(ex, from_attributes=True)
     return HomeworkResultOut(
         exercise=ex_data,
         student_answers=sub.answers,
