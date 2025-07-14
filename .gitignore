@@ -175,4 +175,5 @@ cython_debug/
 
 backend/.env
 
-.idea
+.idea/
+.vscode/
