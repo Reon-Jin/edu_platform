@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
-import { generateSelfPractice } from "../api/student";
+import { generateSelfPractice, fetchStudentAnalysis } from "../api/student";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -26,8 +26,8 @@ export default function EvaluateAssistant() {
       setAnalysis("");
       setAnalysisLoading(true);
       try {
-        const resp = await api.get("/student/analysis");
-        setAnalysis(resp.data.analysis || JSON.stringify(resp.data));
+        const resp = await fetchStudentAnalysis();
+        setAnalysis(resp.analysis || "");
       } catch (err) {
         console.error(err);
         setError("加载分析失败");
