@@ -2,7 +2,8 @@ from typing import List
 from sqlmodel import Session, select
 
 from backend.config import engine
-from backend.models import Class, ClassStudent, User
+from backend.models import Class, ClassStudent, User, Homework, Submission
+from sqlmodel import select
 
 
 def create_class(teacher_id: int, name: str, subject: str) -> Class:
@@ -55,3 +56,25 @@ def remove_student_from_class(class_id: int, student_id: int) -> None:
         if assoc:
             sess.delete(assoc)
             sess.commit()
+
+
+def delete_class(class_id: int) -> bool:
+    """Delete a class and related data."""
+    with Session(engine) as sess:
+        c = sess.get(Class, class_id)
+        if not c:
+            return False
+
+        # delete homework and submissions
+        for hw in sess.exec(select(Homework).where(Homework.class_id == class_id)):
+            for sub in sess.exec(select(Submission).where(Submission.homework_id == hw.id)):
+                sess.delete(sub)
+            sess.delete(hw)
+
+        # delete student associations
+        for assoc in sess.exec(select(ClassStudent).where(ClassStudent.class_id == class_id)):
+            sess.delete(assoc)
+
+        sess.delete(c)
+        sess.commit()
+        return True
