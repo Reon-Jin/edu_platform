@@ -62,10 +62,21 @@ def student_analysis(
     return {"analysis": content or ""}
 
 @router.get("/{sid}/homeworks", response_model=List[SubmissionMeta])
-def student_homeworks(sid: int, current: User = Depends(get_current_user)):
+def student_homeworks(
+    sid: int,
+    class_id: int | None = None,
+    current: User = Depends(get_current_user),
+):
     if not current.role or current.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    subs = list_completed_submissions(sid)
+
+    if class_id is not None:
+        with Session(engine) as sess:
+            c = sess.get(Class, class_id)
+            if not c or c.teacher_id != current.id:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="class not found")
+
+    subs = list_completed_submissions(sid, teacher_id=current.id, class_id=class_id)
     return [
         SubmissionMeta(
             homework_id=s.homework_id,

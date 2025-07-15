@@ -236,8 +236,11 @@ export async function fetchStudentAnalysis(sid, classId) {
 }
 
 /** 获取学生已完成练习列表 */
-export async function fetchStudentHomeworks(sid) {
-  const resp = await api.get(`/teacher/students/${sid}/homeworks`);
+export async function fetchStudentHomeworks(sid, classId) {
+  const url = classId
+    ? `/teacher/students/${sid}/homeworks?class_id=${classId}`
+    : `/teacher/students/${sid}/homeworks`;
+  const resp = await api.get(url);
   return resp.data;
 }
 
