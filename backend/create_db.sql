@@ -200,28 +200,33 @@ CREATE TABLE `practice` (
 --   - A class belongs to exactly one teacher
 --   - A teacher can have multiple classes
 -- ------------------------------------------------------
+-- 1. 删除旧的 class 表（如果存在）
 DROP TABLE IF EXISTS `class`;
+
+-- 2. 重建 class 表，新增 subject 字段并限定可选学科，增加创建时间字段
 CREATE TABLE `class` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
-  `teacher_id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT '班级唯一 ID',
+  `name` VARCHAR(100) NOT NULL COMMENT '班级名称',
+  `subject` ENUM('语文','数学','英语','物理','化学','地理','生物','历史','政治')
+    NOT NULL COMMENT '学科（只能从枚举中选择）',
+  `teacher_id` INT NOT NULL COMMENT '关联 user.id（且 role 应为 teacher）',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_class_teacher` (`teacher_id`),
   CONSTRAINT `fk_class_teacher`
     FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci
+  COMMENT='班级表：教师端管理自己创建的班级';
 
--- ------------------------------------------------------
--- Junction table for many-to-many between students and classes
---   - A student can join multiple classes
---   - A class can have multiple students
--- ------------------------------------------------------
+-- 3. 学生-班级关联表，保持不变，用于记录学生加入的班级
 DROP TABLE IF EXISTS `class_student`;
 CREATE TABLE `class_student` (
-  `class_id` INT NOT NULL,
-  `student_id` INT NOT NULL,
+  `class_id` INT NOT NULL COMMENT '班级 ID',
+  `student_id` INT NOT NULL COMMENT '学生 user.id',
   PRIMARY KEY (`class_id`, `student_id`),
   KEY `idx_cs_student` (`student_id`),
   CONSTRAINT `fk_cs_class`
@@ -232,7 +237,11 @@ CREATE TABLE `class_student` (
     FOREIGN KEY (`student_id`) REFERENCES `user` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci
+  COMMENT='学生-班级关联表，学生端“我的班级”读取此表';
+
 
 
 --
