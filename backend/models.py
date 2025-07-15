@@ -2,7 +2,7 @@
 from typing import Optional, Any, List
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, JSON, LargeBinary, Text
+from sqlalchemy import Column, JSON, LargeBinary, Text, Enum
 
 class Role(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -21,6 +21,8 @@ class User(SQLModel, table=True):
     coursewares: List["Courseware"] = Relationship(back_populates="teacher")
     chats: List["ChatHistory"]   = Relationship(back_populates="student")
     practices: List["Practice"]  = Relationship(back_populates="student")
+    teaching_classes: List["Class"] = Relationship(back_populates="teacher")
+    class_memberships: List["ClassStudent"] = Relationship(back_populates="student")
 
 
 class Exercise(SQLModel, table=True):
@@ -157,3 +159,29 @@ class LoginEvent(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     user: User = Relationship()
+
+
+class Class(SQLModel, table=True):
+    __tablename__ = "class"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(max_length=100)
+    subject: str = Field(sa_column=Column(Enum(
+        "语文","数学","英语","物理","化学","地理","生物","历史","政治",
+        name="subject_enum"
+    )))
+    teacher_id: int = Field(foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    teacher: "User" = Relationship(back_populates="teaching_classes")
+    students: List["ClassStudent"] = Relationship(back_populates="class_")
+
+
+class ClassStudent(SQLModel, table=True):
+    __tablename__ = "class_student"
+
+    class_id: int = Field(foreign_key="class.id", primary_key=True)
+    student_id: int = Field(foreign_key="user.id", primary_key=True)
+
+    class_: Class = Relationship(back_populates="students")
+    student: User = Relationship(back_populates="class_memberships")

@@ -31,6 +31,7 @@ export default function StudentLayout() {
       <div className={`sidebar${open ? " open" : ""}`}>
         <div style={{ marginBottom: "1rem" }}>您好，同学{username}</div>
         <button className="button" onClick={() => nav("/student/homeworks")}>我的作业</button>
+        <button className="button" onClick={() => nav("/student/classes")}>我的班级</button>
         <button className="button" onClick={() => nav("/student/ai")}>AI教师</button>
         <button className="button" onClick={() => nav("/student/evaluate")}>评测助手</button>
         <button className="button" onClick={() => nav("/student/self_practice")}>我的随练</button>
