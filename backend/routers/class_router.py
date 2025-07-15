@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlmodel import select, Session
+from sqlalchemy import func
 
 from backend.auth import get_current_user
 from backend.config import engine
@@ -66,9 +67,16 @@ def api_list_teacher_classes(user: User = Depends(get_current_user)):
     with Session(engine) as sess:
         for c in classes:
             count = sess.exec(
-                select(ClassStudent).where(ClassStudent.class_id == c.id)
-            ).count()
-            out.append(ClassOut(id=c.id, name=c.name, subject=c.subject, student_count=count))
+                select(func.count()).select_from(ClassStudent).where(ClassStudent.class_id == c.id)
+            ).one()
+            out.append(
+                ClassOut(
+                    id=c.id,
+                    name=c.name,
+                    subject=c.subject,
+                    student_count=count,
+                )
+            )
     return out
 
 
@@ -104,8 +112,17 @@ def api_list_student_classes(user: User = Depends(get_current_user)):
     out = []
     with Session(engine) as sess:
         for c in classes:
-            count = sess.exec(select(ClassStudent).where(ClassStudent.class_id == c.id)).count()
-            out.append(ClassOut(id=c.id, name=c.name, subject=c.subject, student_count=count))
+            count = sess.exec(
+                select(func.count()).select_from(ClassStudent).where(ClassStudent.class_id == c.id)
+            ).one()
+            out.append(
+                ClassOut(
+                    id=c.id,
+                    name=c.name,
+                    subject=c.subject,
+                    student_count=count,
+                )
+            )
     return out
 
 
@@ -128,6 +145,8 @@ def api_student_class_detail(cid: int, user: User = Depends(get_current_user)):
         c = sess.get(Class, cid)
         if not c:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="班级不存在")
-        count = sess.exec(select(ClassStudent).where(ClassStudent.class_id == cid)).count()
+        count = sess.exec(
+            select(func.count()).select_from(ClassStudent).where(ClassStudent.class_id == cid)
+        ).one()
     return ClassOut(id=c.id, name=c.name, subject=c.subject, student_count=count)
 
