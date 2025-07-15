@@ -50,10 +50,12 @@ class Homework(SQLModel, table=True):
     __tablename__ = "homework"
     id: Optional[int] = Field(default=None, primary_key=True)
     exercise_id: int  = Field(foreign_key="exercise.id", nullable=False)
+    class_id: Optional[int] = Field(default=None, foreign_key="class.id")
     assigned_at: datetime = Field(default_factory=datetime.utcnow)
 
     exercise: Exercise            = Relationship(back_populates="homeworks")
     submissions: List["Submission"] = Relationship(back_populates="homework")
+    class_: Optional["Class"]     = Relationship(back_populates="homeworks")
 
 
 class Submission(SQLModel, table=True):
@@ -175,6 +177,7 @@ class Class(SQLModel, table=True):
 
     teacher: "User" = Relationship(back_populates="teaching_classes")
     students: List["ClassStudent"] = Relationship(back_populates="class_")
+    homeworks: List["Homework"] = Relationship(back_populates="class_")
 
 
 class ClassStudent(SQLModel, table=True):

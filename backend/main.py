@@ -35,6 +35,13 @@ def on_startup():
                 conn.execute(text("ALTER TABLE courseware ADD COLUMN prep_start DATETIME"))
             if "prep_end" not in cols:
                 conn.execute(text("ALTER TABLE courseware ADD COLUMN prep_end DATETIME"))
+        if "homework" in insp.get_table_names():
+            cols = {c["name"] for c in insp.get_columns("homework")}
+            if "class_id" not in cols:
+                conn.execute(text("ALTER TABLE homework ADD COLUMN class_id INTEGER"))
+                conn.execute(text(
+                    "ALTER TABLE homework ADD CONSTRAINT homework_class_fk FOREIGN KEY(class_id) REFERENCES class(id)"
+                ))
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(lesson_router)

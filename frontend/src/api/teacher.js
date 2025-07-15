@@ -99,6 +99,10 @@ export async function assignExercise(exerciseId) {
   await api.post(`/teacher/exercise/${exerciseId}/assign`);
 }
 
+export async function assignExerciseToClass(exerciseId, classId) {
+  await api.post(`/teacher/exercise/${exerciseId}/assign`, { class_id: classId });
+}
+
 /**
  * 获取作业统计
  * GET /teacher/exercise/{ex_id}/stats
@@ -129,11 +133,12 @@ export async function saveExercise({ topic, questions, answers }) {
  * @param {{topic: string, questions: any[], answers: any}} data
  * @returns {Promise<any>} 作业信息
  */
-export async function saveAndAssignExercise({ topic, questions, answers }) {
+export async function saveAndAssignExercise({ topic, questions, answers, classId }) {
   const resp = await api.post("/teacher/exercise/save_and_assign", {
     topic,
     questions,
     answers,
+    class_id: classId,
   });
   return resp.data;
 }

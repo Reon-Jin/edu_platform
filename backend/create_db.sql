@@ -47,10 +47,13 @@ DROP TABLE IF EXISTS `homework`;
 CREATE TABLE `homework` (
   `id` int NOT NULL AUTO_INCREMENT,
   `exercise_id` int NOT NULL,
+  `class_id` int DEFAULT NULL,
   `assigned_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`),
   KEY `exercise_id` (`exercise_id`),
-  CONSTRAINT `homework_ibfk_1` FOREIGN KEY (`exercise_id`) REFERENCES `exercise` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `class_id` (`class_id`),
+  CONSTRAINT `homework_ibfk_1` FOREIGN KEY (`exercise_id`) REFERENCES `exercise` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `homework_class_fk` FOREIGN KEY (`class_id`) REFERENCES `class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
