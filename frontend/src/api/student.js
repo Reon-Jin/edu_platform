@@ -47,3 +47,7 @@ export async function fetchStudentClass(cid) {
   const resp = await api.get(`/classes/student/${cid}`);
   return resp.data;
 }
+
+export async function leaveClass(cid) {
+  await api.delete(`/classes/student/${cid}`);
+}
