@@ -204,6 +204,17 @@ export async function fetchLessonPreview(cw_id) {
   return resp.data;  // 返回课件详细信息
 }
 
+/**
+ * 更新课件内容
+ * @param {number} cw_id
+ * @param {string} markdown
+ * @returns {Promise<Object>}
+ */
+export async function updateCourseware(cw_id, markdown) {
+  const resp = await api.post(`/teacher/lesson/update/${cw_id}`, { markdown });
+  return resp.data;
+}
+
 /** 列出所有学生 */
 export async function fetchStudentList() {
   const resp = await api.get('/teacher/students');

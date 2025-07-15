@@ -38,6 +38,9 @@ class CoursewarePreview(BaseModel):
     markdown: str
     created_at: datetime
 
+class CoursewareUpdate(BaseModel):
+    markdown: str
+
 
 def _strip_outer_fences(md_text: str) -> str:
     """
@@ -252,3 +255,28 @@ async def preview_courseware(
     if not cw or cw.teacher_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="课件不存在")
     return CoursewarePreview(id=cw.id, topic=cw.topic, markdown=cw.markdown, created_at=cw.created_at)
+
+
+@router.post(
+    "/update/{cw_id}",
+    summary="更新已保存课件",
+    response_model=CoursewareMeta,
+)
+def update_courseware(
+    cw_id: int,
+    data: CoursewareUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.role or current_user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师角色访问")
+    cw = session.get(Courseware, cw_id)
+    if not cw or cw.teacher_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="课件不存在")
+    cw.markdown = data.markdown
+    cw.prep_start = cw.prep_start or datetime.utcnow()
+    cw.prep_end = datetime.utcnow()
+    session.add(cw)
+    session.commit()
+    _generate_and_store_pdf(cw.id, cw.markdown)
+    return CoursewareMeta(id=cw.id, topic=cw.topic, created_at=cw.created_at)
