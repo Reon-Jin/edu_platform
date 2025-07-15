@@ -129,12 +129,39 @@ def preview_exercise(
 
     prompt = (
         f"请根据主题“{topic}”{''.join(parts)}\n\n"
-        '请以 JSON 格式返回：questions（列表，每项 {"type":..., "items":[...] }），'
-        '其中type指的是题型，只能填 multiple_choice, fill_in_blank, short_answer, coding；'
-        '选择题每个选项以 A. B. C. D. 开头。'
-        "answers（对象，键为题目 id，值为参考答案）。"
-        "请仅返回一段完整合法的 JSON，不要多余文本，不要 Markdown，也不要截断。"
+        "– 请务必生成上面请求的数量，不要使用下面示例里的题目数量或内容。\n"
+        "– 示例仅作 JSON 结构参考，请严格按照示例的字段名和嵌套层级输出。\n\n"
+        "示例结构：\n"
+        "{\n"
+        '  "questions": [\n'
+        "    {\n"
+        '      "type": "multiple_choice",\n'
+        '      "items": [\n'
+        "        { \"id\": \"1\", \"question\": \"这是示例题1\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] },\n"
+        "        { \"id\": \"2\", \"question\": \"这是示例题2\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] }\n"
+        "      ]\n"
+        "    },\n"
+        "    {\n"
+        '      "type": "fill_in_blank",\n'
+        '      "items": [ { "id": "3", "question": "这是示例填空" } ]\n'
+        "    },\n"
+        "    {\n"
+        '      "type": "short_answer",\n'
+        '      "items": [ { "id": "4", "question": "这是示例简答" } ]\n'
+        "    },\n"
+        "    {\n"
+        '      "type": "coding",\n'
+        '      "items": [ { "id\": \"5\", \"question\": \"这是示例编程\" } ]\n'
+        "    }\n"
+        "  ],\n"
+        '  "answers": { "1": "B", "2": "D", "3": ["示例"], "4": "示例", "5": "示例" }\n'
+        "}\n\n"
+        "注意：\n"
+        "1. 上面只是示例 JSON 结构，示例里的题目数量和内容都不要照搬。\n"
+        "2. 请根据最前面“生成 X 道选择题/填空题/简答题/编程题”的要求，输出对应数量的题目。\n"
+        "3. 严格按照示例的 key、层级和格式输出纯 JSON，不要多余文本、不要 Markdown、不要注释。\n"
     )
+
     resp = call_deepseek_api(prompt)
     raw = _parse_model_response(resp)
     clean = _clean_model_output(raw)
