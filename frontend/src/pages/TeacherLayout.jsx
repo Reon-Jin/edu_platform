@@ -35,7 +35,6 @@ export default function TeacherLayout() {
         <button className="button" onClick={() => nav("/teacher/exercise")}>练习生成</button>
         <button className="button" onClick={() => nav("/teacher/exercise/list")}>练习列表</button>
         <button className="button" onClick={() => nav("/teacher/classes")}>班级管理</button>
-        <button className="button" onClick={() => nav("/teacher/students")}>学情数据</button>
         <div style={{ flex: 1 }} />
         <button className="button logout-btn" onClick={logout}>登出</button>
       </div>

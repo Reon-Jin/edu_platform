@@ -151,15 +151,23 @@ def get_submission_by_hw_student(homework_id: int, student_id: int) -> Optional[
         return sub
 
 
-def list_completed_submissions(student_id: int) -> List[Submission]:
-    """Return all completed submissions for a student with exercise info loaded."""
+def list_completed_submissions(
+    student_id: int, class_id: Optional[int] = None
+) -> List[Submission]:
+    """Return completed submissions for a student (optionally filtered by class)."""
     with Session(engine) as sess:
-        subs = sess.exec(
-            select(Submission).where(
+        stmt = (
+            select(Submission)
+            .join(Homework, Submission.homework_id == Homework.id)
+            .where(
                 Submission.student_id == student_id,
                 Submission.status == "completed",
-            ).order_by(Submission.submitted_at)
-        ).all()
+            )
+            .order_by(Submission.submitted_at)
+        )
+        if class_id is not None:
+            stmt = stmt.where(Homework.class_id == class_id)
+        subs = sess.exec(stmt).all()
         for sub in subs:
             hw = sess.get(Homework, sub.homework_id)
             ex = sess.get(Exercise, hw.exercise_id)

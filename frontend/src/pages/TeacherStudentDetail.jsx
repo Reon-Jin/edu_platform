@@ -28,7 +28,7 @@ export default function TeacherStudentDetail() {
       .finally(() => setAnalysisLoading(false));
 
     setLoadingHw(true);
-    fetchStudentHomeworks(sid)
+    fetchStudentHomeworks(sid, cid)
       .then((list) => setHomeworks(list))
       .catch((err) => {
         console.error(err);
