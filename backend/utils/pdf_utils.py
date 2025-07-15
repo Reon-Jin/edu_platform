@@ -12,9 +12,9 @@ def format_questions_html(questions: List[Dict[str, Any]]) -> str:
     # 题型中文映射
     type_map = {
         "multiple_choice": "选择题",
-        "fill_in_the_blank": "填空题",
+        "fill_in_blank": "填空题",
         "short_answer": "简答题",
-        "programming": "编程题"
+        "coding": "编程题"
     }
 
     html = "<h1>练习题</h1>"

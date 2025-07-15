@@ -1,10 +1,11 @@
 import json
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union, Literal
 from io import BytesIO
 import copy
 from pathlib import Path
 
+from pydantic import BaseModel, root_validator
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from reportlab.lib.pagesizes import letter
@@ -24,7 +25,7 @@ from backend.models import Exercise, Homework
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
-# 字体注册（同你原码）
+# ———————— 字体注册 ————————
 DEFAULT_FONT = "STSong-Light"
 try:
     noto = Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc")
@@ -36,6 +37,39 @@ except Exception:
 pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
 
 
+# ———————— Pydantic Models for 严格校验 ————————
+class RawQuestion(BaseModel):
+    type: Literal["multiple_choice", "fill_in_blank", "short_answer", "coding"]
+    items: List[Union[str, Dict[str, Any]]]
+
+class RawOutput(BaseModel):
+    questions: List[RawQuestion]
+    answers: Dict[str, Any]
+
+class Item(BaseModel):
+    id: int
+    question: str
+    options: List[str] = []
+
+class QuestionBlock(BaseModel):
+    type: Literal["multiple_choice", "fill_in_blank", "short_answer", "coding"]
+    items: List[Item]
+
+class ExerciseData(BaseModel):
+    questions: List[QuestionBlock]
+    answers: Dict[str, Any]
+
+    @root_validator(skip_on_failure=True)
+    def answers_match_ids(cls, values):
+        q_blocks = values.get("questions", [])
+        ans = values.get("answers", {})
+        valid_ids = {item.id for block in q_blocks for item in block.items}
+        cleaned = {k: v for k, v in ans.items() if int(k) in valid_ids}
+        values["answers"] = cleaned
+        return values
+
+
+# ———————— 原始解析函数，不变 ————————
 def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
     content = resp["choices"][0]["message"]["content"]
     start = content.find("{")
@@ -50,6 +84,32 @@ def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
         raise
 
 
+# ———————— 清洗并生成标准结构 ————————
+def _clean_model_output(raw: Dict[str, Any]) -> ExerciseData:
+    parsed = RawOutput(**raw)
+
+    blocks: List[QuestionBlock] = []
+    next_id = 1
+    for rq in parsed.questions:
+        items: List[Item] = []
+        for it in rq.items:
+            if isinstance(it, str):
+                items.append(Item(id=next_id, question=it.strip(), options=[]))
+            else:
+                q_text = it.get("question", "").strip()
+                opts = it.get("options")
+                if opts is None:
+                    opts = it.get("items", [])
+                opts_clean = [str(o).strip() for o in opts]
+                items.append(Item(id=next_id, question=q_text, options=opts_clean))
+            next_id += 1
+        blocks.append(QuestionBlock(type=rq.type, items=items))
+
+    clean = ExerciseData(questions=blocks, answers=parsed.answers)
+    return clean
+
+
+# ———————— 主要逻辑：调用大模型并清洗 ————————
 def preview_exercise(
     topic: str,
     num_mcq: int,
@@ -69,17 +129,46 @@ def preview_exercise(
 
     prompt = (
         f"请根据主题“{topic}”{''.join(parts)}\n\n"
-        '请以 JSON 格式返回：questions（列表，每项 {"type":..., "items":[...] }），'
-        '其中type指的是题型,你只能填multiple_choice,fill_in_blank,short_answer,coding四种。'
-        '选择题每个选项以A. B. C. D.开头。'
-        "answers（对象，键为题目 id，值为参考答案）。请仅返回一段完整合法的 JSON，不要多余的文本，不要 markdown 标记，也不要截断。"
+        "– 请务必生成上面请求的数量，不要使用下面示例里的题目数量或内容。\n"
+        "– 示例仅作 JSON 结构参考，请严格按照示例的字段名和嵌套层级输出。\n\n"
+        "示例结构：\n"
+        "{\n"
+        '  "questions": [\n'
+        "    {\n"
+        '      "type": "multiple_choice",\n'
+        '      "items": [\n'
+        "        { \"id\": \"1\", \"question\": \"这是示例题1\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] },\n"
+        "        { \"id\": \"2\", \"question\": \"这是示例题2\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] }\n"
+        "      ]\n"
+        "    },\n"
+        "    {\n"
+        '      "type": "fill_in_blank",\n'
+        '      "items": [ { "id": "3", "question": "这是示例填空" } ]\n'
+        "    },\n"
+        "    {\n"
+        '      "type": "short_answer",\n'
+        '      "items": [ { "id": "4", "question": "这是示例简答" } ]\n'
+        "    },\n"
+        "    {\n"
+        '      "type": "coding",\n'
+        '      "items": [ { "id\": \"5\", \"question\": \"这是示例编程\" } ]\n'
+        "    }\n"
+        "  ],\n"
+        '  "answers": { "1": "B", "2": "D", "3": ["示例"], "4": "示例", "5": "示例" }\n'
+        "}\n\n"
+        "注意：\n"
+        "1. 上面只是示例 JSON 结构，示例里的题目数量和内容都不要照搬。\n"
+        "2. 请根据最前面“生成 X 道选择题/填空题/简答题/编程题”的要求，输出对应数量的题目。\n"
+        "3. 严格按照示例的 key、层级和格式输出纯 JSON，不要多余文本、不要 Markdown、不要注释。\n"
     )
+
     resp = call_deepseek_api(prompt)
-    data = _parse_model_response(resp)
+    raw = _parse_model_response(resp)
+    clean = _clean_model_output(raw)
     return {
         "topic": topic,
-        "questions": data.get("questions", []),
-        "answers": data.get("answers", {}),
+        "questions": [b.dict() for b in clean.questions],
+        "answers": clean.answers,
     }
 
 
@@ -168,18 +257,14 @@ def _normalize_blocks(raw_blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         new_items = []
         for it in block.get("items", []):
             if isinstance(it, str):
-                # 仅题干，无选项
                 new_items.append({"question": it, "options": []})
             elif isinstance(it, dict):
-                # 已是字典：可能有 it['items'] 代表选项
                 q = it.get("question", "")
                 opts = it.get("options")
                 if opts is None:
-                    # 改用 it['items'] 作为 options
                     opts = it.get("items", [])
                 new_items.append({"question": q, "options": opts})
             else:
-                # 其他强转为字符串
                 new_items.append({"question": str(it), "options": []})
         block["items"] = new_items
     return blocks
@@ -265,7 +350,6 @@ def render_exercise_pdf(
 
 
 def download_questions_pdf(ex: Exercise) -> bytes:
-    # 在导出前先 normalize
     blocks = _normalize_blocks(ex.prompt or [])
     html = _build_html(f"练习 #{ex.id} 题目", blocks, answers=None)
     return render_pdf(html)
