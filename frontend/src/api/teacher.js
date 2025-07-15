@@ -268,3 +268,8 @@ export async function fetchTeacherClass(cid) {
 export async function removeStudent(cid, sid) {
   await api.delete(`/classes/teacher/${cid}/student/${sid}`);
 }
+
+/** 解散班级 */
+export async function deleteClass(cid) {
+  await api.delete(`/classes/teacher/${cid}`);
+}

@@ -14,6 +14,7 @@ from backend.services.class_service import (
     list_classes_for_student,
     add_student_to_class,
     remove_student_from_class,
+    delete_class,
 )
 
 router = APIRouter(prefix="/classes", tags=["class"])
@@ -101,6 +102,18 @@ def api_remove_student(cid: int, sid: int, user: User = Depends(get_current_user
     if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
     remove_student_from_class(cid, sid)
+    return {"status": "ok"}
+
+
+@router.delete("/teacher/{cid}")
+def api_delete_class(cid: int, user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+    with Session(engine) as sess:
+        c = sess.get(Class, cid)
+        if not c or c.teacher_id != user.id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="班级不存在")
+    delete_class(cid)
     return {"status": "ok"}
 
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchTeacherClass, removeStudent } from '../api/teacher';
+import { fetchTeacherClass, removeStudent, deleteClass } from '../api/teacher';
 import '../index.css';
 
 export default function TeacherClassDetailPage() {
@@ -31,6 +31,16 @@ export default function TeacherClassDetailPage() {
     }
   };
 
+  const handleDisband = async () => {
+    if (!window.confirm('确认解散该班级吗？')) return;
+    try {
+      await deleteClass(cid);
+      navigate(-1);
+    } catch (err) {
+      alert('解散失败');
+    }
+  };
+
   if (!info) {
     return (
       <div className="container">
@@ -42,9 +52,14 @@ export default function TeacherClassDetailPage() {
   return (
     <div className="container">
       <div className="card">
-        <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>
-          返回
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>
+            返回
+          </button>
+          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={handleDisband}>
+            解散班级
+          </button>
+        </div>
         <h2>{info.name}</h2>
         <p>班级ID: {info.id}</p>
         <p>学科: {info.subject}</p>
