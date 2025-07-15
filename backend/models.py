@@ -23,8 +23,14 @@ class User(SQLModel, table=True):
     practices: List["Practice"]  = Relationship(back_populates="student")
     teaching_classes: List["Class"] = Relationship(back_populates="teacher")
     class_memberships: List["ClassStudent"] = Relationship(back_populates="student")
-    analyses: List["StudentAnalysis"] = Relationship(back_populates="student", sa_relationship_kwargs={"primaryjoin": "User.id==StudentAnalysis.student_id"})
-    analyses_for_teacher: List["StudentAnalysis"] = Relationship(back_populates="teacher", sa_relationship_kwargs={"primaryjoin": "User.id==StudentAnalysis.teacher_id"})
+    analyses: List["StudentAnalysis"] = Relationship(
+        back_populates="student",
+        sa_relationship_kwargs={"foreign_keys": "StudentAnalysis.student_id"},
+    )
+    analyses_for_teacher: List["StudentAnalysis"] = Relationship(
+        back_populates="teacher",
+        sa_relationship_kwargs={"foreign_keys": "StudentAnalysis.teacher_id"},
+    )
 
 
 class Exercise(SQLModel, table=True):
@@ -164,8 +170,14 @@ class StudentAnalysis(SQLModel, table=True):
     content: str = Field(sa_column=Column(Text(collation="utf8mb4_unicode_ci")))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    student: "User" = Relationship()
-    teacher: Optional["User"] = Relationship()
+    student: "User" = Relationship(
+        back_populates="analyses",
+        sa_relationship_kwargs={"foreign_keys": "StudentAnalysis.student_id"},
+    )
+    teacher: Optional["User"] = Relationship(
+        back_populates="analyses_for_teacher",
+        sa_relationship_kwargs={"foreign_keys": "StudentAnalysis.teacher_id"},
+    )
 
 
 class LoginEvent(SQLModel, table=True):
