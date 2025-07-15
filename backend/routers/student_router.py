@@ -129,10 +129,11 @@ def api_submit(pid: int, req: PracticeSubmitRequest, user: User = Depends(get_cu
     return PracticeOut(id=pr.id, topic=pr.topic, questions=pr.questions, answers=pr.answers, status=pr.status, feedback=pr.feedback, score=pr.score)
 
 
-from backend.services.analysis_service import analyze_student_homeworks
+from backend.services.analysis_service import get_latest_analysis
 
 router_analysis = APIRouter(prefix="/student", tags=["student-analysis"])
 
 @router_analysis.get("/analysis")
 def api_analysis(user: User = Depends(get_current_user)):
-    return analyze_student_homeworks(user.id)
+    content = get_latest_analysis(user.id)
+    return {"analysis": content or ""}

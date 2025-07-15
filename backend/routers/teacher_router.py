@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from backend.auth import get_current_user
 from backend.config import engine
 from backend.models import User
-from backend.services.analysis_service import analyze_student_homeworks
+from backend.services.analysis_service import get_latest_analysis
 from backend.services.submission_service import (
     list_completed_submissions,
     get_submission_by_hw_student,
@@ -46,7 +46,8 @@ def list_students(current: User = Depends(get_current_user)):
 def student_analysis(sid: int, current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return analyze_student_homeworks(sid)
+    content = get_latest_analysis(sid, teacher_id=current.id)
+    return {"analysis": content or ""}
 
 @router.get("/{sid}/homeworks", response_model=List[SubmissionMeta])
 def student_homeworks(sid: int, current: User = Depends(get_current_user)):

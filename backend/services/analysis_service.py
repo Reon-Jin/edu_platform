@@ -1,9 +1,9 @@
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from sqlmodel import Session, select
 
 from backend.config import engine
-from backend.models import Practice, Submission, Homework, Exercise
+from backend.models import Practice, Submission, Homework, Exercise, StudentAnalysis
 from backend.utils.deepseek_client import call_deepseek_api
 
 
@@ -31,19 +31,32 @@ def analyze_student_practice(student_id: int) -> Dict[str, Any]:
     return {"analysis": content}
 
 
-def analyze_student_homeworks(student_id: int) -> Dict[str, Any]:
-    """Analyze student's completed homework submissions."""
+def _collect_homework_summary(student_id: int, teacher_id: Optional[int] = None):
+    """Return a list of homework summary dicts."""
     with Session(engine) as sess:
-        rows = sess.exec(
+        stmt = (
             select(Submission, Exercise)
             .join(Homework, Submission.homework_id == Homework.id)
             .join(Exercise, Homework.exercise_id == Exercise.id)
             .where(Submission.student_id == student_id, Submission.status == "completed")
-        ).all()
-        summary = [
-            {"subject": ex.subject, "score": sub.score}
-            for sub, ex in rows
-        ]
+        )
+        if teacher_id is not None:
+            stmt = stmt.where(Exercise.teacher_id == teacher_id)
+        rows = sess.exec(stmt).all()
+        summary = []
+        for sub, ex in rows:
+            total = len(ex.answers.keys()) if isinstance(ex.answers, dict) else 0
+            summary.append({
+                "subject": ex.subject,
+                "total": total,
+                "score": sub.score
+            })
+        return summary
+
+
+def analyze_student_homeworks(student_id: int, teacher_id: Optional[int] = None) -> Dict[str, Any]:
+    """Analyze student's completed homework submissions."""
+    summary = _collect_homework_summary(student_id, teacher_id)
     prompt = (
         "根据以下学生的作业成绩给出学习情况分析，并给出学习建议：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
@@ -54,3 +67,27 @@ def analyze_student_homeworks(student_id: int) -> Dict[str, Any]:
     except Exception as e:
         content = f"分析失败: {e}"
     return {"analysis": content}
+
+
+def analyze_and_save_homeworks(student_id: int, teacher_id: Optional[int] = None) -> str:
+    result = analyze_student_homeworks(student_id, teacher_id)
+    with Session(engine) as sess:
+        sa = StudentAnalysis(student_id=student_id, teacher_id=teacher_id, content=result["analysis"])
+        sess.add(sa)
+        sess.commit()
+    return result["analysis"]
+
+
+def get_latest_analysis(student_id: int, teacher_id: Optional[int] = None) -> Optional[str]:
+    with Session(engine) as sess:
+        stmt = (
+            select(StudentAnalysis)
+            .where(StudentAnalysis.student_id == student_id)
+            .order_by(StudentAnalysis.created_at.desc())
+        )
+        if teacher_id is not None:
+            stmt = stmt.where(StudentAnalysis.teacher_id == teacher_id)
+        else:
+            stmt = stmt.where(StudentAnalysis.teacher_id.is_(None))
+        sa = sess.exec(stmt).first()
+        return sa.content if sa else None

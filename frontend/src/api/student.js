@@ -32,6 +32,11 @@ export async function downloadSelfPracticePdf(id) {
   return resp.data;
 }
 
+export async function fetchStudentAnalysis() {
+  const resp = await api.get("/student/analysis");
+  return resp.data;
+}
+
 // ------ Class APIs ------
 
 export async function fetchMyClasses() {
