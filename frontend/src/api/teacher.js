@@ -238,3 +238,28 @@ export async function fetchStudentHomeworkDetail(sid, hwId) {
   const resp = await api.get(`/teacher/students/${sid}/homework/${hwId}`);
   return resp.data;
 }
+
+// ----- Class management -----
+
+/** 创建班级 */
+export async function createClass(data) {
+  const resp = await api.post('/classes/teacher', data);
+  return resp.data;
+}
+
+/** 列出教师班级 */
+export async function fetchTeacherClasses() {
+  const resp = await api.get('/classes/teacher');
+  return resp.data;
+}
+
+/** 获取班级详情 */
+export async function fetchTeacherClass(cid) {
+  const resp = await api.get(`/classes/teacher/${cid}`);
+  return resp.data;
+}
+
+/** 删除班级中的学生 */
+export async function removeStudent(cid, sid) {
+  await api.delete(`/classes/teacher/${cid}/student/${sid}`);
+}

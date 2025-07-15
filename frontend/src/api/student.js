@@ -31,3 +31,19 @@ export async function downloadSelfPracticePdf(id) {
   });
   return resp.data;
 }
+
+// ------ Class APIs ------
+
+export async function fetchMyClasses() {
+  const resp = await api.get('/classes/student');
+  return resp.data;
+}
+
+export async function joinClass(classId) {
+  await api.post('/classes/student/join', { class_id: classId });
+}
+
+export async function fetchStudentClass(cid) {
+  const resp = await api.get(`/classes/student/${cid}`);
+  return resp.data;
+}
