@@ -79,6 +79,13 @@ export default function TeacherClassDetailPage() {
                 <td>{s.id}</td>
                 <td>{s.username}</td>
                 <td>
+                  <button
+                    className="button"
+                    style={{ width: 'auto', marginRight: '0.5rem' }}
+                    onClick={() => navigate(`/teacher/students/${s.id}?cid=${cid}`)}
+                  >
+                    查看学情
+                  </button>
                   <button className="button" style={{ width: 'auto' }} onClick={() => handleRemove(s.id)}>
                     删除
                   </button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchStudentAnalysis, fetchStudentHomeworks } from '../api/teacher';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,6 +8,8 @@ import '../index.css';
 export default function TeacherStudentDetail() {
   const { sid } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const cid = searchParams.get('cid');
   const [analysis, setAnalysis] = useState('');
   const [homeworks, setHomeworks] = useState([]);
   const [loadingHw, setLoadingHw] = useState(false);
@@ -17,7 +19,7 @@ export default function TeacherStudentDetail() {
   useEffect(() => {
     setAnalysis('');
     setAnalysisLoading(true);
-    fetchStudentAnalysis(sid)
+    fetchStudentAnalysis(sid, cid)
       .then((a) => setAnalysis(a.analysis))
       .catch((err) => {
         console.error(err);
@@ -33,7 +35,7 @@ export default function TeacherStudentDetail() {
         setError('加载失败');
       })
       .finally(() => setLoadingHw(false));
-  }, [sid]);
+  }, [sid, cid]);
 
   return (
     <div className="container">

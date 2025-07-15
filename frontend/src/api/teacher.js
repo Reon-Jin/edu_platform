@@ -227,8 +227,11 @@ export async function fetchStudentList() {
 }
 
 /** 获取学生学情分析 */
-export async function fetchStudentAnalysis(sid) {
-  const resp = await api.get(`/teacher/students/${sid}/analysis`);
+export async function fetchStudentAnalysis(sid, classId) {
+  const url = classId
+    ? `/teacher/students/${sid}/analysis?class_id=${classId}`
+    : `/teacher/students/${sid}/analysis`;
+  const resp = await api.get(url);
   return resp.data;
 }
 
