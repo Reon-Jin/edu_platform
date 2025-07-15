@@ -2,7 +2,7 @@
 // src/pages/LessonPreview.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchLessonPreview, downloadCoursewarePdf } from "../api/teacher";  // 确保导入 downloadCoursewarePdf 函数
+import { fetchLessonPreview, downloadCoursewarePdf, updateCourseware } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 用于支持 GitHub 风格的 Markdown（包括表格）
 import "../index.css";
@@ -13,6 +13,7 @@ export default function LessonPreview() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");  // 用于显示错误信息
   const [downloadLoading, setDownloadLoading] = useState(false);  // 控制下载按钮的 loading 状态
+  const [editMode, setEditMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,6 +52,16 @@ export default function LessonPreview() {
     }
   };
 
+  const handleSave = async () => {
+    try {
+      await updateCourseware(cw_id, markdown);
+      alert("已保存");
+      setEditMode(false);
+    } catch (err) {
+      alert("保存失败");
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -62,9 +73,32 @@ export default function LessonPreview() {
           返回
         </button>
         <h2>教案预览</h2>
-        {error && <div className="error">{error}</div>}  {/* 错误显示 */}
+        {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>
+        ) : editMode ? (
+          <div className="edit-layout">
+            <textarea
+              className="input edit-input"
+              value={markdown}
+              onChange={(e) => setMarkdown(e.target.value)}
+            />
+            <div className="preview-column">
+              <div className="actions" style={{ marginTop: 0 }}>
+                <button className="button" onClick={handleSave}>保存</button>
+                <button
+                  className="button"
+                  onClick={handleDownload}
+                  disabled={downloadLoading}
+                >
+                  {downloadLoading ? "下载中..." : "下载 PDF"}
+                </button>
+              </div>
+              <div className="markdown-preview" style={{ marginTop: '1rem' }}>
+                <ReactMarkdown children={markdown} remarkPlugins={[remarkGfm]} />
+              </div>
+            </div>
+          </div>
         ) : (
           <>
             <div className="markdown-preview">
@@ -74,9 +108,12 @@ export default function LessonPreview() {
               <button
                 className="button"
                 onClick={handleDownload}
-                disabled={downloadLoading}  // 下载按钮禁用状态
+                disabled={downloadLoading}
               >
                 {downloadLoading ? "下载中..." : "下载 PDF"}
+              </button>
+              <button className="button" onClick={() => setEditMode(true)}>
+                编辑
               </button>
             </div>
           </>
