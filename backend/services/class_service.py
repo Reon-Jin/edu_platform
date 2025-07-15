@@ -54,7 +54,4 @@ def remove_student_from_class(class_id: int, student_id: int) -> None:
         assoc = sess.get(ClassStudent, (class_id, student_id))
         if assoc:
             sess.delete(assoc)
-            user = sess.get(User, student_id)
-            if user:
-                sess.delete(user)
             sess.commit()

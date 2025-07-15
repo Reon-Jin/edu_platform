@@ -150,3 +150,11 @@ def api_student_class_detail(cid: int, user: User = Depends(get_current_user)):
         ).one()
     return ClassOut(id=c.id, name=c.name, subject=c.subject, student_count=count)
 
+
+@router.delete("/student/{cid}")
+def api_student_leave_class(cid: int, user: User = Depends(get_current_user)):
+    if user.role.name != "student":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限学生访问")
+    remove_student_from_class(cid, user.id)
+    return {"status": "ok"}
+
