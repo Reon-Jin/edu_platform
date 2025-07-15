@@ -75,7 +75,7 @@ export default function StudentHomeworkAnswer() {
   };
 
   const renderInput = () => {
-    if (question.options) return renderOptions();
+    if (question.options && question.options.length > 0) return renderOptions();
     return (
       <textarea
         className="input"
