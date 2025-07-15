@@ -26,7 +26,7 @@ export default function ExercisePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const [assigned, setAssigned] = useState(false);
+  const [assignedClasses, setAssignedClasses] = useState([]);
   const [classList, setClassList] = useState([]);
   const [showClasses, setShowClasses] = useState(false);
 
@@ -42,7 +42,7 @@ export default function ExercisePage() {
     e.preventDefault();
     setError("");
     setSaved(false);
-    setAssigned(false);
+    setAssignedClasses([]);
     setExId(null);
     setLoading(true);
     try {
@@ -136,7 +136,7 @@ export default function ExercisePage() {
     try {
       await assignExerciseToClass(exId, cid);
       alert("布置成功");
-      setAssigned(true);
+      setAssignedClasses((prev) => [...prev, cid]);
     } catch (err) {
       console.error(err);
       alert("布置失败");
@@ -223,8 +223,8 @@ export default function ExercisePage() {
               <button className="button" onClick={handleSave} disabled={saved}>
                 {saved ? "已保存" : "保存练习"}
               </button>
-              <button className="button" onClick={handleSaveAssign} disabled={assigned}>
-                {assigned ? "已布置" : "保存并布置"}
+              <button className="button" onClick={handleSaveAssign}>
+                保存并布置
               </button>
               <button className="button" onClick={handleDownloadQ} disabled={!exId}>
                 下载题目 PDF
@@ -237,8 +237,12 @@ export default function ExercisePage() {
               <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
                 {classList.map((c) => (
                   <div key={c.id} style={{ marginBottom: "0.5rem" }}>
-                    <button className="button" onClick={() => handleSelectClass(c.id)}>
-                      {c.name}
+                    <button
+                      className="button"
+                      onClick={() => handleSelectClass(c.id)}
+                      disabled={assignedClasses.includes(c.id)}
+                    >
+                      {assignedClasses.includes(c.id) ? `${c.name}（已布置）` : c.name}
                     </button>
                   </div>
                 ))}

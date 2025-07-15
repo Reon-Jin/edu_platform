@@ -15,7 +15,7 @@ export default function ExercisePreview() {
   const [exercise, setExercise] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [assigned, setAssigned] = useState(false);
+  const [assignedClasses, setAssignedClasses] = useState([]);
   const [classList, setClassList] = useState([]);
   const [showClasses, setShowClasses] = useState(false);
 
@@ -103,7 +103,7 @@ export default function ExercisePreview() {
     try {
       await assignExerciseToClass(ex_id, cid);
       alert("布置成功");
-      setAssigned(true);
+      setAssignedClasses((prev) => [...prev, cid]);
     } catch (err) {
       console.error(err);
       alert("布置失败");
@@ -137,12 +137,8 @@ export default function ExercisePreview() {
           exercise && (
             <>
               <div className="actions">
-                <button
-                  className="button"
-                  onClick={handleAssign}
-                  disabled={assigned}
-                >
-                  {assigned ? "已布置" : "布置作业"}
+                <button className="button" onClick={handleAssign}>
+                  布置作业
                 </button>
                 <button className="button" onClick={handleDownloadQ}>
                   下载题目 PDF
@@ -158,8 +154,12 @@ export default function ExercisePreview() {
                 <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
                   {classList.map((c) => (
                     <div key={c.id} style={{ marginBottom: "0.5rem" }}>
-                      <button className="button" onClick={() => handleSelectClass(c.id)}>
-                        {c.name}
+                      <button
+                        className="button"
+                        onClick={() => handleSelectClass(c.id)}
+                        disabled={assignedClasses.includes(c.id)}
+                      >
+                        {assignedClasses.includes(c.id) ? `${c.name}（已布置）` : c.name}
                       </button>
                     </div>
                   ))}
