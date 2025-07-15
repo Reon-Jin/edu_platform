@@ -11,11 +11,11 @@ html, body, #root {
 
 .container {
   display: flex;
-  flex-direction: column; /* stack children vertically */
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100%;
-  padding: 2rem;
+  padding: 4rem 2rem 2rem;
   gap: 1rem; /* space between stacked elements */
 }
 
@@ -30,6 +30,15 @@ html, body, #root {
   animation: slide-up 0.6s ease;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* 只针对需要“更宽”卡片的页面 */
+.wide-card {
+  width: clamp(700px, 75vw, 1000px);
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
 
 .card h2 {
   margin: 0 0 1.5rem;

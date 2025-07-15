@@ -1,5 +1,4 @@
-/* eslint-disable no-unused-vars */
-// src/pages/LessonPreview.jsx
+/* src/pages/LessonPreview.jsx */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchLessonPreview, downloadCoursewarePdf, updateCourseware } from "../api/teacher";
@@ -64,7 +63,8 @@ export default function LessonPreview() {
 
   return (
     <div className="container">
-      <div className="card">
+      {/* 普通预览时只用 .card，编辑模式时加上 .wide-card */}
+      <div className={editMode ? "card wide-card" : "card"}>
         <button
           className="button"
           style={{ width: "auto", marginBottom: "1rem" }}
