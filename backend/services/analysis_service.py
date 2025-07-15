@@ -31,17 +31,26 @@ def analyze_student_practice(student_id: int) -> Dict[str, Any]:
     return {"analysis": content}
 
 
-def _collect_homework_summary(student_id: int, teacher_id: Optional[int] = None):
+def _collect_homework_summary(
+    student_id: int,
+    teacher_id: Optional[int] = None,
+    class_id: Optional[int] = None,
+) -> list[dict[str, Any]]:
     """Return a list of homework summary dicts."""
     with Session(engine) as sess:
         stmt = (
             select(Submission, Exercise)
             .join(Homework, Submission.homework_id == Homework.id)
             .join(Exercise, Homework.exercise_id == Exercise.id)
-            .where(Submission.student_id == student_id, Submission.status == "completed")
+            .where(
+                Submission.student_id == student_id,
+                Submission.status == "completed",
+            )
         )
         if teacher_id is not None:
             stmt = stmt.where(Exercise.teacher_id == teacher_id)
+        if class_id is not None:
+            stmt = stmt.where(Homework.class_id == class_id)
         rows = sess.exec(stmt).all()
         summary = []
         for sub, ex in rows:
@@ -54,9 +63,13 @@ def _collect_homework_summary(student_id: int, teacher_id: Optional[int] = None)
         return summary
 
 
-def analyze_student_homeworks(student_id: int, teacher_id: Optional[int] = None) -> Dict[str, Any]:
+def analyze_student_homeworks(
+    student_id: int,
+    teacher_id: Optional[int] = None,
+    class_id: Optional[int] = None,
+) -> Dict[str, Any]:
     """Analyze student's completed homework submissions."""
-    summary = _collect_homework_summary(student_id, teacher_id)
+    summary = _collect_homework_summary(student_id, teacher_id, class_id)
     prompt = (
         "根据以下学生的作业成绩给出学习情况分析，并给出学习建议：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
