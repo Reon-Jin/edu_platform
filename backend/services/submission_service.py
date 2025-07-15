@@ -5,7 +5,7 @@ import re
 from typing import Dict, Any, List, Optional
 from sqlmodel import Session, select
 from backend.config import engine
-from backend.models import Exercise, Homework, Submission
+from backend.models import Exercise, Homework, Submission, ClassStudent
 from backend.utils.deepseek_client import call_deepseek_api
 
 def submit_homework(homework_id: int, student_id: int, answers: Dict[str, Any]) -> Submission:
@@ -70,6 +70,10 @@ def list_student_homeworks(student_id: int) -> List[Dict[str, Any]]:
     with Session(engine) as sess:
         hws = sess.exec(select(Homework).order_by(Homework.assigned_at)).all()
         for hw in hws:
+            if hw.class_id is not None:
+                link = sess.get(ClassStudent, (hw.class_id, student_id))
+                if not link:
+                    continue
             sub = (
                 sess.exec(
                     select(Submission)

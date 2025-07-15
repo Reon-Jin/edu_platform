@@ -4,7 +4,8 @@ import {
   fetchExercisePreview,
   downloadQuestionsPdf,
   downloadAnswersPdf,
-  assignExercise,
+  assignExerciseToClass,
+  fetchTeacherClasses,
 } from "../api/teacher";
 import "../index.css";
 
@@ -15,6 +16,8 @@ export default function ExercisePreview() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [assigned, setAssigned] = useState(false);
+  const [classList, setClassList] = useState([]);
+  const [showClasses, setShowClasses] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -49,11 +52,12 @@ export default function ExercisePreview() {
 
   const handleAssign = async () => {
     try {
-      await assignExercise(ex_id);
-      setAssigned(true);
+      const data = await fetchTeacherClasses();
+      setClassList(data);
+      setShowClasses(true);
     } catch (err) {
       console.error(err);
-      setError("布置失败");
+      setError("加载班级失败");
     }
   };
 
@@ -93,6 +97,19 @@ export default function ExercisePreview() {
 
   const goStats = () => {
     navigate(`/teacher/exercise/stats/${ex_id}`);
+  };
+
+  const handleSelectClass = async (cid) => {
+    try {
+      await assignExerciseToClass(ex_id, cid);
+      alert("布置成功");
+      setAssigned(true);
+    } catch (err) {
+      console.error(err);
+      alert("布置失败");
+    } finally {
+      setShowClasses(false);
+    }
   };
 
   const typeLabels = {
@@ -137,6 +154,17 @@ export default function ExercisePreview() {
                   查看统计
                 </button>
               </div>
+              {showClasses && (
+                <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
+                  {classList.map((c) => (
+                    <div key={c.id} style={{ marginBottom: "0.5rem" }}>
+                      <button className="button" onClick={() => handleSelectClass(c.id)}>
+                        {c.name}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div style={{ marginTop: "1rem" }}>
                 {Object.entries(grouped).map(([type, items]) => (

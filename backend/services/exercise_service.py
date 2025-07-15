@@ -21,7 +21,7 @@ from backend.utils.pdf_utils import (
     format_answers_html,
     render_pdf,
 )
-from backend.models import Exercise, Homework
+from backend.models import Exercise, Homework, Class
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
@@ -196,6 +196,7 @@ def save_and_assign_exercise(
     topic: str,
     questions: List[Dict[str, Any]],
     answers: Dict[str, Any],
+    class_id: int | None = None,
 ) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
         ex = Exercise(
@@ -208,7 +209,12 @@ def save_and_assign_exercise(
         sess.commit()
         sess.refresh(ex)
 
-        hw = Homework(exercise_id=ex.id)
+        if class_id is not None:
+            c = sess.get(Class, class_id)
+            if not c:
+                raise ValueError("class not found")
+
+        hw = Homework(exercise_id=ex.id, class_id=class_id)
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)
@@ -361,13 +367,17 @@ def download_answers_pdf(ex: Exercise) -> bytes:
     return render_pdf(html)
 
 
-def assign_homework(exercise_id: int) -> Homework:
+def assign_homework(exercise_id: int, class_id: int | None = None) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
         ex = sess.get(Exercise, exercise_id)
         if not ex:
             raise ValueError("exercise not found")
+        if class_id is not None:
+            c = sess.get(Class, class_id)
+            if not c:
+                raise ValueError("class not found")
 
-        hw = Homework(exercise_id=exercise_id)
+        hw = Homework(exercise_id=exercise_id, class_id=class_id)
         sess.add(hw)
         sess.commit()
         sess.refresh(hw)

@@ -26,6 +26,10 @@ class SaveExerciseRequest(BaseModel):
     answers: dict
 
 
+class AssignRequest(BaseModel):
+    class_id: int | None = None
+
+
 @router.post("/generate")
 def api_generate(req: GenerateExerciseRequest, user: User = Depends(get_current_user)):
     if user.role.name != "teacher":
@@ -55,10 +59,11 @@ def api_save(req: SaveExerciseRequest, user: User = Depends(get_current_user)):
 
 
 @router.post("/save_and_assign", response_model=HomeworkOut)
-def api_save_and_assign(req: SaveExerciseRequest, user: User = Depends(get_current_user)):
+def api_save_and_assign(req: SaveExerciseRequest, assign: AssignRequest | None = None, user: User = Depends(get_current_user)):
     if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return save_and_assign_exercise(user.id, req.topic, req.questions, req.answers)
+    class_id = assign.class_id if assign else None
+    return save_and_assign_exercise(user.id, req.topic, req.questions, req.answers, class_id)
 
 
 @router.get("/list", response_model=List[ExerciseOut])
@@ -115,12 +120,13 @@ def api_download_answers(ex_id: int, user: User = Depends(get_current_user)):
 
 
 @router.post("/{ex_id}/assign", response_model=HomeworkOut)
-def api_assign(ex_id: int, user: User = Depends(get_current_user)):
+def api_assign(ex_id: int, req: AssignRequest | None = None, user: User = Depends(get_current_user)):
     ex = get_exercise(ex_id)
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权布置")
+    class_id = req.class_id if req else None
     try:
-        return assign_homework(ex_id)
+        return assign_homework(ex_id, class_id)
     except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="未找到练习")
 

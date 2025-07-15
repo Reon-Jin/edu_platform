@@ -5,9 +5,10 @@ import Tooltip from "../components/Tooltip";
 import {
   generateExerciseJson,
   saveExercise,
-  saveAndAssignExercise,
   downloadQuestionsPdf,
   downloadAnswersPdf,
+  fetchTeacherClasses,
+  assignExerciseToClass,
 } from "../api/teacher";
 import "../index.css";
 
@@ -26,6 +27,8 @@ export default function ExercisePage() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [assigned, setAssigned] = useState(false);
+  const [classList, setClassList] = useState([]);
+  const [showClasses, setShowClasses] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,17 +76,23 @@ export default function ExercisePage() {
   const handleSaveAssign = async () => {
     if (!preview) return;
     try {
-      const res = await saveAndAssignExercise({
-        topic: form.topic,
-        questions: preview.questions,
-        answers: preview.answers,
-      });
-      setExId(res.exercise_id || res.id);
-      setSaved(true);
-      setAssigned(true);
+      let id = exId;
+      if (!id) {
+        const res = await saveExercise({
+          topic: form.topic,
+          questions: preview.questions,
+          answers: preview.answers,
+        });
+        id = res.id;
+        setExId(id);
+        setSaved(true);
+      }
+      const data = await fetchTeacherClasses();
+      setClassList(data);
+      setShowClasses(true);
     } catch (err) {
       console.error(err);
-      setError("保存并布置失败");
+      setError("保存失败");
     }
   };
 
@@ -120,6 +129,19 @@ export default function ExercisePage() {
     } catch (err) {
       console.error(err);
       setError("下载答案失败");
+    }
+  };
+
+  const handleSelectClass = async (cid) => {
+    try {
+      await assignExerciseToClass(exId, cid);
+      alert("布置成功");
+      setAssigned(true);
+    } catch (err) {
+      console.error(err);
+      alert("布置失败");
+    } finally {
+      setShowClasses(false);
     }
   };
 
@@ -211,6 +233,17 @@ export default function ExercisePage() {
                 下载答案 PDF
               </button>
             </div>
+            {showClasses && (
+              <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
+                {classList.map((c) => (
+                  <div key={c.id} style={{ marginBottom: "0.5rem" }}>
+                    <button className="button" onClick={() => handleSelectClass(c.id)}>
+                      {c.name}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{ marginTop: "1rem" }}>
               {preview.questions.map((block, bIdx) => (
                 <div key={bIdx} style={{ marginBottom: "1rem" }}>
