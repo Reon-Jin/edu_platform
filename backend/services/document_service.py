@@ -86,17 +86,17 @@ def list_my_documents(owner_id: int) -> List[Document]:
     with Session(engine) as sess:
         stmt = (
             select(Document, DocumentActivation.is_active)
-            .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
-            .where(
-                Document.owner_id == owner_id,
-                DocumentActivation.teacher_id == owner_id,
-                DocumentActivation.is_active == True,
+            .outerjoin(
+                DocumentActivation,
+                (DocumentActivation.doc_id == Document.id)
+                & (DocumentActivation.teacher_id == owner_id),
             )
+            .where(Document.owner_id == owner_id)
         )
         rows = sess.exec(stmt).all()
         docs: List[Document] = []
         for doc, active in rows:
-            doc.is_active = active
+            doc.is_active = bool(active) if active is not None else False
             docs.append(doc)
         return docs
 
