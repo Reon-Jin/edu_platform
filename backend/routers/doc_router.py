@@ -68,7 +68,9 @@ from fastapi import Body
 
 @router.patch("/{doc_id}/activate")
 def activate_doc(
-    doc_id: int, is_active: bool = Body(...), current: User = Depends(get_current_user)
+    doc_id: int,
+    is_active: bool = Body(..., embed=True),
+    current: User = Depends(get_current_user),
 ):
     if current.role.name != "teacher":
         raise HTTPException(
