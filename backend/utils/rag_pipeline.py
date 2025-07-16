@@ -47,18 +47,38 @@ def _chunk_text(text: str, size: int = 400, overlap: int = 50) -> List[str]:
     return chunks
 
 
+import os
+import textract
+from win32com.client import Dispatch
+
 def extract_text(path: str) -> str:
-    """Extract plain text from supported document formats."""
+    """Extract plain text from supported document formats, including legacy .doc."""
     ext = os.path.splitext(path)[1].lower()
+    # 纯文本快速通道
     if ext in {".txt", ".md"}:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
+
+    # .doc 转换为 .docx
+    if ext == ".doc":
+        tmp_path = path + "x"  # e.g. abc.doc -> abc.docx
+        word = Dispatch("Word.Application")
+        word.Visible = False
+        doc = word.Documents.Open(os.path.abspath(path))
+        doc.SaveAs(os.path.abspath(tmp_path), FileFormat=16)  # 16 = wdFormatDocumentDefault (.docx)
+        doc.Close()
+        word.Quit()
+        # 用 textract 读取生成的 .docx
+        text = textract.process(tmp_path).decode("utf-8", errors="ignore")
+        os.remove(tmp_path)
+        return text
+
+    # 其余格式（.docx, .pdf 等）交给 textract
     try:
         return textract.process(path).decode("utf-8", errors="ignore")
     except Exception as e:
-        raise ValueError(
-            f"Unsupported file type or extraction failed: {path}"
-        ) from e
+        raise ValueError(f"Unsupported file type or extraction failed: {path}") from e
+
 
 
 def chunk_document(path: str) -> List[str]:
