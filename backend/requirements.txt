@@ -18,3 +18,5 @@ reportlab
 sentence-transformers
 faiss-cpu
 nltk
+python-docx
+pdfminer.six

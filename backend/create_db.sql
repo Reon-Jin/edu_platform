@@ -259,6 +259,33 @@ CREATE TABLE `class_student` (
   COLLATE=utf8mb4_0900_ai_ci
   COMMENT='学生-班级关联表，学生端“我的班级”读取此表';
 
+-- 文档表：存储教师上传的资料
+DROP TABLE IF EXISTS `document`;
+CREATE TABLE `document` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `owner_id` INT NOT NULL,
+  `filename` VARCHAR(255) NOT NULL,
+  `filepath` VARCHAR(500) NOT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 0,
+  `is_public` TINYINT(1) NOT NULL DEFAULT 0,
+  `uploaded_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`),
+  KEY `idx_doc_owner` (`owner_id`),
+  CONSTRAINT `fk_doc_owner` FOREIGN KEY (`owner_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 文档向量表：存储切分后块的 embedding
+DROP TABLE IF EXISTS `document_vector`;
+CREATE TABLE `document_vector` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `doc_id` INT NOT NULL,
+  `chunk_index` INT NOT NULL,
+  `vector_blob` LONGBLOB NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_vec_doc` (`doc_id`),
+  CONSTRAINT `fk_vec_doc` FOREIGN KEY (`doc_id`) REFERENCES `document` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 --

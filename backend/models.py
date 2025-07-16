@@ -19,6 +19,7 @@ class User(SQLModel, table=True):
     exercises: List["Exercise"]     = Relationship(back_populates="teacher")
     submissions: List["Submission"] = Relationship(back_populates="student")
     coursewares: List["Courseware"] = Relationship(back_populates="teacher")
+    documents: List["Document"]  = Relationship(back_populates="owner")
     chats: List["ChatHistory"]   = Relationship(back_populates="student")
     practices: List["Practice"]  = Relationship(back_populates="student")
     teaching_classes: List["Class"] = Relationship(back_populates="teacher")
@@ -159,6 +160,32 @@ class Practice(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     student: "User" = Relationship(back_populates="practices")
+
+
+class Document(SQLModel, table=True):
+    __tablename__ = "document"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    owner_id: int = Field(foreign_key="user.id")
+    filename: str = Field(max_length=255)
+    filepath: str = Field(max_length=500)
+    is_active: bool = Field(default=False)
+    is_public: bool = Field(default=False)
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+    owner: "User" = Relationship(back_populates="documents")
+    vectors: List["DocumentVector"] = Relationship(back_populates="document")
+
+
+class DocumentVector(SQLModel, table=True):
+    __tablename__ = "document_vector"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    doc_id: int = Field(foreign_key="document.id")
+    chunk_index: int = Field()
+    vector_blob: bytes = Field(sa_column=Column(LargeBinary))
+
+    document: Document = Relationship(back_populates="vectors")
 
 
 class StudentAnalysis(SQLModel, table=True):

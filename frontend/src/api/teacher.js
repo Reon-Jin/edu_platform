@@ -279,3 +279,31 @@ export async function removeStudent(cid, sid) {
 export async function deleteClass(cid) {
   await api.delete(`/classes/teacher/${cid}`);
 }
+
+// ----- Document management -----
+export async function uploadDocument(file, isPublic = false) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('is_public', isPublic);
+  const resp = await api.post('/docs/', form);
+  return resp.data;
+}
+
+export async function fetchMyDocuments() {
+  const resp = await api.get('/docs/', { params: { scope: 'my' } });
+  return resp.data;
+}
+
+export async function fetchPublicDocuments() {
+  const resp = await api.get('/docs/', { params: { scope: 'public' } });
+  return resp.data;
+}
+
+export async function toggleDocumentActive(id) {
+  const resp = await api.patch(`/docs/${id}/activate`);
+  return resp.data;
+}
+
+export async function deleteDocument(id) {
+  await api.delete(`/docs/${id}`);
+}

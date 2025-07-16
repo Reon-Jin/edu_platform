@@ -14,6 +14,7 @@ from backend.routers.teacher_router import router as teacher_student_router
 from backend.routers.student_router import router, router_practice, router_analysis
 from backend.routers.class_router import router as class_router
 from backend.routers.admin_router import router as admin_router
+from backend.routers.doc_router import router as doc_router
 
 app = FastAPI()
 app.add_middleware(
@@ -53,6 +54,7 @@ app.include_router(router)
 app.include_router(router_practice)
 app.include_router(router_analysis)
 app.include_router(admin_router)
+app.include_router(doc_router)
 
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 

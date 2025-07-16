@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DEEPSEEK_API_KEY: str
     DEEPSEEK_ENDPOINT: str
     KNOWLEDGE_BASE_DIR: str = "backend/knowledge/"
+    DOC_STORAGE_DIR: str = "backend/storage/"
     WKHTMLTOPDF_PATH: Optional[str] = None
 
     class Config:
