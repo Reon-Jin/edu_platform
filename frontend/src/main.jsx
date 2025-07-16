@@ -1,14 +1,17 @@
 // src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";  // 确保导入 BrowserRouter
-import AppRouter from "./routes/AppRouter";  // 引入 AppRouter
-import "./index.css"; // 如果你有全局样式
+import { BrowserRouter } from "react-router-dom";
+import { ChakraProvider } from "@chakra-ui/react";
+import AppRouter from "./routes/AppRouter";
+import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>  {/* 确保 BrowserRouter 包裹 AppRouter */}
-      <AppRouter />  
+    <BrowserRouter>
+      <ChakraProvider>
+        <AppRouter />
+      </ChakraProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
