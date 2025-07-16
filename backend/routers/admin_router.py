@@ -58,6 +58,7 @@ class CoursewarePreview(BaseModel):
 class DocumentInfo(BaseModel):
     id: int
     filename: str
+    filepath: str
     is_active: bool
     uploaded_at: datetime
 
@@ -209,8 +210,17 @@ def update_courseware(cid: int, data: CoursewareUpdate, current: User = Depends(
 def list_public_docs(current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
-    docs = list_public_documents()
-    return [DocumentInfo(id=d.id, filename=d.filename, is_active=d.is_active, uploaded_at=d.uploaded_at) for d in docs]
+    docs = list_public_documents(current.id)
+    return [
+        DocumentInfo(
+            id=d.id,
+            filename=d.filename,
+            filepath=d.filepath,
+            is_active=d.is_active,
+            uploaded_at=d.uploaded_at,
+        )
+        for d in docs
+    ]
 
 
 @router.post("/public_docs")
@@ -222,7 +232,13 @@ async def upload_public_doc(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员上传")
     data = await file.read()
     doc = save_public_document(current.id, file.filename, data)
-    return DocumentInfo(id=doc.id, filename=doc.filename, is_active=doc.is_active, uploaded_at=doc.uploaded_at)
+    return DocumentInfo(
+        id=doc.id,
+        filename=doc.filename,
+        filepath=doc.filepath,
+        is_active=doc.is_active,
+        uploaded_at=doc.uploaded_at,
+    )
 
 
 @router.delete("/public_docs/{doc_id}")

@@ -1,5 +1,7 @@
 from pathlib import Path
 from typing import List
+from datetime import datetime
+from pydantic import BaseModel
 
 import numpy as np
 from sqlmodel import Session, select
@@ -8,6 +10,17 @@ from sqlalchemy import delete
 from backend.config import engine, settings
 from backend.models import Document, DocumentVector, DocumentActivation
 from backend.utils.rag_pipeline import get_model, chunk_document
+
+
+class DocumentWithActivation(BaseModel):
+    id: int
+    filename: str
+    filepath: str
+    uploaded_at: datetime
+    is_active: bool
+
+    class Config:
+        from_attributes = True
 
 
 def save_document(
@@ -70,23 +83,30 @@ def list_my_documents(owner_id: int) -> List[Document]:
         return docs
 
 
-def list_public_documents(teacher_id: int) -> List[Document]:
-    """Return public documents activated by a teacher."""
+def list_public_documents(teacher_id: int) -> List[DocumentWithActivation]:
+    """Return all public documents with the teacher's activation flag."""
     with Session(engine) as sess:
         stmt = (
             select(Document, DocumentActivation.is_active)
-            .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
-            .where(
-                Document.is_public == True,
-                DocumentActivation.teacher_id == teacher_id,
-                DocumentActivation.is_active == True,
+            .outerjoin(
+                DocumentActivation,
+                (DocumentActivation.doc_id == Document.id)
+                & (DocumentActivation.teacher_id == teacher_id),
             )
+            .where(Document.is_public == True)
         )
         rows = sess.exec(stmt).all()
         docs = []
         for doc, active in rows:
-            doc.is_active = active
-            docs.append(doc)
+            docs.append(
+                DocumentWithActivation(
+                    id=doc.id,
+                    filename=doc.filename,
+                    filepath=doc.filepath,
+                    uploaded_at=doc.uploaded_at,
+                    is_active=bool(active) if active is not None else False,
+                )
+            )
         return docs
 
 
