@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchTeacherClass, removeStudent, deleteClass } from '../api/teacher';
+import {
+  Breadcrumb,
+  Card,
+  Button,
+  Descriptions,
+  Collapse,
+  Table,
+  Space,
+  Input,
+  Affix,
+  message,
+} from 'antd';
+import { EyeOutlined, DeleteOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import '../index.css';
 
 export default function TeacherClassDetailPage() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const [info, setInfo] = useState(null);
+  const [search, setSearch] = useState('');
 
   const load = async () => {
     try {
@@ -26,8 +40,9 @@ export default function TeacherClassDetailPage() {
     try {
       await removeStudent(cid, sid);
       load();
+      message.success('已删除');
     } catch (err) {
-      alert('删除失败');
+      message.error('删除失败');
     }
   };
 
@@ -36,8 +51,9 @@ export default function TeacherClassDetailPage() {
     try {
       await deleteClass(cid);
       navigate(-1);
+      message.success('班级已解散');
     } catch (err) {
-      alert('解散失败');
+      message.error('解散失败');
     }
   };
 
@@ -50,51 +66,85 @@ export default function TeacherClassDetailPage() {
   }
 
   return (
-    <div className="container">
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>
+    <div className="container" style={{ alignItems: 'stretch' }}>
+      <Breadcrumb
+        items={[
+          { title: '首页', href: '/teacher/lesson' },
+          { title: '班级管理', href: '/teacher/classes' },
+          { title: info.name },
+        ]}
+      />
+      <Card style={{ width: '100%', marginTop: '1rem' }}>
+        <Descriptions title="班级信息" column={2} bordered size="middle">
+          <Descriptions.Item label="名称">{info.name}</Descriptions.Item>
+          <Descriptions.Item label="ID">{info.id}</Descriptions.Item>
+          <Descriptions.Item label="学科">{info.subject}</Descriptions.Item>
+          <Descriptions.Item label="人数">{info.student_count}</Descriptions.Item>
+        </Descriptions>
+
+        <Collapse defaultActiveKey={['students']} style={{ marginTop: '1rem' }}>
+          <Collapse.Panel header="学生列表" key="students">
+            <Input.Search
+              placeholder="搜索学生"
+              onSearch={setSearch}
+              style={{ marginBottom: '1rem' }}
+              allowClear
+            />
+            <Table
+              rowKey="id"
+              dataSource={info.students.filter((s) =>
+                s.username.includes(search)
+              )}
+              pagination={false}
+              columns={[
+                {
+                  title: 'ID',
+                  dataIndex: 'id',
+                  sorter: (a, b) => a.id - b.id,
+                },
+                {
+                  title: '用户名',
+                  dataIndex: 'username',
+                  sorter: (a, b) => a.username.localeCompare(b.username),
+                },
+                {
+                  title: '操作',
+                  render: (_, record) => (
+                    <Space className="actions-cell">
+                      <Button
+                        type="link"
+                        icon={<EyeOutlined />}
+                        onClick={() => navigate(`/teacher/students/${record.id}?cid=${cid}`)}
+                      />
+                      <Button
+                        type="link"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemove(record.id)}
+                      />
+                    </Space>
+                  ),
+                },
+              ]}
+            />
+          </Collapse.Panel>
+          <Collapse.Panel header="作业统计" key="stats">
+            <p>暂无数据</p>
+          </Collapse.Panel>
+          <Collapse.Panel header="设置" key="settings">
+            <p>设置项...</p>
+          </Collapse.Panel>
+        </Collapse>
+      </Card>
+      <Affix offsetBottom={20} style={{ position: 'fixed', right: 24 }}>
+        <Space>
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             返回
-          </button>
-          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={handleDisband}>
+          </Button>
+          <Button danger onClick={handleDisband}>
             解散班级
-          </button>
-        </div>
-        <h2>{info.name}</h2>
-        <p>班级ID: {info.id}</p>
-        <p>学科: {info.subject}</p>
-        <p>学生人数: {info.student_count}</p>
-        <h3>学生列表</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>用户名</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {info.students.map((s) => (
-              <tr key={s.id}>
-                <td>{s.id}</td>
-                <td>{s.username}</td>
-                <td>
-                  <button
-                    className="button"
-                    style={{ width: 'auto', marginRight: '0.5rem' }}
-                    onClick={() => navigate(`/teacher/students/${s.id}?cid=${cid}`)}
-                  >
-                    查看学情
-                  </button>
-                  <button className="button" style={{ width: 'auto' }} onClick={() => handleRemove(s.id)}>
-                    删除
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          </Button>
+        </Space>
+      </Affix>
     </div>
   );
 }

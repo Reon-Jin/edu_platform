@@ -3,7 +3,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";  // 确保导入 BrowserRouter
 import AppRouter from "./routes/AppRouter";  // 引入 AppRouter
-import "./index.css"; // 如果你有全局样式
+import "antd/dist/reset.css";
+import "./index.css"; // 全局样式
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
