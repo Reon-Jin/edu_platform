@@ -286,6 +286,17 @@ CREATE TABLE `document_vector` (
   CONSTRAINT `fk_vec_doc` FOREIGN KEY (`doc_id`) REFERENCES `document` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Per-teacher activation table
+DROP TABLE IF EXISTS `document_activation`;
+CREATE TABLE `document_activation` (
+  `teacher_id` INT NOT NULL,
+  `doc_id` INT NOT NULL,
+  `is_active` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`teacher_id`, `doc_id`),
+  CONSTRAINT `fk_da_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_da_doc` FOREIGN KEY (`doc_id`) REFERENCES `document` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 --

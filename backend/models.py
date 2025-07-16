@@ -4,10 +4,12 @@ from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON, LargeBinary, Text, Enum
 
+
 class Role(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=50, nullable=False, unique=True)
     users: List["User"] = Relationship(back_populates="role")
+
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -16,12 +18,12 @@ class User(SQLModel, table=True):
     role_id: Optional[int] = Field(default=None, foreign_key="role.id")
 
     role: Optional[Role] = Relationship(back_populates="users")
-    exercises: List["Exercise"]     = Relationship(back_populates="teacher")
+    exercises: List["Exercise"] = Relationship(back_populates="teacher")
     submissions: List["Submission"] = Relationship(back_populates="student")
     coursewares: List["Courseware"] = Relationship(back_populates="teacher")
-    documents: List["Document"]  = Relationship(back_populates="owner")
-    chats: List["ChatHistory"]   = Relationship(back_populates="student")
-    practices: List["Practice"]  = Relationship(back_populates="student")
+    documents: List["Document"] = Relationship(back_populates="owner")
+    chats: List["ChatHistory"] = Relationship(back_populates="student")
+    practices: List["Practice"] = Relationship(back_populates="student")
     teaching_classes: List["Class"] = Relationship(back_populates="teacher")
     class_memberships: List["ClassStudent"] = Relationship(back_populates="student")
     analyses: List["StudentAnalysis"] = Relationship(
@@ -32,47 +34,44 @@ class User(SQLModel, table=True):
         back_populates="teacher",
         sa_relationship_kwargs={"foreign_keys": "StudentAnalysis.teacher_id"},
     )
+    document_activations: List["DocumentActivation"] = Relationship(
+        back_populates="teacher"
+    )
 
 
 class Exercise(SQLModel, table=True):
     __tablename__ = "exercise"
     id: Optional[int] = Field(default=None, primary_key=True)
-    teacher_id: int   = Field(foreign_key="user.id", nullable=False)
+    teacher_id: int = Field(foreign_key="user.id", nullable=False)
     subject: Optional[str] = Field(max_length=100, nullable=True)
 
-    prompt: Any = Field(
-        sa_column=Column(JSON),
-        default_factory=list
-    )
-    answers: Any = Field(
-        sa_column=Column(JSON),
-        default_factory=dict
-    )
+    prompt: Any = Field(sa_column=Column(JSON), default_factory=list)
+    answers: Any = Field(sa_column=Column(JSON), default_factory=dict)
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    teacher: User               = Relationship(back_populates="exercises")
+    teacher: User = Relationship(back_populates="exercises")
     homeworks: List["Homework"] = Relationship(back_populates="exercise")
 
 
 class Homework(SQLModel, table=True):
     __tablename__ = "homework"
     id: Optional[int] = Field(default=None, primary_key=True)
-    exercise_id: int  = Field(foreign_key="exercise.id", nullable=False)
+    exercise_id: int = Field(foreign_key="exercise.id", nullable=False)
     class_id: Optional[int] = Field(default=None, foreign_key="class.id")
     assigned_at: datetime = Field(default_factory=datetime.utcnow)
 
-    exercise: Exercise            = Relationship(back_populates="homeworks")
+    exercise: Exercise = Relationship(back_populates="homeworks")
     submissions: List["Submission"] = Relationship(back_populates="homework")
-    class_: Optional["Class"]     = Relationship(back_populates="homeworks")
+    class_: Optional["Class"] = Relationship(back_populates="homeworks")
 
 
 class Submission(SQLModel, table=True):
     __tablename__ = "submission"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    homework_id: int  = Field(foreign_key="homework.id", nullable=False)
-    student_id: int   = Field(foreign_key="user.id", nullable=False)
+    homework_id: int = Field(foreign_key="homework.id", nullable=False)
+    student_id: int = Field(foreign_key="user.id", nullable=False)
 
     answers: Any = Field(sa_column=Column(JSON), default_factory=dict)
     score: int = Field(default=0)
@@ -81,24 +80,23 @@ class Submission(SQLModel, table=True):
 
     submitted_at: datetime = Field(default_factory=datetime.utcnow)
 
-    homework: "Homework"      = Relationship(back_populates="submissions")
-    student:  "User"          = Relationship(back_populates="submissions")
+    homework: "Homework" = Relationship(back_populates="submissions")
+    student: "User" = Relationship(back_populates="submissions")
 
 
 class Courseware(SQLModel, table=True):
     """
     教师课件表：存储已保存的备课内容，以及可选的 PDF 二进制
     """
+
     __tablename__ = "courseware"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    teacher_id: int   = Field(foreign_key="user.id", nullable=False)
-    topic: str        = Field(max_length=255)
+    teacher_id: int = Field(foreign_key="user.id", nullable=False)
+    topic: str = Field(max_length=255)
     # 去掉 nullable，只保留 sa_column
-    markdown: str     = Field(sa_column=Column(JSON))
-    pdf: Optional[bytes] = Field(
-        sa_column=Column("pdf", LargeBinary)
-    )
+    markdown: str = Field(sa_column=Column(JSON))
+    pdf: Optional[bytes] = Field(sa_column=Column("pdf", LargeBinary))
     created_at: datetime = Field(default_factory=datetime.utcnow)
     prep_start: Optional[datetime] = Field(default=None)
     prep_end: Optional[datetime] = Field(default=None)
@@ -175,6 +173,7 @@ class Document(SQLModel, table=True):
 
     owner: "User" = Relationship(back_populates="documents")
     vectors: List["DocumentVector"] = Relationship(back_populates="document")
+    activations: List["DocumentActivation"] = Relationship(back_populates="document")
 
 
 class DocumentVector(SQLModel, table=True):
@@ -186,6 +185,19 @@ class DocumentVector(SQLModel, table=True):
     vector_blob: bytes = Field(sa_column=Column(LargeBinary))
 
     document: Document = Relationship(back_populates="vectors")
+
+
+class DocumentActivation(SQLModel, table=True):
+    """Per-teacher activation state for documents."""
+
+    __tablename__ = "document_activation"
+
+    teacher_id: int = Field(foreign_key="user.id", primary_key=True)
+    doc_id: int = Field(foreign_key="document.id", primary_key=True)
+    is_active: bool = Field(default=False)
+
+    teacher: "User" = Relationship()
+    document: Document = Relationship()
 
 
 class StudentAnalysis(SQLModel, table=True):
@@ -222,10 +234,22 @@ class Class(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(max_length=100)
-    subject: str = Field(sa_column=Column(Enum(
-        "语文","数学","英语","物理","化学","地理","生物","历史","政治",
-        name="subject_enum"
-    )))
+    subject: str = Field(
+        sa_column=Column(
+            Enum(
+                "语文",
+                "数学",
+                "英语",
+                "物理",
+                "化学",
+                "地理",
+                "生物",
+                "历史",
+                "政治",
+                name="subject_enum",
+            )
+        )
+    )
     teacher_id: int = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

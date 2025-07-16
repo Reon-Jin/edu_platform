@@ -3,7 +3,7 @@ import {
   uploadDocument,
   fetchMyDocuments,
   fetchPublicDocuments,
-  toggleDocumentActive,
+  setDocumentActive,
   deleteDocument,
 } from '../api/teacher';
 import '../index.css';
@@ -42,8 +42,8 @@ export default function DocumentManage() {
     }
   };
 
-  const handleActivate = async (id) => {
-    await toggleDocumentActive(id);
+  const handleActivate = async (id, active) => {
+    await setDocumentActive(id, active);
     load(tab);
   };
 
@@ -80,7 +80,7 @@ export default function DocumentManage() {
                 <th>文件名</th>
                 <th>上传时间</th>
                 <th>激活状态</th>
-                {tab === 'my' && <th>操作</th>}
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -89,16 +89,16 @@ export default function DocumentManage() {
                   <td>{d.filename}</td>
                   <td>{d.uploaded_at}</td>
                   <td>{d.is_active ? '已激活' : '未激活'}</td>
-                  {tab === 'my' && (
-                    <td>
-                      <button className="button" style={{ width: 'auto' }} onClick={() => handleActivate(d.id)}>
-                        {d.is_active ? '取消激活' : '激活'}
-                      </button>
+                  <td>
+                    <button className="button" style={{ width: 'auto' }} onClick={() => handleActivate(d.id, !d.is_active)}>
+                      {d.is_active ? '取消激活' : '激活'}
+                    </button>
+                    {tab === 'my' && (
                       <button className="button" style={{ width: 'auto', marginLeft: '0.5rem' }} onClick={() => handleDelete(d.id)}>
                         删除
                       </button>
-                    </td>
-                  )}
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

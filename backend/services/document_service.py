@@ -6,13 +6,17 @@ from sqlmodel import Session, select
 from sqlalchemy import delete
 
 from backend.config import engine, settings
-from backend.models import Document, DocumentVector
+from backend.models import Document, DocumentVector, DocumentActivation
 from backend.utils.rag_pipeline import get_model, chunk_document
 
 
-def save_document(owner_id: int, filename: str, data: bytes, is_public: bool = False) -> Document:
+def save_document(
+    owner_id: int, filename: str, data: bytes, is_public: bool = False
+) -> Document:
     with Session(engine, expire_on_commit=False) as sess:
-        doc = Document(owner_id=owner_id, filename=filename, filepath="", is_public=is_public)
+        doc = Document(
+            owner_id=owner_id, filename=filename, filepath="", is_public=is_public
+        )
         sess.add(doc)
         sess.commit()
         sess.refresh(doc)
@@ -30,33 +34,81 @@ def save_document(owner_id: int, filename: str, data: bytes, is_public: bool = F
         chunks = chunk_document(str(path))
         for idx, ck in enumerate(chunks):
             vec = model.encode(ck)
-            sess.add(DocumentVector(doc_id=doc.id, chunk_index=idx, vector_blob=vec.astype(np.float32).tobytes()))
+            sess.add(
+                DocumentVector(
+                    doc_id=doc.id,
+                    chunk_index=idx,
+                    vector_blob=vec.astype(np.float32).tobytes(),
+                )
+            )
+        sess.commit()
+        # create activation record for owner (default inactive)
+        sess.add(
+            DocumentActivation(teacher_id=owner_id, doc_id=doc.id, is_active=False)
+        )
         sess.commit()
         return doc
 
 
 def list_my_documents(owner_id: int) -> List[Document]:
+    """Return documents owned by teacher that they have activated."""
     with Session(engine) as sess:
-        stmt = select(Document).where(Document.owner_id == owner_id)
-        return sess.exec(stmt).all()
+        stmt = (
+            select(Document, DocumentActivation.is_active)
+            .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
+            .where(
+                Document.owner_id == owner_id,
+                DocumentActivation.teacher_id == owner_id,
+                DocumentActivation.is_active == True,
+            )
+        )
+        rows = sess.exec(stmt).all()
+        docs = []
+        for doc, active in rows:
+            doc.is_active = active
+            docs.append(doc)
+        return docs
 
 
-def list_public_documents() -> List[Document]:
+def list_public_documents(teacher_id: int) -> List[Document]:
+    """Return public documents activated by a teacher."""
     with Session(engine) as sess:
-        stmt = select(Document).where(Document.is_public == True)
-        return sess.exec(stmt).all()
+        stmt = (
+            select(Document, DocumentActivation.is_active)
+            .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
+            .where(
+                Document.is_public == True,
+                DocumentActivation.teacher_id == teacher_id,
+                DocumentActivation.is_active == True,
+            )
+        )
+        rows = sess.exec(stmt).all()
+        docs = []
+        for doc, active in rows:
+            doc.is_active = active
+            docs.append(doc)
+        return docs
 
 
-def toggle_active(doc_id: int, owner_id: int) -> Document | None:
+def set_activation(doc_id: int, teacher_id: int, is_active: bool) -> bool:
+    """Set activation state for a teacher on a document."""
     with Session(engine, expire_on_commit=False) as sess:
         doc = sess.get(Document, doc_id)
-        if not doc or doc.owner_id != owner_id:
-            return None
-        doc.is_active = not doc.is_active
-        sess.add(doc)
+        if not doc:
+            return False
+        if not doc.is_public and doc.owner_id != teacher_id:
+            return False
+        da = sess.get(DocumentActivation, (teacher_id, doc_id))
+        if not da:
+            da = DocumentActivation(
+                teacher_id=teacher_id, doc_id=doc_id, is_active=is_active
+            )
+            sess.add(da)
+        else:
+            da.is_active = is_active
+            sess.add(da)
         sess.commit()
-        sess.refresh(doc)
-        return doc
+        return True
 
 
 def delete_document(doc_id: int, owner_id: int) -> bool:
@@ -72,7 +124,7 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
             except Exception:
                 pass
         if path.parent.exists():
-            for p in path.parent.glob('*'):
+            for p in path.parent.glob("*"):
                 p.unlink(missing_ok=True)
             path.parent.rmdir()
         sess.delete(doc)
