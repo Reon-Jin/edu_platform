@@ -41,8 +41,8 @@ html, body, #root {
 
 
 .card h2 {
-  margin: 0 0 1.5rem;
-  font-size: 2rem;
+  margin: 2rem 0 1.5rem;
+  font-size: 2.5rem;
   text-align: center;
   color: #334155;
 }
@@ -83,6 +83,11 @@ html, body, #root {
 .button:not(:disabled):hover {
   transform: scale(1.03);
   filter: brightness(1.1);
+}
+
+.button:focus {
+  outline: 2px solid #09adb9;
+  outline-offset: 2px;
 }
 
 .actions {
@@ -140,7 +145,8 @@ table, th, td {
 
 th {
   text-align: left;
-  background-color: #E6FFFA;
+  background-color: #f0f0f0;
+  font-weight: bold;
 }
 
 td {
@@ -148,7 +154,11 @@ td {
 }
 
 table tr:nth-child(even) {
-  background-color: #F0F9F9;
+  background-color: #fafafa;
+}
+
+table tr:hover {
+  background-color: #f0f0f0;
 }
 
 /* Small icon button used for history delete actions */
@@ -443,4 +453,129 @@ table tr:nth-child(even) {
   background: #fb923c;
   color: #fff;
   font-size: 0.75rem;
+}
+
+/* ---------- Tabs ---------- */
+.tab-container {
+  margin-bottom: 1rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid #E2E8F0;
+  margin-bottom: 0.5rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: #334155;
+  font-size: 1rem;
+}
+
+.tab:hover {
+  background-color: #f0f0f0;
+}
+
+.tab.active {
+  border-bottom-color: #09adb9;
+  font-weight: bold;
+  color: #09adb9;
+}
+
+.tab:focus {
+  outline: 2px solid #09adb9;
+  outline-offset: 2px;
+}
+
+.tab-select {
+  display: none;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+  .tabs {
+    display: none;
+  }
+  .tab-select {
+    display: block;
+  }
+}
+
+/* ---------- Upload dropzone ---------- */
+.upload-dropzone {
+  border: 2px dashed #E2E8F0;
+  padding: 2rem;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fafafa;
+}
+
+.upload-dropzone:hover {
+  background: #f0f0f0;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  color: #09adb9;
+}
+
+.progress {
+  width: 100%;
+  height: 8px;
+  background: #e5e5e5;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #09adb9;
+  border-radius: 4px;
+}
+
+.progress-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* ---------- Tags ---------- */
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.875rem;
+}
+
+.tag-green {
+  background-color: #22c55e;
+}
+
+.tag-gray {
+  background-color: #6b7280;
+}
+
+.tag:focus {
+  outline: 2px solid #09adb9;
+  outline-offset: 2px;
+}
+
+/* ---------- Actions cell ---------- */
+.actions-cell {
+  white-space: nowrap;
+}
+
+.icon-button:focus {
+  outline: 2px solid #09adb9;
+  outline-offset: 2px;
 }
