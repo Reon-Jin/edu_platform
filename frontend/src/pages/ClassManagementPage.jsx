@@ -36,7 +36,8 @@ export default function ClassManagementPage() {
       await createClass({ name, subject });
       setShowForm(false);
       setName('');
-      load();
+      setSubject(subjects[0]);
+      await load();
     } catch (err) {
       alert('创建失败');
     }
