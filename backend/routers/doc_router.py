@@ -28,7 +28,10 @@ async def upload_doc(
             status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师上传"
         )
     data = await file.read()
-    doc = save_document(current.id, file.filename, data, is_public=is_public)
+    try:
+        doc = save_document(current.id, file.filename, data, is_public=is_public)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return {
         "id": doc.id,
         "filename": doc.filename,

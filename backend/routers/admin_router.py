@@ -231,7 +231,10 @@ async def upload_public_doc(
     if not current.role or current.role.name != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员上传")
     data = await file.read()
-    doc = save_public_document(current.id, file.filename, data)
+    try:
+        doc = save_public_document(current.id, file.filename, data)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return DocumentInfo(
         id=doc.id,
         filename=doc.filename,

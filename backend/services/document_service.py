@@ -10,6 +10,7 @@ from sqlalchemy import delete
 from backend.config import engine, settings
 from backend.models import Document, DocumentVector, DocumentActivation
 from backend.utils.rag_pipeline import get_model, chunk_document
+from backend.utils.word_utils import convert_doc_to_docx
 
 
 class DocumentWithActivation(BaseModel):
@@ -39,6 +40,23 @@ def save_document(
         path = doc_dir / filename
         with open(path, "wb") as f:
             f.write(data)
+
+        # convert legacy .doc files to .docx
+        if path.suffix.lower() == ".doc":
+            try:
+                path = convert_doc_to_docx(path)
+            except Exception as e:
+                # cleanup and remove db record
+                path.unlink(missing_ok=True)
+                if path.parent.exists():
+                    for p in path.parent.glob("*"):
+                        p.unlink(missing_ok=True)
+                    path.parent.rmdir()
+                sess.delete(doc)
+                sess.commit()
+                raise RuntimeError(f"DOC conversion failed: {e}")
+            doc.filename = path.name
+
         doc.filepath = str(path)
         sess.add(doc)
         sess.commit()
@@ -171,6 +189,21 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
         path = doc_dir / filename
         with open(path, "wb") as f:
             f.write(data)
+
+        if path.suffix.lower() == ".doc":
+            try:
+                path = convert_doc_to_docx(path)
+            except Exception as e:
+                path.unlink(missing_ok=True)
+                if path.parent.exists():
+                    for p in path.parent.glob("*"):
+                        p.unlink(missing_ok=True)
+                    path.parent.rmdir()
+                sess.delete(doc)
+                sess.commit()
+                raise RuntimeError(f"DOC conversion failed: {e}")
+            doc.filename = path.name
+
         doc.filepath = str(path)
         sess.add(doc)
         sess.commit()
