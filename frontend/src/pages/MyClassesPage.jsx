@@ -1,19 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchMyClasses, joinClass } from '../api/student';
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Modal,
-  Form,
-  Input,
-  Spin,
-  message,
-  Pagination,
-} from 'antd';
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import '../index.css';
 
 export default function MyClassesPage() {
@@ -22,8 +9,6 @@ export default function MyClassesPage() {
   const [error, setError] = useState('');
   const [showJoin, setShowJoin] = useState(false);
   const [joinId, setJoinId] = useState('');
-  const [page, setPage] = useState(1);
-  const pageSize = 8;
   const navigate = useNavigate();
 
   const load = async () => {
@@ -49,69 +34,58 @@ export default function MyClassesPage() {
       setShowJoin(false);
       setJoinId('');
       load();
-      message.success('加入成功');
     } catch (err) {
-      message.error('加入失败');
+      alert('加入失败');
     }
   };
 
   return (
     <div className="container">
-      <div className="card" style={{ width: '100%' }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }} align="center">
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>我的班级</h2>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowJoin(true)}>
+          <button className="button" style={{ width: 'auto' }} onClick={() => setShowJoin(!showJoin)}>
             加入班级
-          </Button>
-        </Space>
-
+          </button>
+        </div>
+        {showJoin && (
+          <div style={{ margin: '1rem 0' }}>
+            <input className="input" placeholder="班级ID" value={joinId} onChange={(e)=>setJoinId(e.target.value)} />
+            <button className="button" style={{ width: 'auto' }} onClick={handleJoin}>提交</button>
+          </div>
+        )}
         {error && <div className="error">{error}</div>}
         {loading ? (
-          <Spin style={{ marginTop: '1rem' }} />
+          <div>加载中...</div>
         ) : (
-          <>
-            <Row gutter={[16,16]} className="class-grid" style={{ marginTop: '1rem' }}>
-              {list.slice((page-1)*pageSize, page*pageSize).map((c) => (
-                <Col key={c.id}>
-                  <Card
-                    className="class-card"
-                    hoverable
-                    title={c.name}
-                    actions={[
-                      <Button type="link" icon={<EyeOutlined />} onClick={() => navigate(`/student/classes/${c.id}`)}>
-                        查看
-                      </Button>,
-                    ]}
-                  >
-                    <p>学科：{c.subject}</p>
-                    <p>学生人数：{c.student_count}</p>
-                  </Card>
-                </Col>
+          <table>
+            <thead>
+              <tr>
+                <th>班级名称</th>
+                <th>学科</th>
+                <th>ID</th>
+                <th>学生人数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td>{c.subject}</td>
+                  <td>{c.id}</td>
+                  <td>{c.student_count}</td>
+                  <td>
+                    <button className="button" style={{width:'auto'}} onClick={() => navigate(`/student/classes/${c.id}`)}>
+                      查看
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </Row>
-            <Pagination
-              style={{ marginTop: '1rem', textAlign: 'right' }}
-              total={list.length}
-              pageSize={pageSize}
-              current={page}
-              onChange={setPage}
-              showSizeChanger={false}
-            />
-          </>
+            </tbody>
+          </table>
         )}
       </div>
-      <Modal
-        title="加入班级"
-        open={showJoin}
-        onOk={handleJoin}
-        onCancel={() => setShowJoin(false)}
-      >
-        <Form layout="vertical">
-          <Form.Item label="班级ID" required>
-            <Input value={joinId} onChange={(e) => setJoinId(e.target.value)} />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 }

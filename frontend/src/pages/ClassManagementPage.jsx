@@ -1,22 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchTeacherClasses, createClass } from '../api/teacher';
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Select,
-  InputNumber,
-  Pagination,
-  Space,
-  Form,
-  Input,
-  Modal,
-  Spin,
-  message,
-} from 'antd';
-import { EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import '../index.css';
 
 const subjects = ['语文','数学','英语','物理','化学','地理','生物','历史','政治'];
@@ -28,11 +12,6 @@ export default function ClassManagementPage() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [subject, setSubject] = useState(subjects[0]);
-  const [filterSubject, setFilterSubject] = useState('全部');
-  const [minCount, setMinCount] = useState();
-  const [maxCount, setMaxCount] = useState();
-  const [page, setPage] = useState(1);
-  const pageSize = 8;
   const navigate = useNavigate();
 
   const load = async () => {
@@ -59,128 +38,61 @@ export default function ClassManagementPage() {
       setName('');
       setSubject(subjects[0]);
       await load();
-      message.success('创建成功');
     } catch (err) {
-      message.error('创建失败');
+      alert('创建失败');
     }
   };
 
-  const filteredList = list
-    .filter((c) => filterSubject === '全部' || c.subject === filterSubject)
-    .filter(
-      (c) =>
-        (minCount === undefined || c.student_count >= minCount) &&
-        (maxCount === undefined || c.student_count <= maxCount)
-    );
-  const pageList = filteredList.slice((page - 1) * pageSize, page * pageSize);
-
   return (
     <div className="container">
-      <div className="card" style={{ width: '100%' }}>
-        <Space style={{ width: '100%', justifyContent: 'space-between' }} align="center">
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>班级管理</h2>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowForm(true)}>
+          <button className="button" style={{ width: 'auto' }} onClick={() => setShowForm(!showForm)}>
             创建班级
-          </Button>
-        </Space>
-
-        <Form
-          layout="inline"
-          style={{ marginTop: '1rem' }}
-          onValuesChange={() => setPage(1)}
-        >
-          <Form.Item label="学科">
-            <Select
-              style={{ minWidth: 120 }}
-              value={filterSubject}
-              onChange={setFilterSubject}
-            >
-              <Select.Option value="全部">全部</Select.Option>
-              {subjects.map((s) => (
-                <Select.Option key={s} value={s}>
-                  {s}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item label="人数">
-            <InputNumber
-              min={0}
-              placeholder="最小"
-              value={minCount}
-              onChange={setMinCount}
-            />
-          </Form.Item>
-          <Form.Item>
-            <InputNumber
-              min={0}
-              placeholder="最大"
-              value={maxCount}
-              onChange={setMaxCount}
-            />
-          </Form.Item>
-        </Form>
-
+          </button>
+        </div>
+        {showForm && (
+          <div style={{ margin: '1rem 0' }}>
+            <input className="input" placeholder="班级名称" value={name} onChange={(e)=>setName(e.target.value)} />
+            <select className="input" value={subject} onChange={(e)=>setSubject(e.target.value)}>
+              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <button className="button" style={{ width: 'auto' }} onClick={handleCreate}>提交</button>
+          </div>
+        )}
         {error && <div className="error">{error}</div>}
         {loading ? (
-          <Spin />
+          <div>加载中...</div>
         ) : (
-          <>
-            <Row gutter={[16, 16]} className="class-grid" style={{ marginTop: '1rem' }}>
-              {pageList.map((c) => (
-                <Col key={c.id}>
-                  <Card
-                    className="class-card"
-                    hoverable
-                    title={c.name}
-                    actions={[
-                      <Button
-                        type="link"
-                        icon={<EyeOutlined />}
-                        onClick={() => navigate(`/teacher/classes/${c.id}`)}
-                      >
-                        查看
-                      </Button>,
-                    ]}
-                  >
-                    <p>学科：{c.subject}</p>
-                    <p>学生人数：{c.student_count}</p>
-                  </Card>
-                </Col>
+          <table>
+            <thead>
+              <tr>
+                <th>班级名称</th>
+                <th>学科</th>
+                <th>ID</th>
+                <th>学生人数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td>{c.subject}</td>
+                  <td>{c.id}</td>
+                  <td>{c.student_count}</td>
+                  <td>
+                    <button className="button" onClick={() => navigate(`/teacher/classes/${c.id}`)} style={{width:'auto'}}>
+                      查看
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </Row>
-            <Pagination
-              style={{ marginTop: '1rem', textAlign: 'right' }}
-              total={filteredList.length}
-              pageSize={pageSize}
-              current={page}
-              onChange={setPage}
-              showSizeChanger={false}
-            />
-          </>
+            </tbody>
+          </table>
         )}
       </div>
-      <Modal
-        title="创建班级"
-        open={showForm}
-        onOk={handleCreate}
-        onCancel={() => setShowForm(false)}
-      >
-        <Form layout="vertical">
-          <Form.Item label="班级名称" required>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </Form.Item>
-          <Form.Item label="学科">
-            <Select value={subject} onChange={setSubject}>
-              {subjects.map((s) => (
-                <Select.Option key={s} value={s}>
-                  {s}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 }
