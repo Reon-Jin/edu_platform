@@ -579,3 +579,20 @@ table tr:hover {
   outline: 2px solid #09adb9;
   outline-offset: 2px;
 }
+
+/* -------- Class cards -------- */
+.class-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.class-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.class-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #09adb9;
+}
