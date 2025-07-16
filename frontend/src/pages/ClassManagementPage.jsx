@@ -71,7 +71,7 @@ export default function ClassManagementPage() {
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Box p={4}>
+    <Box p={4} maxW="960px" mx="auto">
       <Flex justify="space-between" align="center" mb={4} flexWrap="wrap" gap={2}>
         <Heading size="lg">班级管理</Heading>
         <Button onClick={() => setShowForm(!showForm)} colorScheme="teal" size="sm">

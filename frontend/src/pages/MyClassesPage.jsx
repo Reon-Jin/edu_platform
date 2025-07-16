@@ -53,7 +53,7 @@ export default function MyClassesPage() {
   };
 
   return (
-    <Box p={4}>
+    <Box p={4} maxW="960px" mx="auto">
       <Flex justify="space-between" align="center" mb={4} flexWrap="wrap" gap={2}>
         <Heading size="lg">我的班级</Heading>
         <Button size="sm" colorScheme="teal" onClick={() => setShowJoin(!showJoin)}>

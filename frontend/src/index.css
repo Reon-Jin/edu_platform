@@ -215,13 +215,20 @@ table tr:hover {
 
 .toggle-btn {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.5rem;
+  background: #09adb9;
+  color: #fff;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
   z-index: 1100;
 }
 
 .toggle-btn.shifted {
-  left: calc(200px + 2rem);
+  left: 200px;
 }
 
 .logout-btn {
@@ -578,4 +585,14 @@ table tr:hover {
 .icon-button:focus {
   outline: 2px solid #09adb9;
   outline-offset: 2px;
+}
+
+/* Content area that shifts when sidebar is open */
+.main-content {
+  transition: margin-left 0.3s ease;
+  margin-left: 0;
+}
+
+.main-content.shifted {
+  margin-left: 200px;
 }

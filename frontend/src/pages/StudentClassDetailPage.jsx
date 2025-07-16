@@ -41,7 +41,7 @@ export default function StudentClassDetailPage() {
   }
 
   return (
-    <Box p={4} pb={20}>
+    <Box p={4} pb={20} maxW="960px" mx="auto">
       <Breadcrumb mb={4} fontSize="sm">
         <BreadcrumbItem>
           <BreadcrumbLink onClick={() => navigate('/student/homeworks')}>首页</BreadcrumbLink>

@@ -82,7 +82,7 @@ export default function TeacherClassDetailPage() {
     );
 
   return (
-    <Box p={4} pb={20}>
+    <Box p={4} pb={20} maxW="960px" mx="auto">
       <Breadcrumb mb={4} fontSize="sm">
         <BreadcrumbItem>
           <BreadcrumbLink onClick={() => navigate('/teacher/lesson')}>首页</BreadcrumbLink>
