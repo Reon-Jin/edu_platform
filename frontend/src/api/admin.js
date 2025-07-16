@@ -44,3 +44,20 @@ export async function fetchDashboard() {
   const resp = await api.get('/admin/dashboard');
   return resp.data;
 }
+
+// ----- Public document management -----
+export async function uploadPublicDoc(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const resp = await api.post('/admin/public_docs', form);
+  return resp.data;
+}
+
+export async function fetchPublicDocs() {
+  const resp = await api.get('/admin/public_docs');
+  return resp.data;
+}
+
+export async function deletePublicDoc(id) {
+  await api.delete(`/admin/public_docs/${id}`);
+}

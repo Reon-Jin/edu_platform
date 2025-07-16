@@ -5,6 +5,7 @@ import AdminUsers from './AdminUsers';
 import AdminCoursewares from './AdminCoursewares';
 import AdminCoursewareEdit from './AdminCoursewareEdit';
 import AdminDashboard from './AdminDashboard';
+import AdminPublicDocs from './AdminPublicDocs';
 
 export default function AdminPage() {
   return (
@@ -13,6 +14,7 @@ export default function AdminPage() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="coursewares" element={<AdminCoursewares />} />
         <Route path="courseware/:id/edit" element={<AdminCoursewareEdit />} />
+        <Route path="public_docs" element={<AdminPublicDocs />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="*" element={<Navigate to="dashboard" replace />} />

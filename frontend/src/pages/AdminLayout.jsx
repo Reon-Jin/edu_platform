@@ -32,6 +32,7 @@ export default function AdminLayout() {
         <div style={{ marginBottom: '1rem' }}>您好，管理员{username}</div>
         <button className="button" onClick={() => nav('/admin/users')}>用户管理</button>
         <button className="button" onClick={() => nav('/admin/coursewares')}>课件管理</button>
+        <button className="button" onClick={() => nav('/admin/public_docs')}>公共课件管理</button>
         <button className="button" onClick={() => nav('/admin/dashboard')}>数据概览</button>
         <div style={{ flex: 1 }} />
         <button className="button logout-btn" onClick={logout}>登出</button>

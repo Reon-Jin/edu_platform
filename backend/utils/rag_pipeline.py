@@ -172,7 +172,8 @@ def retrieve_from_db(query: str, user_id: int, session, top_k: int = 5) -> List[
         "WHERE ((d.owner_id=:uid AND d.is_active=1) "
         "OR (d.is_public=1 AND d.is_active=1))"
     )
-    rows = session.exec(text(sql), {"uid": user_id}).all()
+    stmt = text(sql).bindparams(uid=user_id)
+    rows = session.exec(stmt).all()
     if not rows:
         return []
     vectors = [np.frombuffer(r.vector_blob, dtype=np.float32) for r in rows]
