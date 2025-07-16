@@ -5,7 +5,6 @@ SQLite FTS5 + 向量索引，供教师备课检索。
 
 import os
 import re
-import subprocess
 import json
 import sqlite3
 from pathlib import Path
@@ -17,44 +16,28 @@ nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
 
 from docx import Document
+from pdfminer.high_level import extract_text as pdf_extract
 from backend.utils import rag_pipeline
 
 INPUT_DIR = "../word_files"
 OUTPUT_DIR = "../knowledge"
 INDEX_DB = "../knowledge/index.db"
 MAX_LENGTH = 2000
-ANTIWORD_CMD = "antiword"
 
 
 def extract_text(file_path: str) -> str:
-    """提取 .docx 或 .doc 文本；按段落双换行分隔"""
+    """根据扩展名提取文本内容"""
     ext = os.path.splitext(file_path)[1].lower()
     if ext == ".docx":
         doc = Document(file_path)
         paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
         return "\n\n".join(paras)
-    elif ext == ".doc":
-        try:
-            raw = subprocess.check_output(
-                [ANTIWORD_CMD, "-m", "UTF-8.txt", file_path], stderr=subprocess.DEVNULL
-            )
-            text = raw.decode("utf-8", errors="ignore")
-        except Exception:
-            try:
-                import pythoncom  # type: ignore
-                import win32com.client  # type: ignore
-
-                word = win32com.client.DispatchEx("Word.Application")
-                doc = word.Documents.Open(os.path.abspath(file_path), ReadOnly=True)
-                text = doc.Content.Text
-                doc.Close(False)
-                word.Quit()
-            except Exception as e:  # pragma: no cover - windows only
-                raise RuntimeError(f"无法提取 .doc 文档，请安装 antiword 或 pywin32: {e}")
-        lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-        return "\n\n".join(lines)
-    else:
-        raise ValueError(f"Unsupported file type: {file_path}")
+    if ext == ".pdf":
+        return pdf_extract(file_path)
+    if ext in {".txt", ".md"}:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            return f.read()
+    raise ValueError(f"Unsupported file type: {file_path}")
 
 
 def merge_paragraphs(text: str) -> str:
@@ -78,7 +61,7 @@ def process_directory() -> None:
         out_dir = os.path.join(OUTPUT_DIR, rel)
         os.makedirs(out_dir, exist_ok=True)
         for fn in files:
-            if not fn.lower().endswith((".docx", ".doc")):
+            if not fn.lower().endswith((".docx", ".pdf", ".txt", ".md")):
                 continue
             path_in = os.path.join(root, fn)
             print(f"Processing {path_in}...")

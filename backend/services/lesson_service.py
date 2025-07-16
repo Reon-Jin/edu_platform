@@ -1,20 +1,16 @@
 # backend/services/lesson_service.py
 
-import os
 from typing import List, Tuple
 
 import backend.utils.deepseek_client as _ds
-from backend.config import settings
 from backend.utils import rag_pipeline
+from backend.db import get_session
 
-INDEX_DB = os.path.join(settings.KNOWLEDGE_BASE_DIR, "index.db")
 
-
-def _retrieve_snippets(topic: str) -> List[Tuple[str, str]]:
-    """使用 RAG 索引检索与主题最相关的文本片段"""
-    if not os.path.isfile(INDEX_DB):
-        raise RuntimeError("知识库索引不存在，请先运行 prepare_knowledge.py")
-    return rag_pipeline.retrieve(topic, INDEX_DB, top_k=5)
+def _retrieve_snippets(topic: str, user_id: int) -> List[Tuple[str, str]]:
+    """从数据库检索与主题相关的文本块"""
+    with next(get_session()) as sess:
+        return rag_pipeline.retrieve_from_db(topic, user_id, sess, top_k=5)
 
 
 def _build_prompt(topic: str, knowledge_texts: List[Tuple[str, str]]) -> str:
@@ -50,11 +46,11 @@ def _build_prompt(topic: str, knowledge_texts: List[Tuple[str, str]]) -> str:
         "如有表格，请顶格书写且表格前后留空行。"
     )
 
-async def generate_lesson(topic: str) -> str:
+async def generate_lesson(topic: str, user_id: int) -> str:
     """
     调用 Deepseek API，根据主题生成教案 Markdown 文本。
     """
-    snippets = _retrieve_snippets(topic)
+    snippets = _retrieve_snippets(topic, user_id)
     prompt = _build_prompt(topic, snippets)
     result = _ds.call_deepseek_api(prompt=prompt)
     markdown_content = result["choices"][0]["message"]["content"]

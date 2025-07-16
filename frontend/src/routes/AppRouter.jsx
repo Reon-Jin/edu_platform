@@ -15,6 +15,7 @@ import TeacherStudentDetail from "../pages/TeacherStudentDetail";
 import TeacherStudentHomeworkDetail from "../pages/TeacherStudentHomeworkDetail";
 import ClassManagementPage from "../pages/ClassManagementPage";
 import TeacherClassDetailPage from "../pages/TeacherClassDetailPage";
+import DocumentManage from "../pages/DocumentManage";
 import RegisterPage from "../pages/RegisterPage";
 import StudentLayout from "../pages/StudentLayout";
 import StudentHomeworks from "../pages/StudentHomeworks";
@@ -64,6 +65,7 @@ export default function AppRouter() {
         <Route path="exercise/stats/:ex_id" element={<ExerciseStats />} />
         <Route path="classes" element={<ClassManagementPage />} />
         <Route path="classes/:cid" element={<TeacherClassDetailPage />} />
+        <Route path="docs" element={<DocumentManage />} />
         <Route path="students" element={<TeacherStudents />} />
         <Route path="students/:sid" element={<TeacherStudentDetail />} />
         <Route path="students/:sid/homework/:hw_id" element={<TeacherStudentHomeworkDetail />} />

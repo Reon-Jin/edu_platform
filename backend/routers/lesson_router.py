@@ -127,7 +127,7 @@ async def prepare_lesson(
     lesson_prep_start[current_user.id] = datetime.utcnow()
     if topic not in lesson_markdown_cache:
         try:
-            md_text = await generate_lesson(topic)
+            md_text = await generate_lesson(topic, current_user.id)
         except RuntimeError as e:
             raise HTTPException(status_code=500, detail=str(e))
         lesson_markdown_cache[topic] = md_text
@@ -154,7 +154,7 @@ async def save_courseware(
     if not topic:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="topic 不能为空")
 
-    md_text = lesson_markdown_cache.get(topic) or await generate_lesson(topic)
+    md_text = lesson_markdown_cache.get(topic) or await generate_lesson(topic, current_user.id)
     lesson_markdown_cache[topic] = md_text
 
     start_time = lesson_prep_start.pop(current_user.id, None)

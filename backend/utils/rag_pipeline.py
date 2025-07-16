@@ -7,6 +7,9 @@ from typing import List, Tuple
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from nltk.tokenize import word_tokenize
+from pdfminer.high_level import extract_text as pdf_extract
+from docx import Document as DocxDocument
+from sqlalchemy import text
 
 # 初始化嵌入模型
 _model = None
@@ -42,6 +45,26 @@ def _chunk_text(text: str, size: int = 400, overlap: int = 50) -> List[str]:
             continue
         chunks.append(' '.join(part))
     return chunks
+
+
+def extract_text(path: str) -> str:
+    """Extract plain text from supported document formats."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext in {".txt", ".md"}:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            return f.read()
+    if ext == ".pdf":
+        return pdf_extract(path)
+    if ext == ".docx":
+        doc = DocxDocument(path)
+        paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+        return "\n\n".join(paras)
+    raise ValueError(f"Unsupported file type: {path}")
+
+
+def chunk_document(path: str) -> List[str]:
+    text = extract_text(path)
+    return _chunk_text(text)
 
 
 def build_index(kb_dir: str, db_path: str):
@@ -136,4 +159,29 @@ def retrieve(query: str, db_path: str, top_k: int = 5) -> List[Tuple[str, str]]:
     top_indices = sims.argsort()[-top_k:][::-1]
     results = [(rows[i][1], rows[i][2]) for i in top_indices]
     conn.close()
+    return results
+
+
+def retrieve_from_db(query: str, user_id: int, session, top_k: int = 5) -> List[Tuple[str, str]]:
+    """Retrieve relevant chunks for a teacher from MySQL document tables."""
+    q_vec = get_model().encode(query)
+    sql = (
+        "SELECT v.doc_id, v.chunk_index, v.vector_blob, d.filepath "
+        "FROM document_vector v "
+        "JOIN document d ON v.doc_id=d.id "
+        "WHERE ((d.owner_id=:uid AND d.is_active=1) "
+        "OR (d.is_public=1 AND d.is_active=1))"
+    )
+    rows = session.exec(text(sql), {"uid": user_id}).all()
+    if not rows:
+        return []
+    vectors = [np.frombuffer(r.vector_blob, dtype=np.float32) for r in rows]
+    sims = np.array(vectors) @ q_vec
+    idxs = sims.argsort()[-top_k:][::-1]
+    results = []
+    for i in idxs:
+        r = rows[i]
+        chunks = chunk_document(r.filepath)
+        text_chunk = chunks[r.chunk_index] if r.chunk_index < len(chunks) else ""
+        results.append((os.path.basename(r.filepath), text_chunk))
     return results
