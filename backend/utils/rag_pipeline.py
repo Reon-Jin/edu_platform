@@ -56,7 +56,9 @@ def extract_text(path: str) -> str:
     try:
         return textract.process(path).decode("utf-8", errors="ignore")
     except Exception as e:
-        raise ValueError(f"Unsupported file type or extraction failed: {path}") from e
+        raise ValueError(
+            f"Unsupported file type or extraction failed: {path}"
+        ) from e
 
 
 def chunk_document(path: str) -> List[str]:

@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List
 from datetime import datetime
+import logging
 from pydantic import BaseModel
 
 import numpy as np
@@ -24,6 +25,23 @@ class DocumentWithActivation(BaseModel):
         from_attributes = True
 
 
+def _index_document(doc_id: int, path: Path) -> None:
+    """Chunk document and store vectors."""
+    with Session(engine, expire_on_commit=False) as sess:
+        model = get_model()
+        chunks = chunk_document(str(path))
+        for idx, ck in enumerate(chunks):
+            vec = model.encode(ck)
+            sess.add(
+                DocumentVector(
+                    doc_id=doc_id,
+                    chunk_index=idx,
+                    vector_blob=vec.astype(np.float32).tobytes(),
+                )
+            )
+        sess.commit()
+
+
 def save_document(
     owner_id: int, filename: str, data: bytes, is_public: bool = False
 ) -> Document:
@@ -41,17 +59,10 @@ def save_document(
         with open(path, "wb") as f:
             f.write(data)
 
-        # convert legacy .doc files to .docx
         if path.suffix.lower() == ".doc":
             try:
                 path = convert_doc_to_docx(path)
             except Exception as e:
-                # cleanup and remove db record
-                path.unlink(missing_ok=True)
-                if path.parent.exists():
-                    for p in path.parent.glob("*"):
-                        p.unlink(missing_ok=True)
-                    path.parent.rmdir()
                 sess.delete(doc)
                 sess.commit()
                 raise RuntimeError(f"DOC conversion failed: {e}")
@@ -59,26 +70,16 @@ def save_document(
 
         doc.filepath = str(path)
         sess.add(doc)
-        sess.commit()
-
-        model = get_model()
-        chunks = chunk_document(str(path))
-        for idx, ck in enumerate(chunks):
-            vec = model.encode(ck)
-            sess.add(
-                DocumentVector(
-                    doc_id=doc.id,
-                    chunk_index=idx,
-                    vector_blob=vec.astype(np.float32).tobytes(),
-                )
-            )
-        sess.commit()
-        # create activation record for owner (default inactive)
         sess.add(
             DocumentActivation(teacher_id=owner_id, doc_id=doc.id, is_active=False)
         )
         sess.commit()
-        return doc
+
+    try:
+        _index_document(doc.id, path)
+    except Exception as e:  # pragma: no cover - logging only
+        logging.error("Indexing document %s failed: %s", doc.id, e)
+    return doc
 
 
 def list_my_documents(owner_id: int) -> List[Document]:
@@ -194,11 +195,6 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
             try:
                 path = convert_doc_to_docx(path)
             except Exception as e:
-                path.unlink(missing_ok=True)
-                if path.parent.exists():
-                    for p in path.parent.glob("*"):
-                        p.unlink(missing_ok=True)
-                    path.parent.rmdir()
                 sess.delete(doc)
                 sess.commit()
                 raise RuntimeError(f"DOC conversion failed: {e}")
@@ -208,19 +204,11 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
         sess.add(doc)
         sess.commit()
 
-        model = get_model()
-        chunks = chunk_document(str(path))
-        for idx, ck in enumerate(chunks):
-            vec = model.encode(ck)
-            sess.add(
-                DocumentVector(
-                    doc_id=doc.id,
-                    chunk_index=idx,
-                    vector_blob=vec.astype(np.float32).tobytes(),
-                )
-            )
-        sess.commit()
-        return doc
+    try:
+        _index_document(doc.id, path)
+    except Exception as e:  # pragma: no cover - logging only
+        logging.error("Indexing document %s failed: %s", doc.id, e)
+    return doc
 
 
 def delete_public_document(doc_id: int) -> bool:
