@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 import numpy as np
 from sqlmodel import Session, select
-from sqlalchemy import delete
+from sqlalchemy import delete as sa_delete
 
 from backend.config import engine, settings
 from backend.models import Document, DocumentVector, DocumentActivation
@@ -20,6 +20,7 @@ class DocumentWithActivation(BaseModel):
     filepath: str
     uploaded_at: datetime
     is_active: bool
+    is_public: bool          # 新增字段
 
     class Config:
         from_attributes = True
@@ -56,12 +57,11 @@ def save_document(
         doc_dir = Path(settings.DOC_STORAGE_DIR) / str(owner_id) / str(doc.id)
         doc_dir.mkdir(parents=True, exist_ok=True)
         path = doc_dir / filename
-        with open(path, "wb") as f:
-            f.write(data)
+        path.write_bytes(data)
 
         if path.suffix.lower() == ".doc":
             try:
-                path = convert_doc_to_docx(path)
+                path = Path(convert_doc_to_docx(path))
             except Exception as e:
                 sess.delete(doc)
                 sess.commit()
@@ -77,13 +77,12 @@ def save_document(
 
     try:
         _index_document(doc.id, path)
-    except Exception as e:  # pragma: no cover - logging only
+    except Exception as e:
         logging.error("Indexing document %s failed: %s", doc.id, e)
     return doc
 
 
 def list_my_documents(owner_id: int) -> List[Document]:
-    """Return documents owned by teacher that they have activated."""
     with Session(engine) as sess:
         stmt = (
             select(Document, DocumentActivation.is_active)
@@ -95,7 +94,7 @@ def list_my_documents(owner_id: int) -> List[Document]:
             )
         )
         rows = sess.exec(stmt).all()
-        docs = []
+        docs: List[Document] = []
         for doc, active in rows:
             doc.is_active = active
             docs.append(doc)
@@ -103,7 +102,6 @@ def list_my_documents(owner_id: int) -> List[Document]:
 
 
 def list_public_documents(teacher_id: int) -> List[DocumentWithActivation]:
-    """Return all public documents with the teacher's activation flag."""
     with Session(engine) as sess:
         stmt = (
             select(Document, DocumentActivation.is_active)
@@ -115,22 +113,22 @@ def list_public_documents(teacher_id: int) -> List[DocumentWithActivation]:
             .where(Document.is_public == True)
         )
         rows = sess.exec(stmt).all()
-        docs = []
+        result: List[DocumentWithActivation] = []
         for doc, active in rows:
-            docs.append(
+            result.append(
                 DocumentWithActivation(
                     id=doc.id,
                     filename=doc.filename,
                     filepath=doc.filepath,
                     uploaded_at=doc.uploaded_at,
                     is_active=bool(active) if active is not None else False,
+                    is_public=doc.is_public,                # 填充公共标记
                 )
             )
-        return docs
+        return result
 
 
 def set_activation(doc_id: int, teacher_id: int, is_active: bool) -> bool:
-    """Set activation state for a teacher on a document."""
     with Session(engine, expire_on_commit=False) as sess:
         doc = sess.get(Document, doc_id)
         if not doc:
@@ -155,7 +153,7 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
         doc = sess.get(Document, doc_id)
         if not doc or doc.owner_id != owner_id or doc.is_public:
             return False
-        sess.execute(delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
+        sess.execute(sa_delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
         path = Path(doc.filepath)
         if path.exists():
             try:
@@ -172,7 +170,6 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
 
 
 def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
-    """Save a document as public and active under storage/public."""
     with Session(engine, expire_on_commit=False) as sess:
         doc = Document(
             owner_id=owner_id,
@@ -188,12 +185,11 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
         doc_dir = Path(settings.DOC_STORAGE_DIR) / "public" / str(doc.id)
         doc_dir.mkdir(parents=True, exist_ok=True)
         path = doc_dir / filename
-        with open(path, "wb") as f:
-            f.write(data)
+        path.write_bytes(data)
 
         if path.suffix.lower() == ".doc":
             try:
-                path = convert_doc_to_docx(path)
+                path = Path(convert_doc_to_docx(path))
             except Exception as e:
                 sess.delete(doc)
                 sess.commit()
@@ -206,18 +202,17 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
 
     try:
         _index_document(doc.id, path)
-    except Exception as e:  # pragma: no cover - logging only
-        logging.error("Indexing document %s failed: %s", doc.id, e)
+    except Exception as e:
+        logging.error("Indexing public document %s failed: %s", doc.id, e)
     return doc
 
 
 def delete_public_document(doc_id: int) -> bool:
-    """Delete a public document and its vectors."""
     with Session(engine, expire_on_commit=False) as sess:
         doc = sess.get(Document, doc_id)
         if not doc or not doc.is_public:
             return False
-        sess.execute(delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
+        sess.execute(sa_delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
         path = Path(doc.filepath)
         if path.exists():
             try:
