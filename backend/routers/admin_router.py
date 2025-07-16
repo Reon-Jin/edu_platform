@@ -3,7 +3,7 @@ from typing import List, Optional
 import io
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from sqlalchemy import func
@@ -14,7 +14,12 @@ from backend.config import engine
 from backend.routers.lesson_router import _generate_and_store_pdf
 from backend.models import (
     User, Role, Courseware, Exercise, Homework, Submission,
-    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent
+    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent, Document
+)
+from backend.services.document_service import (
+    save_public_document,
+    list_public_documents,
+    delete_public_document,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -45,6 +50,16 @@ class CoursewarePreview(BaseModel):
     teacher_id: int
     markdown: str
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentInfo(BaseModel):
+    id: int
+    filename: str
+    is_active: bool
+    uploaded_at: datetime
 
     class Config:
         from_attributes = True
@@ -188,6 +203,36 @@ def update_courseware(cid: int, data: CoursewareUpdate, current: User = Depends(
         sess.commit()
         _generate_and_store_pdf(cw.id, cw.markdown)
         return CoursewareMeta(id=cw.id, topic=cw.topic, teacher_id=cw.teacher_id, created_at=cw.created_at)
+
+
+@router.get("/public_docs", response_model=List[DocumentInfo])
+def list_public_docs(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    docs = list_public_documents()
+    return [DocumentInfo(id=d.id, filename=d.filename, is_active=d.is_active, uploaded_at=d.uploaded_at) for d in docs]
+
+
+@router.post("/public_docs")
+async def upload_public_doc(
+    file: UploadFile = File(...),
+    current: User = Depends(get_current_user),
+):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员上传")
+    data = await file.read()
+    doc = save_public_document(current.id, file.filename, data)
+    return DocumentInfo(id=doc.id, filename=doc.filename, is_active=doc.is_active, uploaded_at=doc.uploaded_at)
+
+
+@router.delete("/public_docs/{doc_id}")
+def delete_public_doc(doc_id: int, current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+    ok = delete_public_document(doc_id)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
+    return {"status": "ok"}
 
 
 @router.get("/dashboard")
