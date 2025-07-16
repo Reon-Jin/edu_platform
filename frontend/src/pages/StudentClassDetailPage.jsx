@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchStudentClass, leaveClass } from '../api/student';
-import { Breadcrumb, Card, Button, Descriptions, Affix, Space, message } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import '../index.css';
 
 export default function StudentClassDetailPage() {
@@ -15,9 +13,8 @@ export default function StudentClassDetailPage() {
     try {
       await leaveClass(cid);
       navigate(-1);
-      message.success('已退出班级');
     } catch (err) {
-      message.error('退出失败');
+      alert('退出失败');
     }
   };
 
@@ -35,34 +32,20 @@ export default function StudentClassDetailPage() {
 
   return (
     <div className="container">
-      <Breadcrumb
-        items={[
-          { title: '首页', href: '/student/homeworks' },
-          { title: '我的班级', href: '/student/classes' },
-          { title: info.name },
-        ]}
-      />
-      <Card style={{ width: '100%', marginTop: '1rem' }}>
-        <Descriptions title="班级信息" column={2} bordered size="middle">
-          <Descriptions.Item label="名称">{info.name}</Descriptions.Item>
-          <Descriptions.Item label="ID">{info.id}</Descriptions.Item>
-          <Descriptions.Item label="学科">{info.subject}</Descriptions.Item>
-          <Descriptions.Item label="人数">{info.student_count}</Descriptions.Item>
-        </Descriptions>
-      </Card>
-      <Affix offsetBottom={20} style={{ position: 'fixed', right: 24 }}>
-        <Space>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
-          >
+      <div className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={() => navigate(-1)}>
             返回
-          </Button>
-          <Button danger onClick={handleLeave}>
+          </button>
+          <button className="button" style={{ width: 'auto', marginBottom: '1rem' }} onClick={handleLeave}>
             退出班级
-          </Button>
-        </Space>
-      </Affix>
+          </button>
+        </div>
+        <h2>{info.name}</h2>
+        <p>班级ID: {info.id}</p>
+        <p>学科: {info.subject}</p>
+        <p>学生人数: {info.student_count}</p>
+      </div>
     </div>
   );
 }
