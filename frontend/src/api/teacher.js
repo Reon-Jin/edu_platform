@@ -299,8 +299,8 @@ export async function fetchPublicDocuments() {
   return resp.data;
 }
 
-export async function toggleDocumentActive(id) {
-  const resp = await api.patch(`/docs/${id}/activate`);
+export async function setDocumentActive(id, isActive) {
+  const resp = await api.patch(`/docs/${id}/activate`, { is_active: isActive });
   return resp.data;
 }
 

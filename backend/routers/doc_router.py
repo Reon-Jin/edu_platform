@@ -9,7 +9,7 @@ from backend.services.document_service import (
     save_document,
     list_my_documents,
     list_public_documents,
-    toggle_active,
+    set_activation,
     delete_document,
 )
 
@@ -24,18 +24,31 @@ async def upload_doc(
     current: User = Depends(get_current_user),
 ):
     if current.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师上传")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师上传"
+        )
     data = await file.read()
-    doc = save_document(current.id, file.filename, data, is_public=is_public)
-    return {"id": doc.id, "filename": doc.filename, "is_active": doc.is_active, "is_public": doc.is_public, "uploaded_at": doc.uploaded_at}
+    try:
+        doc = save_document(current.id, file.filename, data, is_public=is_public)
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "id": doc.id,
+        "filename": doc.filename,
+        "is_active": doc.is_active,
+        "is_public": doc.is_public,
+        "uploaded_at": doc.uploaded_at,
+    }
 
 
 @router.get("/")
 def list_docs(scope: str = "my", current: User = Depends(get_current_user)):
     if current.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问"
+        )
     if scope == "public":
-        docs = list_public_documents()
+        docs = list_public_documents(current.id)
     else:
         docs = list_my_documents(current.id)
     return [
@@ -50,20 +63,29 @@ def list_docs(scope: str = "my", current: User = Depends(get_current_user)):
     ]
 
 
+from fastapi import Body
+
+
 @router.patch("/{doc_id}/activate")
-def activate_doc(doc_id: int, current: User = Depends(get_current_user)):
+def activate_doc(
+    doc_id: int, is_active: bool = Body(...), current: User = Depends(get_current_user)
+):
     if current.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    doc = toggle_active(doc_id, current.id)
-    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问"
+        )
+    ok = set_activation(doc_id, current.id, is_active)
+    if not ok:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
-    return {"is_active": doc.is_active}
+    return {"is_active": is_active}
 
 
 @router.delete("/{doc_id}")
 def delete_doc(doc_id: int, current: User = Depends(get_current_user)):
     if current.role.name != "teacher":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问"
+        )
     ok = delete_document(doc_id, current.id)
     if not ok:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="无法删除")

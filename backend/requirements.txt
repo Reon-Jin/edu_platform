@@ -20,3 +20,5 @@ faiss-cpu
 nltk
 python-docx
 pdfminer.six
+textract==1.6.3
+pywin32
