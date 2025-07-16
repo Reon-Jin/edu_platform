@@ -177,3 +177,4 @@ backend/.env
 
 .idea/
 .vscode/
+/backend/storage
