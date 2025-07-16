@@ -7,15 +7,8 @@ from typing import List, Tuple
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from nltk.tokenize import word_tokenize
-from pdfminer.high_level import extract_text as pdf_extract
-from docx import Document as DocxDocument
 from sqlalchemy import text
-import subprocess
-
-try:
-    import textract  # optional fallback
-except Exception:  # pragma: no cover - optional
-    textract = None
+import textract
 
 # 初始化嵌入模型
 _model = None
@@ -60,23 +53,10 @@ def extract_text(path: str) -> str:
     if ext in {".txt", ".md"}:
         with open(path, "r", encoding="utf-8", errors="ignore") as f:
             return f.read()
-    if ext == ".pdf":
-        return pdf_extract(path)
-    if ext == ".docx":
-        doc = DocxDocument(path)
-        paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
-        return "\n\n".join(paras)
-    if ext == ".doc":
-        try:
-            out = subprocess.run(
-                ["antiword", path], capture_output=True, text=True, check=True
-            )
-            return out.stdout
-        except Exception:
-            if textract:
-                return textract.process(path).decode("utf-8")
-            raise
-    raise ValueError(f"Unsupported file type: {path}")
+    try:
+        return textract.process(path).decode("utf-8", errors="ignore")
+    except Exception as e:
+        raise ValueError(f"Unsupported file type or extraction failed: {path}") from e
 
 
 def chunk_document(path: str) -> List[str]:
