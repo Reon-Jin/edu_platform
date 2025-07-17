@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchLessonList } from "../api/teacher";
+import { formatDateTime } from "../utils";
 import "../index.css";
 
 export default function LessonList() {
@@ -46,7 +47,7 @@ export default function LessonList() {
               {lessons.map((lesson) => (
                 <tr key={lesson.id}>
                   <td>{lesson.topic}</td>
-                  <td>{lesson.created_at}</td>
+                  <td>{formatDateTime(lesson.created_at)}</td>
                   <td>
                     <Link to={`/teacher/lesson/preview/${lesson.id}`}>
                       预览
