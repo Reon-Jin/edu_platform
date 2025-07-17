@@ -22,11 +22,10 @@ export default function AdminLayout() {
   return (
     <>
       <button
-        className={`button toggle-btn${open ? ' shifted' : ''}`}
+        className={`toggle-btn${open ? ' shifted' : ''}`}
         onClick={() => setOpen(!open)}
-        style={{ width: 'auto' }}
       >
-        菜单
+        {open ? '\u25C0' : '\u25B6'}
       </button>
       <div className={`sidebar${open ? ' open' : ''}`}>
         <div style={{ marginBottom: '1rem' }}>您好，管理员{username}</div>
@@ -37,7 +36,7 @@ export default function AdminLayout() {
         <div style={{ flex: 1 }} />
         <button className="button logout-btn" onClick={logout}>登出</button>
       </div>
-      <div>
+      <div className={`main-content${open ? ' shifted' : ''}`}>
         <Outlet />
       </div>
     </>

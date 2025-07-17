@@ -281,11 +281,17 @@ export async function deleteClass(cid) {
 }
 
 // ----- Document management -----
-export async function uploadDocument(file, isPublic = false) {
+export async function uploadDocument(file, isPublic = false, onProgress) {
   const form = new FormData();
   form.append('file', file);
   form.append('is_public', isPublic);
-  const resp = await api.post('/docs/', form);
+  const resp = await api.post('/docs/', form, {
+    onUploadProgress: (e) => {
+      if (!onProgress || !e.total) return;
+      const percent = Math.round((e.loaded * 100) / e.total);
+      onProgress(percent);
+    },
+  });
   return resp.data;
 }
 

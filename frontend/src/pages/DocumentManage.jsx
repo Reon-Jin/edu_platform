@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   uploadDocument,
   fetchMyDocuments,
@@ -7,12 +7,16 @@ import {
   deleteDocument,
 } from '../api/teacher';
 import '../index.css';
+import { formatDateTime } from '../utils';
 
 export default function DocumentManage() {
   const [tab, setTab] = useState('my');
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const load = async (scope) => {
     setLoading(true);
@@ -31,15 +35,32 @@ export default function DocumentManage() {
     load(tab);
   }, [tab]);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleFiles = async (files) => {
+    const file = files[0];
     if (!file) return;
     try {
-      await uploadDocument(file, false);
+      setUploading(true);
+      await uploadDocument(file, false, setProgress);
+      setUploading(false);
+      setProgress(0);
       load('my');
     } catch (err) {
       alert('上传失败');
+      setUploading(false);
     }
+  };
+
+  const openFileDialog = () => {
+    fileRef.current && fileRef.current.click();
+  };
+
+  const handleInputChange = (e) => {
+    handleFiles(e.target.files);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
   };
 
   const handleActivate = async (id, active) => {
@@ -61,13 +82,41 @@ export default function DocumentManage() {
     <div className="container">
       <div className="card">
         <h2>资料管理</h2>
-        <div style={{ marginBottom: '1rem' }}>
-          <button className="button" style={{ width: 'auto', marginRight: '1rem' }} onClick={() => setTab('my')}>我的私有资料</button>
-          <button className="button" style={{ width: 'auto' }} onClick={() => setTab('public')}>公共资料</button>
+        <div className="tab-container">
+          <div className="tabs">
+            <button
+              className={`tab ${tab === 'my' ? 'active' : ''}`}
+              onClick={() => setTab('my')}
+            >
+              我的私有资料
+            </button>
+            <button
+              className={`tab ${tab === 'public' ? 'active' : ''}`}
+              onClick={() => setTab('public')}
+            >
+              公共资料
+            </button>
+          </div>
+          <select
+            className="tab-select"
+            value={tab}
+            onChange={(e) => setTab(e.target.value)}
+          >
+            <option value="my">我的私有资料</option>
+            <option value="public">公共资料</option>
+          </select>
         </div>
         {tab === 'my' && (
-          <div style={{ marginBottom: '1rem' }}>
-            <input type="file" onChange={handleUpload} />
+          <div className="upload-dropzone" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()} onClick={openFileDialog} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') openFileDialog(); }}>
+            <input type="file" ref={fileRef} onChange={handleInputChange} style={{ display: 'none' }} />
+            <div className="upload-icon">⬆️</div>
+            <p>拖拽文件到此处或点击上传</p>
+            {uploading && (
+              <div className="progress">
+                <div className="progress-bar" style={{ width: `${progress}%` }} />
+              </div>
+            )}
+            {uploading && <span className="progress-text">{progress}%</span>}
           </div>
         )}
         {error && <div className="error">{error}</div>}
@@ -87,15 +136,28 @@ export default function DocumentManage() {
               {list.map((d) => (
                 <tr key={d.id}>
                   <td>{d.filename}</td>
-                  <td>{d.uploaded_at}</td>
-                  <td>{d.is_active ? '已激活' : '未激活'}</td>
+                  <td>{formatDateTime(d.uploaded_at)}</td>
                   <td>
-                    <button className="button" style={{ width: 'auto' }} onClick={() => handleActivate(d.id, !d.is_active)}>
-                      {d.is_active ? '取消激活' : '激活'}
+                    <span className={`tag ${d.is_active ? 'tag-green' : 'tag-gray'}`}>{d.is_active ? '已激活' : '未激活'}</span>
+                  </td>
+                  <td className="actions-cell">
+                    <button
+                      className="icon-button tooltip"
+                      onClick={() => handleActivate(d.id, !d.is_active)}
+                      aria-label={d.is_active ? '取消激活' : '激活'}
+                    >
+                      {d.is_active ? '🛑' : '✅'}
+                      <span className="tooltip-text">{d.is_active ? '取消激活' : '激活'}</span>
                     </button>
                     {tab === 'my' && (
-                      <button className="button" style={{ width: 'auto', marginLeft: '0.5rem' }} onClick={() => handleDelete(d.id)}>
-                        删除
+                      <button
+                        className="icon-button tooltip"
+                        onClick={() => handleDelete(d.id)}
+                        aria-label="删除"
+                        style={{ marginLeft: '0.25rem' }}
+                      >
+                        🗑️
+                        <span className="tooltip-text">删除</span>
                       </button>
                     )}
                   </td>

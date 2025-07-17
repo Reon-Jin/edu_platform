@@ -5,6 +5,7 @@ import {
   deletePublicDoc,
 } from '../api/admin';
 import '../index.css';
+import { formatDateTime } from '../utils';
 
 export default function AdminPublicDocs() {
   const [list, setList] = useState([]);
@@ -72,7 +73,7 @@ export default function AdminPublicDocs() {
               {list.map((d) => (
                 <tr key={d.id}>
                   <td>{d.filename}</td>
-                  <td>{d.uploaded_at}</td>
+                  <td>{formatDateTime(d.uploaded_at)}</td>
                   <td>
                     <button className="button" onClick={() => handleDelete(d.id)}>删除</button>
                   </td>
