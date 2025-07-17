@@ -47,9 +47,14 @@ def grade_submission(submission_id: int):
         )
         resp = call_deepseek_api(prompt, model="deepseek-reasoner")
         content = resp["choices"][0]["message"]["content"]
-        # 去除 Markdown code fence
-        text = re.sub(r"^```(?:json)?\s*", "", content)
-        text = re.sub(r"\s*```$", "", text)
+        start = content.find("{")
+        end = content.rfind("}")
+        if start == -1 or end == -1 or start > end:
+            # fallback: remove Markdown fences if any
+            text = re.sub(r"^```(?:json)?\s*", "", content)
+            text = re.sub(r"\s*```$", "", text)
+        else:
+            text = content[start : end + 1]
         data = json.loads(text)
 
         results      = data.get("results", {})
