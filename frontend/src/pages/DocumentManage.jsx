@@ -7,6 +7,7 @@ import {
   deleteDocument,
 } from '../api/teacher';
 import '../index.css';
+import { formatDateTime } from '../utils';
 
 export default function DocumentManage() {
   const [tab, setTab] = useState('my');
@@ -135,7 +136,7 @@ export default function DocumentManage() {
               {list.map((d) => (
                 <tr key={d.id}>
                   <td>{d.filename}</td>
-                  <td>{d.uploaded_at}</td>
+                  <td>{formatDateTime(d.uploaded_at)}</td>
                   <td>
                     <span className={`tag ${d.is_active ? 'tag-green' : 'tag-gray'}`}>{d.is_active ? '已激活' : '未激活'}</span>
                   </td>

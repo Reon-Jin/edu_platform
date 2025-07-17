@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchCoursewares, shareCourseware, downloadCourseware } from '../api/admin';
 import { Link } from 'react-router-dom';
 import '../index.css';
+import { formatDateTime } from '../utils';
 
 export default function AdminCoursewares() {
   const [list, setList] = useState([]);
@@ -75,7 +76,7 @@ export default function AdminCoursewares() {
                   <td>{c.id}</td>
                   <td>{c.topic}</td>
                   <td>{c.teacher_id}</td>
-                  <td>{c.created_at}</td>
+                  <td>{formatDateTime(c.created_at)}</td>
                   <td>
                     <button
                       className="button"

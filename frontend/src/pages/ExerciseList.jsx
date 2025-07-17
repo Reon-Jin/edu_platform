@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchExerciseList } from "../api/teacher";
+import { formatDateTime } from "../utils";
 import "../index.css";
 
 export default function ExerciseList() {
@@ -45,7 +46,7 @@ export default function ExerciseList() {
               {list.map((ex) => (
                 <tr key={ex.id}>
                   <td>{ex.subject}</td>
-                  <td>{ex.created_at}</td>
+                  <td>{formatDateTime(ex.created_at)}</td>
                   <td>
                     <Link to={`/teacher/exercise/preview/${ex.id}`}>预览</Link>
                   </td>
