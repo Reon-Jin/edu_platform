@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Stepper from "../components/Stepper";
-import Tooltip from "../components/Tooltip";
 
 import {
   generateExerciseJson,
@@ -40,7 +39,9 @@ export default function ExercisePage() {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name.startsWith("num_") || name.startsWith("score_") ? Number(value) : value,
+      [name]: name.startsWith("num_") || name.startsWith("score_")
+        ? Number(value)
+        : value,
     }));
   };
 
@@ -194,103 +195,41 @@ export default function ExercisePage() {
             placeholder="输入练习主题"
           />
         </div>
+
         <div className="card">
           <h2>配置题量</h2>
-          <div className="grid-2">
-            <label>
-              单选题数量
-              <Stepper
-                value={form.num_single_choice}
-                onChange={(v) => setForm((p) => ({ ...p, num_single_choice: v }))}
-                min={0}
-                max={20}
-              />
-            </label>
-            <label>
-              单选题分值
-              <Stepper
-                value={form.score_single_choice}
-                onChange={(v) => setForm((p) => ({ ...p, score_single_choice: v }))}
-                min={1}
-                max={100}
-              />
-            </label>
-            <label>
-              多选题数量
-              <Stepper
-                value={form.num_multiple_choice}
-                onChange={(v) => setForm((p) => ({ ...p, num_multiple_choice: v }))}
-                min={0}
-                max={20}
-              />
-            </label>
-            <label>
-              多选题分值
-              <Stepper
-                value={form.score_multiple_choice}
-                onChange={(v) => setForm((p) => ({ ...p, score_multiple_choice: v }))}
-                min={1}
-                max={100}
-              />
-            </label>
-            <label>
-              填空题数量
-              <Tooltip text="在句子中留空填入答案" />
-              <Stepper
-                value={form.num_fill_blank}
-                onChange={(v) => setForm((p) => ({ ...p, num_fill_blank: v }))}
-                min={0}
-                max={20}
-              />
-            </label>
-            <label>
-              填空题分值
-              <Stepper
-                value={form.score_fill_blank}
-                onChange={(v) => setForm((p) => ({ ...p, score_fill_blank: v }))}
-                min={1}
-                max={100}
-              />
-            </label>
-            <label>
-              简答题数量
-              <Tooltip text="需要简短回答的题目" />
-              <Stepper
-                value={form.num_short_answer}
-                onChange={(v) => setForm((p) => ({ ...p, num_short_answer: v }))}
-                min={0}
-                max={20}
-              />
-            </label>
-            <label>
-              简答题分值
-              <Stepper
-                value={form.score_short_answer}
-                onChange={(v) => setForm((p) => ({ ...p, score_short_answer: v }))}
-                min={1}
-                max={100}
-              />
-            </label>
-            <label>
-              编程题数量
-              <Tooltip text="提交代码的题目" />
-              <Stepper
-                value={form.num_programming}
-                onChange={(v) => setForm((p) => ({ ...p, num_programming: v }))}
-                min={0}
-                max={20}
-              />
-            </label>
-            <label>
-              编程题分值
-              <Stepper
-                value={form.score_programming}
-                onChange={(v) => setForm((p) => ({ ...p, score_programming: v }))}
-                min={1}
-                max={100}
-              />
-            </label>
+          <div className="question-config-grid">
+            {[
+              { label: "单选题", numKey: "num_single_choice", scoreKey: "score_single_choice" },
+              { label: "多选题", numKey: "num_multiple_choice", scoreKey: "score_multiple_choice" },
+              { label: "填空题", numKey: "num_fill_blank", scoreKey: "score_fill_blank" },
+              { label: "简答题", numKey: "num_short_answer", scoreKey: "score_short_answer" },
+              { label: "编程题", numKey: "num_programming", scoreKey: "score_programming" },
+            ].map(({ label, numKey, scoreKey }) => (
+              <div className="question-config-card" key={numKey}>
+                <h4>{label}</h4>
+                <div className="config-row">
+                  <span>数量</span>
+                  <Stepper
+                    value={form[numKey]}
+                    onChange={(v) => setForm((p) => ({ ...p, [numKey]: v }))}
+                    min={0}
+                    max={20}
+                  />
+                </div>
+                <div className="config-row">
+                  <span>分值</span>
+                  <Stepper
+                    value={form[scoreKey]}
+                    onChange={(v) => setForm((p) => ({ ...p, [scoreKey]: v }))}
+                    min={1}
+                    max={100}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
+
           <div className="total-count">共计 {total} 题，总分 {totalScore}</div>
           <button className="button" type="submit" disabled={loading}>
             {loading ? "生成中…" : "生成练习"}
@@ -298,58 +237,60 @@ export default function ExercisePage() {
         </div>
       </form>
 
-        {showPreview && preview && (
-          <div className="preview-area card" style={{ marginTop: "1rem" }}>
-            <div className="actions">
-              <button className="button" onClick={handleSave} disabled={saved}>
-                {saved ? "已保存" : "保存练习"}
-              </button>
-              <button className="button" onClick={handleSaveAssign}>
-                保存并布置
-              </button>
-              <button className="button" onClick={handleDownloadQ} disabled={!exId}>
-                下载题目 PDF
-              </button>
-              <button className="button" onClick={handleDownloadA} disabled={!exId}>
-                下载答案 PDF
-              </button>
-            </div>
-            {showClasses && (
-              <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
-                {classList.map((c) => (
-                  <div key={c.id} style={{ marginBottom: "0.5rem" }}>
-                    <button
-                      className="button"
-                      onClick={() => handleSelectClass(c.id)}
-                      disabled={assignedClasses.includes(c.id)}
-                    >
-                      {assignedClasses.includes(c.id) ? `${c.name}（已布置）` : c.name}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ marginTop: "1rem" }}>
-              {preview.questions.map((block, bIdx) => (
-                <div key={bIdx} style={{ marginBottom: "1rem" }}>
-                  <strong>{block.type}</strong>
-                  {block.items.map((item, i) => (
-                    <div key={i} style={{ marginLeft: "1rem" }}>
-                      {item.question}
-                      {item.options && (
-                        <ul>
-                          {item.options.map((opt, j) => (
-                            <li key={j}>{opt}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
+      {showPreview && preview && (
+        <div className="preview-area card" style={{ marginTop: "1rem" }}>
+          <div className="actions">
+            <button className="button" onClick={handleSave} disabled={saved}>
+              {saved ? "已保存" : "保存练习"}
+            </button>
+            <button className="button" onClick={handleSaveAssign}>
+              保存并布置
+            </button>
+            <button className="button" onClick={handleDownloadQ} disabled={!exId}>
+              下载题目 PDF
+            </button>
+            <button className="button" onClick={handleDownloadA} disabled={!exId}>
+              下载答案 PDF
+            </button>
+          </div>
+
+          {showClasses && (
+            <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
+              {classList.map((c) => (
+                <div key={c.id} style={{ marginBottom: "0.5rem" }}>
+                  <button
+                    className="button"
+                    onClick={() => handleSelectClass(c.id)}
+                    disabled={assignedClasses.includes(c.id)}
+                  >
+                    {assignedClasses.includes(c.id) ? `${c.name}（已布置）` : c.name}
+                  </button>
                 </div>
               ))}
             </div>
+          )}
+
+          <div style={{ marginTop: "1rem" }}>
+            {preview.questions.map((block, bIdx) => (
+              <div key={bIdx} style={{ marginBottom: "1rem" }}>
+                <strong>{block.type}</strong>
+                {block.items.map((item, i) => (
+                  <div key={i} style={{ marginLeft: "1rem" }}>
+                    {item.question}
+                    {item.options && (
+                      <ul>
+                        {item.options.map((opt, j) => (
+                          <li key={j}>{opt}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }

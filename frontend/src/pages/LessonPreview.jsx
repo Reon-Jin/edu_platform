@@ -66,7 +66,7 @@ export default function LessonPreview() {
       {/* 普通预览时只用 .card，编辑模式时加上 .wide-card */}
       <div className={editMode ? "card wide-card" : "card"}>
         <button
-          className="button"
+          className="button btn-tertiary"
           style={{ width: "auto", marginBottom: "1rem" }}
           onClick={() => navigate(-1)}
         >
@@ -85,13 +85,21 @@ export default function LessonPreview() {
             />
             <div className="preview-column">
               <div className="actions" style={{ marginTop: 0 }}>
-                <button className="button" onClick={handleSave}>保存</button>
+                {/* 保存教案 */}
                 <button
-                  className="button"
+                  className="button btn-secondary"
+                  onClick={handleSave}
+                >
+                  <i className="icon icon-save" /> 保存
+                </button>
+                {/* 下载 PDF */}
+                <button
+                  className="button btn-secondary"
                   onClick={handleDownload}
                   disabled={downloadLoading}
                 >
-                  {downloadLoading ? "下载中..." : "下载 PDF"}
+                  <i className="icon icon-download" />{" "}
+                  {downloadLoading ? "下载中…" : "下载 PDF"}
                 </button>
               </div>
               <div className="markdown-preview" style={{ marginTop: '1rem' }}>
@@ -105,15 +113,21 @@ export default function LessonPreview() {
               <ReactMarkdown children={markdown} remarkPlugins={[remarkGfm]} />
             </div>
             <div className="actions">
+              {/* 下载 PDF */}
               <button
-                className="button"
+                className="button btn-secondary"
                 onClick={handleDownload}
                 disabled={downloadLoading}
               >
-                {downloadLoading ? "下载中..." : "下载 PDF"}
+                <i className="icon icon-download" />{" "}
+                {downloadLoading ? "下载中…" : "下载 PDF"}
               </button>
-              <button className="button" onClick={() => setEditMode(true)}>
-                编辑
+              {/* 切换到编辑 */}
+              <button
+                className="button btn-secondary"
+                onClick={() => setEditMode(true)}
+              >
+                <i className="icon icon-edit" /> 编辑
               </button>
             </div>
           </>

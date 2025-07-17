@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-
-import { prepareLessonMarkdown, downloadCoursewarePdf, saveCourseware } from "../api/teacher";
+import {
+  prepareLessonMarkdown,
+  downloadCoursewarePdf,
+  saveCourseware,
+} from "../api/teacher";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
 import "../index.css";  // 引用全局样式
@@ -11,7 +14,7 @@ export default function TeacherLesson() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
-  const [cwId, setCwId] = useState(null);  // 用于保存课件的 ID
+  const [cwId, setCwId] = useState(null);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -22,11 +25,23 @@ export default function TeacherLesson() {
     try {
       const md = await prepareLessonMarkdown({ topic });
       setMarkdown(md);
-    } catch (error) {
-      console.error(error);
-      setError(error.response?.data?.detail || "生成教案失败");
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.detail || "生成教案失败");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setError("");
+    try {
+      const savedCourseware = await saveCourseware({ topic });
+      setSaved(true);
+      setCwId(savedCourseware.id);
+    } catch (err) {
+      console.error(err);
+      setError("保存教案失败");
     }
   };
 
@@ -36,30 +51,18 @@ export default function TeacherLesson() {
       return;
     }
     try {
-      const blob = await downloadCoursewarePdf(cwId); // 使用正确的 cw_id
+      const blob = await downloadCoursewarePdf(cwId);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `lesson_${topic}.pdf`; // 文件名称
+      a.download = `lesson_${topic}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       setError("下载 PDF 失败");
-    }
-  };
-
-  const handleSave = async () => {
-    setError("");
-    try {
-      const savedCourseware = await saveCourseware({ topic });
-      setSaved(true);
-      setCwId(savedCourseware.id);  // 获取并保存课件的 ID
-    } catch (error) {
-      console.error(error);
-      setError("保存教案失败");
     }
   };
 
@@ -69,6 +72,7 @@ export default function TeacherLesson() {
         <h2>教案备课</h2>
         {error && <div className="error">{error}</div>}
         {saved && <div className="success">教案已保存！</div>}
+
         <form onSubmit={handleGenerate}>
           <label>
             主题
@@ -80,30 +84,65 @@ export default function TeacherLesson() {
               placeholder="输入备课主题"
             />
           </label>
-          <button className="button" type="submit" disabled={loading}>
-            {loading ? "生成中…" : "生成教案"}
-          </button>
+
+          {/* 生成教案按钮 */}
+          <div style={{ textAlign: "center" }}>
+            <button
+              className="generate-lesson-btn"
+              type="submit"
+              disabled={loading}
+            >
+              <i className="icon icon-generate" />{" "}
+              {loading ? "生成中…" : "生成教案"}
+            </button>
+          </div>
         </form>
 
         {markdown && (
           <>
-            <div className="actions">
-              <button className="button" onClick={handleSave}>
-                保存教案
-              </button>
+            <div
+              className="actions"
+              style={{
+                display: "flex",
+                gap: "1rem",
+                justifyContent: "center",
+                margin: "1rem 0",
+              }}
+            >
+              {/* 保存教案 */}
               <button
-                className="button"
-                onClick={handleDownload}
-                disabled={!saved} // 下载按钮在未保存时禁用
+                className="button btn-secondary"
+                onClick={handleSave}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.9rem",
+                  width: "40%",
+                  minWidth: "120px",
+                }}
               >
-                下载 PDF
+                <i className="icon icon-save" /> 保存教案
+              </button>
+
+              {/* 下载 PDF */}
+              <button
+                className="button btn-tertiary"
+                onClick={handleDownload}
+                disabled={!saved}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.9rem",
+                  width: "40%",
+                  minWidth: "120px",
+                }}
+              >
+                <i className="icon icon-download" /> 下载 PDF
               </button>
             </div>
+
             <div className="markdown-preview">
-              <ReactMarkdown
-                children={markdown}
-                remarkPlugins={[remarkGfm]}  // 使用 GitHub 风格的扩展支持表格
-              />
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {markdown}
+              </ReactMarkdown>
             </div>
           </>
         )}
