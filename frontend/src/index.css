@@ -19,6 +19,37 @@ html, body, #root {
   gap: 1rem; /* space between stacked elements */
 }
 
+.class-box {
+  border: 1px solid #d1e9e8;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background-color: #fafafa;
+}
+
+.chip {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #26a69a;
+  border-radius: 16px;
+  background-color: #e0f2f1;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.chip:hover:not(.selected) {
+  background-color: #b2dfdb;
+}
+
+.chip.selected {
+  background-color: #26a69a;
+  color: #ffffff;
+  border-color: #00796b;
+}
+
 .card {
   background: #fff;
   border: 1px solid #E2E8F0;
@@ -31,20 +62,25 @@ html, body, #root {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 只针对需要“更宽”卡片的页面 */
 .wide-card {
+  /* 只针对需要“更宽”卡片的页面 */
   width: clamp(700px, 75vw, 1000px);
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
 }
 
-
 .card h2 {
   margin: 2rem 0 1.5rem;
   font-size: 2.5rem;
   text-align: center;
   color: #334155;
+}
+
+.card h3 {
+  /* 题型标题加粗 */
+  font-weight: 700;
+  margin-bottom: 0.75rem;
 }
 
 .input {
@@ -58,7 +94,12 @@ html, body, #root {
   box-sizing: border-box;
 }
 
+/* 通用按钮样式，只写一次 */
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 1rem;
   font-size: 1rem;
@@ -72,7 +113,6 @@ html, body, #root {
   margin-top: 1rem;
   text-align: center;
   text-decoration: none;
-  display: block;
 }
 
 .button:disabled {
@@ -89,6 +129,45 @@ html, body, #root {
   outline: 2px solid #09adb9;
   outline-offset: 2px;
 }
+
+/* 按钮层级覆写 */
+.btn-primary {
+  /* 主操作：实心渐变 */
+  background: linear-gradient(90deg, #2c9d9f, #09adb9);
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #208a8c, #098f9f);
+}
+
+.btn-secondary {
+  /* 次操作：描边 */
+  background: #fff;
+  color: #2c9d9f;
+  border: 2px solid #2c9d9f;
+}
+.btn-secondary:hover {
+  background: #2c9d9f;
+  color: #fff;
+}
+
+.btn-tertiary {
+  /* 次次操作：灰底 */
+  background: #f0f4f8;
+  color: #334155;
+  border: 2px solid transparent;
+}
+.btn-tertiary:hover {
+  background: #e2e8f0;
+}
+
+/* 图标（示例，按需替换成你的 iconfont 或 SVG） */
+.icon {
+  font-size: 1.1rem;
+  line-height: 0;
+}
+.icon-assign::before  { content: "✏️"; }
+.icon-download::before{ content: "⬇️"; }
+.icon-stats::before  { content: "📊"; }
 
 .actions {
   display: flex;
@@ -107,10 +186,13 @@ html, body, #root {
 }
 
 .error, .success {
-  color: #ff3b30;
   font-size: 1rem;
   margin-top: 1rem;
   text-align: center;
+}
+
+.error {
+  color: #ff3b30;
 }
 
 .success {
@@ -130,7 +212,6 @@ html, body, #root {
   color: #1b54a0;
   text-decoration: underline;
 }
-
 
 table {
   width: 100%;
@@ -192,6 +273,8 @@ table tr:hover {
     opacity: 1;
   }
 }
+
+/* Sidebar */
 .sidebar {
   position: fixed;
   top: 0;
@@ -273,6 +356,7 @@ table tr:hover {
   display: flex;
   align-items: center;
 }
+
 .stepper-btn {
   width: 32px;
   height: 32px;
@@ -281,10 +365,12 @@ table tr:hover {
   border-radius: 4px;
   cursor: pointer;
 }
+
 .stepper-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .stepper-input {
   width: 60px;
   text-align: center;
@@ -300,6 +386,7 @@ table tr:hover {
   display: inline-block;
   margin-left: 0.25rem;
 }
+
 .tooltip-icon {
   width: 16px;
   height: 16px;
@@ -310,6 +397,7 @@ table tr:hover {
   text-align: center;
   cursor: pointer;
 }
+
 .tooltip-text {
   visibility: hidden;
   opacity: 0;
@@ -325,6 +413,7 @@ table tr:hover {
   transform: translateX(-50%);
   transition: opacity 0.2s;
 }
+
 .tooltip:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
@@ -599,4 +688,71 @@ table tr:hover {
 
 .main-content.shifted {
   margin-left: 200px;
+}
+
+/* CSS */
+.generate-lesson-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 80%;
+  padding: 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #23a6d5, #23d5ab);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.generate-lesson-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.generate-lesson-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.question-config-grid {
+  display: flex;
+  flex-wrap: wrap;      /* 允许换行 */
+  gap: 1rem;            /* 卡片之间的间距 */
+  justify-content: flex-start; /* 左对齐，右侧留空 */
+}
+
+/* 如果你想显式给每个卡片一个固定宽度，确保它不会被压缩或撑大 */
+.question-config-card {
+  flex: 0 0 200px;      /* 0: 不放大; 0: 不收缩; 200px: 固定基础宽度 */
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.question-config-card h4 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  text-align: center;
+}
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.config-row span {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+.total-count {
+  text-align: right;
+  margin: 0.5rem 0 1rem;
+  font-weight: bold;
 }
