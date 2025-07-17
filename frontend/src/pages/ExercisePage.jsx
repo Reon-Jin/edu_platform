@@ -15,10 +15,16 @@ import "../index.css";
 export default function ExercisePage() {
   const [form, setForm] = useState({
     topic: "",
-    num_mcq: 5,
+    num_single_choice: 5,
+    num_multiple_choice: 0,
     num_fill_blank: 5,
     num_short_answer: 1,
     num_programming: 0,
+    score_single_choice: 1,
+    score_multiple_choice: 1,
+    score_fill_blank: 1,
+    score_short_answer: 2,
+    score_programming: 5,
   });
   const [preview, setPreview] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -34,7 +40,7 @@ export default function ExercisePage() {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name.startsWith("num_") ? Number(value) : value,
+      [name]: name.startsWith("num_") || name.startsWith("score_") ? Number(value) : value,
     }));
   };
 
@@ -64,6 +70,13 @@ export default function ExercisePage() {
         topic: form.topic,
         questions: preview.questions,
         answers: preview.answers,
+        points: {
+          single_choice: form.score_single_choice,
+          multiple_choice: form.score_multiple_choice,
+          fill_in_blank: form.score_fill_blank,
+          short_answer: form.score_short_answer,
+          coding: form.score_programming,
+        },
       });
       setExId(res.id);
       setSaved(true);
@@ -82,6 +95,13 @@ export default function ExercisePage() {
           topic: form.topic,
           questions: preview.questions,
           answers: preview.answers,
+          points: {
+            single_choice: form.score_single_choice,
+            multiple_choice: form.score_multiple_choice,
+            fill_in_blank: form.score_fill_blank,
+            short_answer: form.score_short_answer,
+            coding: form.score_programming,
+          },
         });
         id = res.id;
         setExId(id);
@@ -146,10 +166,18 @@ export default function ExercisePage() {
   };
 
   const total =
-    form.num_mcq +
+    form.num_single_choice +
+    form.num_multiple_choice +
     form.num_fill_blank +
     form.num_short_answer +
     form.num_programming;
+
+  const totalScore =
+    form.num_single_choice * form.score_single_choice +
+    form.num_multiple_choice * form.score_multiple_choice +
+    form.num_fill_blank * form.score_fill_blank +
+    form.num_short_answer * form.score_short_answer +
+    form.num_programming * form.score_programming;
 
   return (
     <div className="container">
@@ -170,13 +198,39 @@ export default function ExercisePage() {
           <h2>配置题量</h2>
           <div className="grid-2">
             <label>
-              选择题数量
-              <Tooltip text="单选或多选题目" />
+              单选题数量
               <Stepper
-                value={form.num_mcq}
-                onChange={(v) => setForm((p) => ({ ...p, num_mcq: v }))}
+                value={form.num_single_choice}
+                onChange={(v) => setForm((p) => ({ ...p, num_single_choice: v }))}
                 min={0}
                 max={20}
+              />
+            </label>
+            <label>
+              单选题分值
+              <Stepper
+                value={form.score_single_choice}
+                onChange={(v) => setForm((p) => ({ ...p, score_single_choice: v }))}
+                min={1}
+                max={100}
+              />
+            </label>
+            <label>
+              多选题数量
+              <Stepper
+                value={form.num_multiple_choice}
+                onChange={(v) => setForm((p) => ({ ...p, num_multiple_choice: v }))}
+                min={0}
+                max={20}
+              />
+            </label>
+            <label>
+              多选题分值
+              <Stepper
+                value={form.score_multiple_choice}
+                onChange={(v) => setForm((p) => ({ ...p, score_multiple_choice: v }))}
+                min={1}
+                max={100}
               />
             </label>
             <label>
@@ -190,6 +244,15 @@ export default function ExercisePage() {
               />
             </label>
             <label>
+              填空题分值
+              <Stepper
+                value={form.score_fill_blank}
+                onChange={(v) => setForm((p) => ({ ...p, score_fill_blank: v }))}
+                min={1}
+                max={100}
+              />
+            </label>
+            <label>
               简答题数量
               <Tooltip text="需要简短回答的题目" />
               <Stepper
@@ -197,6 +260,15 @@ export default function ExercisePage() {
                 onChange={(v) => setForm((p) => ({ ...p, num_short_answer: v }))}
                 min={0}
                 max={20}
+              />
+            </label>
+            <label>
+              简答题分值
+              <Stepper
+                value={form.score_short_answer}
+                onChange={(v) => setForm((p) => ({ ...p, score_short_answer: v }))}
+                min={1}
+                max={100}
               />
             </label>
             <label>
@@ -209,8 +281,17 @@ export default function ExercisePage() {
                 max={20}
               />
             </label>
+            <label>
+              编程题分值
+              <Stepper
+                value={form.score_programming}
+                onChange={(v) => setForm((p) => ({ ...p, score_programming: v }))}
+                min={1}
+                max={100}
+              />
+            </label>
           </div>
-          <div className="total-count">共计 {total} 题</div>
+          <div className="total-count">共计 {total} 题，总分 {totalScore}</div>
           <button className="button" type="submit" disabled={loading}>
             {loading ? "生成中…" : "生成练习"}
           </button>

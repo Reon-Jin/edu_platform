@@ -34,36 +34,116 @@ def grade_submission(submission_id: int):
         hw  = sess.get(Homework, sub.homework_id)
         ex  = sess.get(Exercise, hw.exercise_id)
 
-        # 构建批改 prompt
+        # —— 新增：只处理单选/多选题的索引->字母转换 ——
+        def convert_indexed_answers(prompt_blocks, indexed_answers: Dict[str, Any]) -> Dict[str, Any]:
+            """
+            只对 single_choice / multiple_choice 题型做索引->字母转换，
+            其他题型保持原值。
+            """
+            # 构造 qid -> (qtype, options) 映射
+            meta = {}
+            for block in prompt_blocks:
+                qtype = block.get("type")
+                for item in block.get("items", []):
+                    qid = str(item.get("id"))
+                    meta[qid] = {
+                        "type": qtype,
+                        "options": item.get("options", []),
+                    }
+
+            letter_answers = {}
+            for qid, ans in indexed_answers.items():
+                info = meta.get(qid)
+                # 如果不是选择题或未找到元数据，保持原值
+                if not info or info["type"] not in ("single_choice", "multiple_choice"):
+                    letter_answers[qid] = ans
+                    continue
+
+                opts = info["options"]
+                if isinstance(ans, list):
+                    # 多选题：索引列表 -> 字母列表
+                    letter_answers[qid] = [
+                        opts[i].split(".", 1)[0] for i in ans if 0 <= i < len(opts)
+                    ]
+                else:
+                    # 单选题：单个索引 -> 字母
+                    letter_answers[qid] = (
+                        opts[ans].split(".", 1)[0]
+                        if isinstance(ans, int) and 0 <= ans < len(opts)
+                        else ans
+                    )
+            return letter_answers
+
+        # 原始索引答案
+        indexed = sub.answers or {}
+        # 转换得到字母答案（只影响 single_choice/multiple_choice 题型）
+        letter_answers = convert_indexed_answers(ex.prompt, indexed)
+
+        # 构建批改 prompt（用 letter_answers 而非原始 sub.answers）
+        point_map = ex.points or {}
+        sa_point = point_map.get("short_answer", 1)
         prompt = (
             "请根据下面的 JSON：\n"
             f"题目: {json.dumps(ex.prompt, ensure_ascii=False)}\n"
             f"标准答案: {json.dumps(ex.answers, ensure_ascii=False)}\n"
-            f"学生答案: {json.dumps(sub.answers, ensure_ascii=False)}\n\n"
-            "对每道题给出结果和解析，以 JSON 格式返回：\n"
-            "{ \"results\": {\"qid\":\"correct|wrong\", ...}, "
-            "\"explanations\": {\"qid\":\"解析文本\", ...} }"
+            f"学生答案: {json.dumps(letter_answers, ensure_ascii=False)}\n\n"
+            f"请判断学生答案并给出解析。其中简答题按照满分 {sa_point} 分给出 0 到 {sa_point} 的得分，"
+            "其他题型判断对错即可。"
+            "返回 JSON：{ \"results\": {qid: 'correct|wrong|partial'}, \"scores\": {qid: number}, "
+            "\"explanations\": {qid: '解析'} }。"
+            "请只返回 JSON，不要有其它任何多余内容，包括任何markdown符号。"
         )
-        resp = call_deepseek_api(prompt, model="deepseek-reasoner")
+
+        # 调用 Deepseek / 大模型 API
+        resp = call_deepseek_api(prompt, model="deepseek-chat")
         content = resp["choices"][0]["message"]["content"]
-        # 去除 Markdown code fence
-        text = re.sub(r"^```(?:json)?\s*", "", content)
-        text = re.sub(r"\s*```$", "", text)
+
+        # 提取 JSON 字符串
+        start = content.find("{")
+        end = content.rfind("}")
+        if start == -1 or end == -1 or start > end:
+            # fallback: 去除可能存在的 ```json ``` 标记
+            text = re.sub(r"^```(?:json)?\s*", "", content)
+            text = re.sub(r"\s*```$", "", text)
+        else:
+            text = content[start : end + 1]
+
         data = json.loads(text)
+        results      = data.get("results", {})
+        explanations = data.get("explanations", {})
+        scores_dict  = data.get("scores", {})
 
-        results     = data.get("results", {})
-        explanations= data.get("explanations", {})
-        # 计算得分
-        score = sum(1 for v in results.values() if v in ("correct", "正确", True))
+        # 计算总分
+        total_score = 0
+        # 构建 qid->题型映射
+        qtype_map = {}
+        for block in ex.prompt:
+            for item in block.get("items", []):
+                qtype_map[str(item.get("id"))] = block.get("type")
 
-        sub.score    = score
-        sub.feedback = {"results": results, "explanations": explanations}
+        for qid, result in results.items():
+            base = point_map.get(qtype_map.get(str(qid), ""), 1)
+            if str(qid) in scores_dict:
+                try:
+                    total_score += float(scores_dict[str(qid)])
+                except ValueError:
+                    pass
+            else:
+                if result in ("correct", "正确", True):
+                    total_score += base
+
+        sub.score    = int(round(total_score))
+        sub.feedback = {
+            "results": results,
+            "explanations": explanations,
+            "scores": scores_dict,
+        }
         sub.status   = "completed"
 
         sess.add(sub)
         sess.commit()
 
-        # after grading, trigger student analysis
+        # 批改后触发分析
         analyze_and_save_homeworks(sub.student_id)
         cls = sess.get(Class, hw.class_id) if hw.class_id else None
         if cls and cls.teacher_id == ex.teacher_id:

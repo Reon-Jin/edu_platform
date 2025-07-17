@@ -81,7 +81,8 @@ def api_generate(req: PracticeGenerateRequest, user: User = Depends(get_current_
     pr = generate_practice(
         user.id,
         topic=req.topic,
-        num_mcq=req.num_mcq,
+        num_single_choice=req.num_single_choice,
+        num_multiple_choice=req.num_multiple_choice,
         num_fill_blank=req.num_fill_blank,
         num_short_answer=req.num_short_answer,
         num_programming=req.num_programming,

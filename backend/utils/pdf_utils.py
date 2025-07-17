@@ -7,11 +7,12 @@ from backend.config import PDFKIT_CONFIG
 def format_questions_html(questions: List[Dict[str, Any]]) -> str:
     """
     按题型分别渲染练习题，
-    支持 'multiple_choice', 'fill_in_the_blank', 'short_answer', 'programming'。
+    支持 'single_choice', 'multiple_choice', 'fill_in_the_blank', 'short_answer', 'programming'。
     """
     # 题型中文映射
     type_map = {
-        "multiple_choice": "选择题",
+        "single_choice": "单选题",
+        "multiple_choice": "多选题",
         "fill_in_blank": "填空题",
         "short_answer": "简答题",
         "coding": "编程题"
@@ -29,7 +30,7 @@ def format_questions_html(questions: List[Dict[str, Any]]) -> str:
             html += f"<li>{question}"
 
             # 只有选择题才渲染 options
-            if qtype == "multiple_choice":
+            if qtype in ("single_choice", "multiple_choice"):
                 html += "<ul>"
                 for opt in item.get("options", []):
                     html += f"<li>{opt}</li>"

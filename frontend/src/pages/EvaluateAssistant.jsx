@@ -11,7 +11,8 @@ export default function EvaluateAssistant() {
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [form, setForm] = useState({
     topic: "",
-    num_mcq: 5,
+    num_single_choice: 5,
+    num_multiple_choice: 0,
     num_fill_blank: 5,
     num_short_answer: 1,
     num_programming: 0,
@@ -84,12 +85,23 @@ export default function EvaluateAssistant() {
             />
           </label>
           <label>
-            选择题数量
+            单选题数量
             <input
               className="input"
               type="number"
-              name="num_mcq"
-              value={form.num_mcq}
+              name="num_single_choice"
+              value={form.num_single_choice}
+              onChange={handleChange}
+              min="0"
+            />
+          </label>
+          <label>
+            多选题数量
+            <input
+              className="input"
+              type="number"
+              name="num_multiple_choice"
+              value={form.num_multiple_choice}
               onChange={handleChange}
               min="0"
             />

@@ -18,14 +18,16 @@ def _parse_model_response(resp: Dict[str, Any]) -> Dict[str, Any]:
 def generate_practice(
     student_id: int,
     topic: str,
-    num_mcq: int = 0,
+    num_single_choice: int = 0,
+    num_multiple_choice: int = 0,
     num_fill_blank: int = 0,
     num_short_answer: int = 0,
     num_programming: int = 0,
 ) -> Practice:
     data = preview_exercise(
         topic=topic,
-        num_mcq=num_mcq,
+        num_single_choice=num_single_choice,
+        num_multiple_choice=num_multiple_choice,
         num_fill_blank=num_fill_blank,
         num_short_answer=num_short_answer,
         num_programming=num_programming,

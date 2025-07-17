@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 class GenerateExerciseRequest(BaseModel):
     topic: str
-    num_mcq: int = 0
+    num_single_choice: int = 0
+    num_multiple_choice: int = 0
     num_fill_blank: int = 0
     num_short_answer: int = 0
     num_programming: int = 0
@@ -36,6 +37,7 @@ class ExerciseOut(BaseModel):
     subject: str
     prompt: List[QuestionBlock]
     answers: Dict[str, Any]
+    points: Dict[str, Any]
     created_at: datetime
 
     class Config:

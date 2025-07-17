@@ -30,6 +30,7 @@ CREATE TABLE `exercise` (
   `subject` varchar(100) DEFAULT NULL,
   `prompt` json NOT NULL,
   `answers` json NOT NULL,
+  `points` json NOT NULL,
   `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`),
   KEY `teacher_id` (`teacher_id`),
