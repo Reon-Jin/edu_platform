@@ -153,7 +153,14 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
         doc = sess.get(Document, doc_id)
         if not doc or doc.owner_id != owner_id or doc.is_public:
             return False
+
+        # 1. 删除所有 chunk vectors
         sess.execute(sa_delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
+
+        # 2. 删除所有 activation 记录，避免外键冲突
+        sess.execute(sa_delete(DocumentActivation).where(DocumentActivation.doc_id == doc_id))
+
+        # 3. 清理文件系统
         path = Path(doc.filepath)
         if path.exists():
             try:
@@ -164,6 +171,8 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
             for p in path.parent.glob("*"):
                 p.unlink(missing_ok=True)
             path.parent.rmdir()
+
+        # 4. 删除文档元数据并提交
         sess.delete(doc)
         sess.commit()
         return True
