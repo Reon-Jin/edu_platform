@@ -31,6 +31,7 @@ class HomeworkResultOut(BaseModel):
     student_answers: Dict[str, Any]
     feedback: Dict[str, Any]      # 大模型解析：results & explanations
     score: int
+    total_score: int
 
     class Config:
         from_attributes = True

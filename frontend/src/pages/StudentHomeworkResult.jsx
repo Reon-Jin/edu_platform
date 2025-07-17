@@ -27,7 +27,7 @@ export default function StudentHomeworkResult() {
   if (error) return <div>{error}</div>;
   if (!data) return <div>加载中...</div>;
 
-  const { exercise, student_answers, feedback, score } = data;
+  const { exercise, student_answers, feedback, score, total_score } = data;
   const results = feedback.results || {};
   const scoreMap = feedback.scores || {};
 
@@ -75,7 +75,7 @@ export default function StudentHomeworkResult() {
             返回
           </button>
           <h2 style={{ margin: 0 }}>作业结果</h2>
-          <div>总分：{score}</div>
+          <div>得分：{score}/{total_score}</div>
         </div>
 
         {exercise.prompt.map((block, bIdx) => {

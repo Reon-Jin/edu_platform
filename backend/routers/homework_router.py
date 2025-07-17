@@ -17,6 +17,7 @@ from backend.services.submission_service import (
     get_submission_by_hw_student,
     get_homework_exercise,
 )
+from backend.utils.scoring import compute_total_points
 
 router = APIRouter(prefix="/student", tags=["homework"])
 
@@ -63,5 +64,6 @@ def api_result(hw_id: int, user=Depends(get_current_user)):
         exercise=exercise_data,
         student_answers=sub.answers,
         feedback=sub.feedback,
-        score=sub.score
+        score=sub.score,
+        total_score=compute_total_points(sub.homework.exercise)
     )
