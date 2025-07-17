@@ -39,7 +39,13 @@ pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
 
 # ———————— Pydantic Models for 严格校验 ————————
 class RawQuestion(BaseModel):
-    type: Literal["multiple_choice", "fill_in_blank", "short_answer", "coding"]
+    type: Literal[
+        "single_choice",
+        "multiple_choice",
+        "fill_in_blank",
+        "short_answer",
+        "coding",
+    ]
     items: List[Union[str, Dict[str, Any]]]
 
 class RawOutput(BaseModel):
@@ -52,7 +58,13 @@ class Item(BaseModel):
     options: List[str] = []
 
 class QuestionBlock(BaseModel):
-    type: Literal["multiple_choice", "fill_in_blank", "short_answer", "coding"]
+    type: Literal[
+        "single_choice",
+        "multiple_choice",
+        "fill_in_blank",
+        "short_answer",
+        "coding",
+    ]
     items: List[Item]
 
 class ExerciseData(BaseModel):
@@ -112,14 +124,17 @@ def _clean_model_output(raw: Dict[str, Any]) -> ExerciseData:
 # ———————— 主要逻辑：调用大模型并清洗 ————————
 def preview_exercise(
     topic: str,
-    num_mcq: int,
+    num_single_choice: int,
+    num_multiple_choice: int,
     num_fill_blank: int,
     num_short_answer: int,
     num_programming: int,
 ) -> Dict[str, Any]:
     parts: List[str] = []
-    if num_mcq:
-        parts.append(f"生成 {num_mcq} 道选择题（每题4个选项）；")
+    if num_single_choice:
+        parts.append(f"生成 {num_single_choice} 道单选题（每题4个选项，只有一个正确答案）；")
+    if num_multiple_choice:
+        parts.append(f"生成 {num_multiple_choice} 道多选题（每题至少4个选项且不止一个正确答案）；")
     if num_fill_blank:
         parts.append(f"生成 {num_fill_blank} 道填空题；")
     if num_short_answer:
@@ -135,10 +150,15 @@ def preview_exercise(
         "{\n"
         '  "questions": [\n'
         "    {\n"
+        '      "type": "single_choice",\n'
+        '      "items": [\n'
+        "        { \"id\": \"1\", \"question\": \"这是单选示例题\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] }\n"
+        "      ]\n"
+        "    },\n"
+        "    {\n"
         '      "type": "multiple_choice",\n'
         '      "items": [\n'
-        "        { \"id\": \"1\", \"question\": \"这是示例题1\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] },\n"
-        "        { \"id\": \"2\", \"question\": \"这是示例题2\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] }\n"
+        "        { \"id\": \"2\", \"question\": \"这是多选示例题\", \"options\": [\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"] }\n"
         "      ]\n"
         "    },\n"
         "    {\n"
@@ -158,7 +178,7 @@ def preview_exercise(
         "}\n\n"
         "注意：\n"
         "1. 上面只是示例 JSON 结构，示例里的题目数量和内容都不要照搬。\n"
-        "2. 请根据最前面“生成 X 道选择题/填空题/简答题/编程题”的要求，输出对应数量的题目。\n"
+        "2. 请根据最前面“生成 X 道单选题/多选题/填空题/简答题/编程题”的要求，输出对应数量的题目。\n"
         "3. 严格按照示例的 key、层级和格式输出纯 JSON，不要多余文本、不要 Markdown、不要注释。\n"
     )
 
@@ -177,6 +197,7 @@ def save_exercise(
     topic: str,
     questions: List[Dict[str, Any]],
     answers: Dict[str, Any],
+    points: Dict[str, Any],
 ) -> Exercise:
     with Session(engine, expire_on_commit=False) as sess:
         ex = Exercise(
@@ -184,6 +205,7 @@ def save_exercise(
             subject=topic,
             prompt=questions,
             answers=answers,
+            points=points,
         )
         sess.add(ex)
         sess.commit()
@@ -196,6 +218,7 @@ def save_and_assign_exercise(
     topic: str,
     questions: List[Dict[str, Any]],
     answers: Dict[str, Any],
+    points: Dict[str, Any],
     class_id: int | None = None,
 ) -> Homework:
     with Session(engine, expire_on_commit=False) as sess:
@@ -204,6 +227,7 @@ def save_and_assign_exercise(
             subject=topic,
             prompt=questions,
             answers=answers,
+            points=points,
         )
         sess.add(ex)
         sess.commit()

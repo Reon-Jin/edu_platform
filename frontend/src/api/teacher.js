@@ -42,19 +42,21 @@ export async function downloadCoursewarePdf(cw_id) {
 
 /**
  * 生成练习题（JSON）
- * @param {{ topic: string, num_mcq: number, num_fill_blank: number, num_short_answer: number, num_programming: number }} params
+ * @param {{ topic: string, num_single_choice: number, num_multiple_choice: number, num_fill_blank: number, num_short_answer: number, num_programming: number }} params
  * @returns {Promise<{ topic: string, questions: any[], answers: any }>}
  */
 export async function generateExerciseJson({
   topic,
-  num_mcq,
+  num_single_choice,
+  num_multiple_choice,
   num_fill_blank,
   num_short_answer,
   num_programming,
 }) {
   const resp = await api.post("/teacher/exercise/generate", {
     topic,
-    num_mcq,
+    num_single_choice,
+    num_multiple_choice,
     num_fill_blank,
     num_short_answer,
     num_programming,
@@ -65,12 +67,13 @@ export async function generateExerciseJson({
 
 /**
  * 下载练习题 PDF
- * @param {{ topic: string, num_mcq: number, num_fill_blank: number, num_short_answer: number, num_programming: number }} params
+ * @param {{ topic: string, num_single_choice: number, num_multiple_choice: number, num_fill_blank: number, num_short_answer: number, num_programming: number }} params
  * @returns {Promise<Blob>}
  */
 export async function downloadExercisePdf({
   topic,
-  num_mcq,
+  num_single_choice,
+  num_multiple_choice,
   num_fill_blank,
   num_short_answer,
   num_programming,
@@ -79,7 +82,8 @@ export async function downloadExercisePdf({
     "/teacher/exercise/generate",
     {
       topic,
-      num_mcq,
+      num_single_choice,
+      num_multiple_choice,
       num_fill_blank,
       num_short_answer,
       num_programming,
@@ -119,11 +123,12 @@ export async function fetchExerciseStats(exerciseId) {
  * @param {{topic: string, questions: any[], answers: any}} data
  * @returns {Promise<{id: number}>}
  */
-export async function saveExercise({ topic, questions, answers }) {
+export async function saveExercise({ topic, questions, answers, points }) {
   const resp = await api.post("/teacher/exercise/save", {
     topic,
     questions,
     answers,
+    points,
   });
   return resp.data;
 }
@@ -133,11 +138,12 @@ export async function saveExercise({ topic, questions, answers }) {
  * @param {{topic: string, questions: any[], answers: any}} data
  * @returns {Promise<any>} 作业信息
  */
-export async function saveAndAssignExercise({ topic, questions, answers, classId }) {
+export async function saveAndAssignExercise({ topic, questions, answers, points, classId }) {
   const resp = await api.post("/teacher/exercise/save_and_assign", {
     topic,
     questions,
     answers,
+    points,
     class_id: classId,
   });
   return resp.data;

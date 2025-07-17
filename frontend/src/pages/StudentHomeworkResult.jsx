@@ -29,7 +29,8 @@ export default function StudentHomeworkResult() {
 
   const { exercise, student_answers, feedback, score } = data;
   const results = feedback.results || {};
-
+  const scoreMap = feedback.scores || {};
+  
   const optionLabel = (v) => {
     if (v === undefined || v === null) return v;
     if (Array.isArray(v)) return v.map(optionLabel).join(', ');
@@ -49,7 +50,8 @@ export default function StudentHomeworkResult() {
     r === "correct" || r === "正确" || r === true ? "对" : "错";
 
   const typeNames = {
-    multiple_choice: "选择题",
+    single_choice: "单选题",
+    multiple_choice: "多选题",
     fill_in_blank: "填空题",
     short_answer: "简答题",
   };
@@ -90,7 +92,7 @@ export default function StudentHomeworkResult() {
                   </button>
                   {block.type === "short_answer" && (
                     <span className="score-badge">
-                      {fmt(results[item.id]) === "对" ? 1 : 0}
+                      {scoreMap[item.id] ?? (fmt(results[item.id]) === "对" ? (exercise.points?.short_answer || 1) : 0)}
                     </span>
                   )}
                 </div>

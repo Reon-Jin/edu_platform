@@ -24,6 +24,7 @@ class SaveExerciseRequest(BaseModel):
     topic: str
     questions: List[dict]
     answers: dict
+    points: dict
 
 
 class AssignRequest(BaseModel):
@@ -36,7 +37,8 @@ def api_generate(req: GenerateExerciseRequest, user: User = Depends(get_current_
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
     data = preview_exercise(
         topic=req.topic,
-        num_mcq=req.num_mcq,
+        num_single_choice=req.num_single_choice,
+        num_multiple_choice=req.num_multiple_choice,
         num_fill_blank=req.num_fill_blank,
         num_short_answer=req.num_short_answer,
         num_programming=req.num_programming,
@@ -55,7 +57,7 @@ def api_generate(req: GenerateExerciseRequest, user: User = Depends(get_current_
 def api_save(req: SaveExerciseRequest, user: User = Depends(get_current_user)):
     if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
-    return save_exercise(user.id, req.topic, req.questions, req.answers)
+    return save_exercise(user.id, req.topic, req.questions, req.answers, req.points)
 
 
 @router.post("/save_and_assign", response_model=HomeworkOut)
@@ -63,7 +65,7 @@ def api_save_and_assign(req: SaveExerciseRequest, assign: AssignRequest | None =
     if user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
     class_id = assign.class_id if assign else None
-    return save_and_assign_exercise(user.id, req.topic, req.questions, req.answers, class_id)
+    return save_and_assign_exercise(user.id, req.topic, req.questions, req.answers, req.points, class_id)
 
 
 @router.get("/list", response_model=List[ExerciseOut])

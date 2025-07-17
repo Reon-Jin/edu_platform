@@ -35,14 +35,15 @@ def grade_submission(submission_id: int):
         ex  = sess.get(Exercise, hw.exercise_id)
 
         # 构建批改 prompt
+        point_map = ex.points or {}
+        sa_point = point_map.get("short_answer", 1)
         prompt = (
             "请根据下面的 JSON：\n"
             f"题目: {json.dumps(ex.prompt, ensure_ascii=False)}\n"
             f"标准答案: {json.dumps(ex.answers, ensure_ascii=False)}\n"
             f"学生答案: {json.dumps(sub.answers, ensure_ascii=False)}\n\n"
-            "对每道题给出结果和解析，以 JSON 格式返回：\n"
-            "{ \"results\": {\"qid\":\"correct|wrong\", ...}, "
-            "\"explanations\": {\"qid\":\"解析文本\", ...} }"
+            f"请判断学生答案并给出解析。其中简答题按照满分 {sa_point} 分给出 0 到 {sa_point} 的得分，其他题型判断对错即可。"
+            "返回 JSON：{ \"results\": {qid: 'correct|wrong|partial'}, \"scores\": {qid: number}, \"explanations\": {qid: '解析'} }"
         )
         resp = call_deepseek_api(prompt, model="deepseek-reasoner")
         content = resp["choices"][0]["message"]["content"]
@@ -51,13 +52,35 @@ def grade_submission(submission_id: int):
         text = re.sub(r"\s*```$", "", text)
         data = json.loads(text)
 
-        results     = data.get("results", {})
-        explanations= data.get("explanations", {})
-        # 计算得分
-        score = sum(1 for v in results.values() if v in ("correct", "正确", True))
+        results      = data.get("results", {})
+        explanations = data.get("explanations", {})
+        scores_dict  = data.get("scores", {})
 
-        sub.score    = score
-        sub.feedback = {"results": results, "explanations": explanations}
+        # 计算得分，考虑题型分值
+        score = 0
+        point_map = ex.points or {}
+        qtype_map = {}
+        for block in ex.prompt:
+            for item in block.get("items", []):
+                qtype_map[str(item.get("id"))] = block.get("type")
+
+        for qid, result in results.items():
+            base = point_map.get(qtype_map.get(str(qid), ""), 1)
+            if str(qid) in scores_dict:
+                try:
+                    score += float(scores_dict[str(qid)])
+                except Exception:
+                    score += 0
+            else:
+                if result in ("correct", "正确", True):
+                    score += base
+
+        sub.score    = int(round(score))
+        sub.feedback = {
+            "results": results,
+            "explanations": explanations,
+            "scores": scores_dict,
+        }
         sub.status   = "completed"
 
         sess.add(sub)

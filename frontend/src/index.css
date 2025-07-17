@@ -402,6 +402,10 @@ table tr:hover {
   background: #e0f2ff;
 }
 
+.header-single_choice {
+  background: #ede9fe;
+}
+
 .header-fill_in_blank {
   background: #ecfdf5;
 }

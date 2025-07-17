@@ -47,6 +47,7 @@ class Exercise(SQLModel, table=True):
 
     prompt: Any = Field(sa_column=Column(JSON), default_factory=list)
     answers: Any = Field(sa_column=Column(JSON), default_factory=dict)
+    points: Any = Field(sa_column=Column(JSON), default_factory=dict)
 
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

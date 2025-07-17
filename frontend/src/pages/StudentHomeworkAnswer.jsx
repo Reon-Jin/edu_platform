@@ -53,6 +53,35 @@ export default function StudentHomeworkAnswer() {
 
   const renderOptions = () => {
     if (!question.options) return null;
+    if (question.type === "multiple_choice") {
+      const vals = answers[question.id] || [];
+      const toggle = (idx) => {
+        setAnswers((prev) => {
+          const arr = prev[question.id] || [];
+          const next = arr.includes(idx)
+            ? arr.filter((i) => i !== idx)
+            : [...arr, idx];
+          return { ...prev, [question.id]: next };
+        });
+      };
+      return (
+        <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+          {question.options.map((opt, idx) => (
+            <li key={idx}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={vals.includes(idx)}
+                  onChange={() => toggle(idx)}
+                />
+                {opt}
+              </label>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    // single_choice
     return (
       <ul style={{ listStyle: "none", paddingLeft: 0 }}>
         {question.options.map((opt, idx) => (
