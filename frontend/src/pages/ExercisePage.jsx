@@ -89,7 +89,9 @@ export default function ExercisePage() {
 
   const handleSaveAssign = async () => {
     if (!preview) return;
+    setError("");
     try {
+      // 1. 确保已保存
       let id = exId;
       if (!id) {
         const res = await saveExercise({
@@ -108,12 +110,16 @@ export default function ExercisePage() {
         setExId(id);
         setSaved(true);
       }
-      const data = await fetchTeacherClasses();
-      setClassList(data);
-      setShowClasses(true);
+      // 2. 首次展开时拉取班级
+      if (!showClasses && classList.length === 0) {
+        const data = await fetchTeacherClasses();
+        setClassList(data);
+      }
+      // 切换显示/隐藏
+      setShowClasses((prev) => !prev);
     } catch (err) {
       console.error(err);
-      setError("保存失败");
+      setError("保存并布置失败");
     }
   };
 
@@ -231,7 +237,7 @@ export default function ExercisePage() {
           </div>
 
           <div className="total-count">共计 {total} 题，总分 {totalScore}</div>
-          <button className="button" type="submit" disabled={loading}>
+          <button className="button btn-secondary" type="submit" disabled={loading}>
             {loading ? "生成中…" : "生成练习"}
           </button>
         </div>
@@ -240,33 +246,51 @@ export default function ExercisePage() {
       {showPreview && preview && (
         <div className="preview-area card" style={{ marginTop: "1rem" }}>
           <div className="actions">
-            <button className="button" onClick={handleSave} disabled={saved}>
-              {saved ? "已保存" : "保存练习"}
+            <button
+              className="button btn-secondary"
+              onClick={handleSave}
+              disabled={saved}
+            >
+              <i className="icon icon-save" /> {saved ? "已保存" : "保存练习"}
             </button>
-            <button className="button" onClick={handleSaveAssign}>
-              保存并布置
+            <button
+              className="button btn-primary"
+              onClick={handleSaveAssign}
+            >
+              <i className="icon icon-assign" /> 保存并布置
             </button>
-            <button className="button" onClick={handleDownloadQ} disabled={!exId}>
-              下载题目 PDF
+            <button
+              className="button btn-secondary"
+              onClick={handleDownloadQ}
+              disabled={!exId}
+            >
+              <i className="icon icon-download" /> 下载题目 PDF
             </button>
-            <button className="button" onClick={handleDownloadA} disabled={!exId}>
-              下载答案 PDF
+            <button
+              className="button btn-secondary"
+              onClick={handleDownloadA}
+              disabled={!exId}
+            >
+              <i className="icon icon-download" /> 下载答案 PDF
             </button>
           </div>
 
           {showClasses && (
-            <div style={{ maxHeight: "200px", overflowY: "auto", margin: "1rem 0" }}>
-              {classList.map((c) => (
-                <div key={c.id} style={{ marginBottom: "0.5rem" }}>
+            <div className="class-box">
+              {classList.map((c) => {
+                const isSel = assignedClasses.includes(c.id);
+                return (
                   <button
-                    className="button"
+                    key={c.id}
+                    className={`chip${isSel ? " selected" : ""}`}
                     onClick={() => handleSelectClass(c.id)}
-                    disabled={assignedClasses.includes(c.id)}
+                    disabled={isSel}
                   >
-                    {assignedClasses.includes(c.id) ? `${c.name}（已布置）` : c.name}
+                    {c.name}
+                    {isSel && "（已布置）"}
                   </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
