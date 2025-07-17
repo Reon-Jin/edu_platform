@@ -8,6 +8,7 @@ from backend.config import engine
 from backend.models import Exercise, Homework, Submission, ClassStudent, Class
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.services.analysis_service import analyze_and_save_homeworks
+from backend.utils.scoring import compute_total_points
 
 def submit_homework(homework_id: int, student_id: int, answers: Dict[str, Any]) -> Submission:
     """

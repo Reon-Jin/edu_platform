@@ -13,6 +13,7 @@ from backend.services.submission_service import (
     list_completed_submissions,
     get_submission_by_hw_student,
 )
+from backend.utils.scoring import compute_total_points
 from backend.schemas.exercise_schema import ExerciseOut
 from backend.schemas.submission_schema import HomeworkResultOut
 
@@ -97,4 +98,5 @@ def homework_detail(sid: int, hw_id: int, current: User = Depends(get_current_us
         student_answers=sub.answers,
         feedback=sub.feedback,
         score=sub.score,
+        total_score=compute_total_points(sub.homework.exercise),
     )

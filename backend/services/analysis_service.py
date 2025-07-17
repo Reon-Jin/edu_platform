@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 from backend.config import engine
 from backend.models import Practice, Submission, Homework, Exercise, StudentAnalysis
 from backend.utils.deepseek_client import call_deepseek_api
+from backend.utils.scoring import compute_total_points
 
 
 def analyze_student_practice(student_id: int) -> Dict[str, Any]:
@@ -54,11 +55,23 @@ def _collect_homework_summary(
         rows = sess.exec(stmt).all()
         summary = []
         for sub, ex in rows:
-            total = len(ex.answers.keys()) if isinstance(ex.answers, dict) else 0
+            total = compute_total_points(ex)
+            wrong = []
+            if isinstance(sub.feedback, dict):
+                results = sub.feedback.get("results", {})
+                # 构建题号->题干映射
+                qmap = {}
+                for block in ex.prompt:
+                    for item in block.get("items", []):
+                        qmap[str(item.get("id"))] = item.get("question")
+                for qid, r in results.items():
+                    if r not in ("correct", "正确", True):
+                        wrong.append(qmap.get(str(qid), str(qid)))
             summary.append({
                 "subject": ex.subject,
                 "total": total,
-                "score": sub.score
+                "score": sub.score,
+                "wrong_questions": wrong,
             })
         return summary
 
@@ -71,7 +84,7 @@ def analyze_student_homeworks(
     """Analyze student's completed homework submissions."""
     summary = _collect_homework_summary(student_id, teacher_id, class_id)
     prompt = (
-        "根据以下学生的作业成绩给出学习情况分析，并给出学习建议：\n"
+        "根据以下学生的作业情况（每份作业的满分、得分以及错题）给出学习情况分析，并给出学习建议：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
     )
     try:
