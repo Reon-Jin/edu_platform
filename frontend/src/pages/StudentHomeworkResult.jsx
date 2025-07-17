@@ -30,10 +30,10 @@ export default function StudentHomeworkResult() {
   const { exercise, student_answers, feedback, score } = data;
   const results = feedback.results || {};
   const scoreMap = feedback.scores || {};
-  
+
   const optionLabel = (v) => {
     if (v === undefined || v === null) return v;
-    if (Array.isArray(v)) return v.map(optionLabel).join(', ');
+    if (Array.isArray(v)) return v.map(optionLabel).join(", ");
     const n = Number(v);
     if (!Number.isNaN(n)) {
       return String.fromCharCode(65 + n);
@@ -56,50 +56,72 @@ export default function StudentHomeworkResult() {
     short_answer: "简答题",
   };
 
+  // 把所有题目扁平到 questions 数组，方便后面点击查看
   const questions = [];
   exercise.prompt.forEach((block) => {
     block.items.forEach((item) => questions.push({ ...item, type: block.type }));
   });
-
   const activeItem = questions.find((q) => String(q.id) === String(activeId));
 
   return (
     <div className="container">
       <div className="card">
         <div className="result-header">
-          <button className="button" style={{ width: "auto" }} onClick={() => navigate(-1)}>
+          <button
+            className="button"
+            style={{ width: "auto" }}
+            onClick={() => navigate(-1)}
+          >
             返回
           </button>
           <h2 style={{ margin: 0 }}>作业结果</h2>
           <div>总分：{score}</div>
         </div>
 
-        {exercise.prompt.map((block, bIdx) => (
-          <div className="section-card" key={bIdx}>
-            <div className={`section-header header-${block.type}`}>
-              {typeNames[block.type] || block.type}（{block.items.length}/{block.items.length}）
-            </div>
-            <div className="section-content">
-              {block.items.map((item) => (
-                <div key={item.id} style={{ display: "flex" }}>
-                  <button className="qbtn" onClick={() => setActiveId(item.id)}>
-                    {item.id}
-                    <span
-                      className={`result-badge ${fmt(results[item.id]) === "对" ? "result-correct" : "result-wrong"}`}
+        {exercise.prompt.map((block, bIdx) => {
+          // 计算本题型总题数和做对题数
+          const total = block.items.length;
+          const correct = block.items.reduce((cnt, item) => {
+            return cnt + (fmt(results[item.id]) === "对" ? 1 : 0);
+          }, 0);
+
+          return (
+            <div className="section-card" key={bIdx}>
+              <div className={`section-header header-${block.type}`}>
+                {typeNames[block.type] || block.type}（{correct}/{total}）
+              </div>
+              <div className="section-content">
+                {block.items.map((item) => (
+                  <div key={item.id} style={{ display: "flex" }}>
+                    <button
+                      className="qbtn"
+                      onClick={() => setActiveId(item.id)}
                     >
-                      {fmt(results[item.id]) === "对" ? "✔" : "✖"}
-                    </span>
-                  </button>
-                  {block.type === "short_answer" && (
-                    <span className="score-badge">
-                      {scoreMap[item.id] ?? (fmt(results[item.id]) === "对" ? (exercise.points?.short_answer || 1) : 0)}
-                    </span>
-                  )}
-                </div>
-              ))}
+                      {item.id}
+                      <span
+                        className={`result-badge ${
+                          fmt(results[item.id]) === "对"
+                            ? "result-correct"
+                            : "result-wrong"
+                        }`}
+                      >
+                        {fmt(results[item.id]) === "对" ? "✔" : "✖"}
+                      </span>
+                    </button>
+                    {block.type === "short_answer" && (
+                      <span className="score-badge">
+                        {scoreMap[item.id] ??
+                          (fmt(results[item.id]) === "对"
+                            ? exercise.points?.short_answer || 1
+                            : 0)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {activeItem && (
           <div style={{ marginTop: "1rem" }}>
