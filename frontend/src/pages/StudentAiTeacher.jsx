@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+
+// prevent duplicate initial session creation when React.StrictMode
+let initSessionPromise = null;
 import api from "../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -22,8 +25,12 @@ export default function StudentAiTeacher() {
       if (!sid) {
         if (resp.data.length > 0) sid = resp.data[0].id;
         else {
-          const r = await api.post("/student/ai/session");
+          if (!initSessionPromise) {
+            initSessionPromise = api.post("/student/ai/session");
+          }
+          const r = await initSessionPromise;
           sid = r.data.id;
+          initSessionPromise = null;
         }
       }
       setCurrent(sid);
