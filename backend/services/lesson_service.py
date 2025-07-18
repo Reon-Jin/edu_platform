@@ -55,3 +55,16 @@ async def generate_lesson(topic: str, user_id: int) -> str:
     result = _ds.call_deepseek_api(prompt=prompt)
     markdown_content = result["choices"][0]["message"]["content"]
     return markdown_content
+
+
+async def optimize_lesson(markdown: str, instruction: str) -> str:
+    """根据教师的额外要求优化现有教案 Markdown。"""
+    prompt = (
+        "你是一名教学助手，请根据老师的以下要求对给出的教案内容进行修改优化，"
+        "并返回新的教案 Markdown：\n\n"
+        f"老师要求：{instruction}\n\n"
+        f"原教案内容：\n{markdown}\n\n"
+        "请直接输出优化后的 Markdown，不要使用 ``` 包裹。"
+    )
+    result = _ds.call_deepseek_api(prompt=prompt)
+    return result["choices"][0]["message"]["content"]

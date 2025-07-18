@@ -3,6 +3,7 @@ import {
   prepareLessonMarkdown,
   downloadCoursewarePdf,
   saveCourseware,
+  optimizeLesson,
 } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
@@ -66,6 +67,22 @@ export default function TeacherLesson() {
     }
   };
 
+  const handleOptimize = async () => {
+    const instruction = window.prompt("输入优化要求，例如：增加案例或调整结构");
+    if (!instruction) return;
+    setError("");
+    setLoading(true);
+    try {
+      const newMd = await optimizeLesson({ markdown, instruction });
+      setMarkdown(newMd);
+    } catch (err) {
+      console.error(err);
+      setError("AI 优化失败");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -116,11 +133,25 @@ export default function TeacherLesson() {
                 style={{
                   padding: "0.5rem 1rem",
                   fontSize: "0.9rem",
-                  width: "40%",
+                  width: "30%",
                   minWidth: "120px",
                 }}
               >
                 <i className="icon icon-save" /> 保存教案
+              </button>
+
+              {/* AI 优化 */}
+              <button
+                className="button btn-secondary"
+                onClick={handleOptimize}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.9rem",
+                  width: "30%",
+                  minWidth: "120px",
+                }}
+              >
+                <i className="icon icon-magic" /> AI优化
               </button>
 
               {/* 下载 PDF */}
@@ -131,7 +162,7 @@ export default function TeacherLesson() {
                 style={{
                   padding: "0.5rem 1rem",
                   fontSize: "0.9rem",
-                  width: "40%",
+                  width: "30%",
                   minWidth: "120px",
                 }}
               >

@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from sqlmodel import Session, select
 from pydantic import BaseModel
 
-from backend.services.lesson_service import generate_lesson
+from backend.services.lesson_service import generate_lesson, optimize_lesson
 from backend.auth import get_current_user
 from backend.models import User, Courseware
 from backend.db import get_session, SessionLocal
@@ -40,6 +40,11 @@ class CoursewarePreview(BaseModel):
 
 class CoursewareUpdate(BaseModel):
     markdown: str
+
+
+class LessonOptimizeRequest(BaseModel):
+    markdown: str
+    instruction: str
 
 
 def _strip_outer_fences(md_text: str) -> str:
@@ -173,6 +178,24 @@ async def save_courseware(
     background_tasks.add_task(_generate_and_store_pdf, cw.id, md_text)
 
     return CoursewareMeta(id=cw.id, topic=cw.topic, created_at=cw.created_at)
+
+
+@router.post(
+    "/optimize",
+    summary="根据要求优化教案 Markdown",
+    response_model=Dict[str, str],
+)
+async def optimize_courseware(
+    req: LessonOptimizeRequest,
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.role or current_user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师角色访问")
+    if not req.markdown.strip() or not req.instruction.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="markdown 和 instruction 不能为空")
+
+    new_md = await optimize_lesson(req.markdown, req.instruction)
+    return {"markdown": new_md}
 
 
 @router.get(

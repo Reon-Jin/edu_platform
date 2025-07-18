@@ -39,6 +39,19 @@ export async function downloadCoursewarePdf(cw_id) {
   return resp.data;
 }
 
+/**
+ * 根据教师要求优化教案 Markdown
+ * @param {{ markdown: string, instruction: string }} params
+ * @returns {Promise<string>} 优化后的 Markdown
+ */
+export async function optimizeLesson({ markdown, instruction }) {
+  const resp = await api.post("/teacher/lesson/optimize", {
+    markdown,
+    instruction,
+  });
+  return resp.data.markdown;
+}
+
 
 /**
  * 生成练习题（JSON）
