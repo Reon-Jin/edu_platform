@@ -1,5 +1,6 @@
 // src/api/auth.js
 import api from "./api";
+import axios from "axios";
 
 /**
  * 登录（OAuth2 Password 模式）
@@ -10,11 +11,15 @@ export async function login({ username, password }) {
   const params = new URLSearchParams();
   params.append("username", username);
   params.append("password", password);
+  params.append("grant_type", "password");
 
-  const resp = await api.post(
+  const resp = await axios.post(
     "/auth/token",
     params,
-    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    {
+      baseURL: api.defaults.baseURL,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    }
   );
   // resp.data = { access_token, token_type, role }
   return resp.data;
