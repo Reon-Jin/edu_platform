@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  SimpleGrid,
+  Text,
+  Tag,
+  useToast,
+} from '@chakra-ui/react';
+import { ViewIcon } from '@chakra-ui/icons';
 import { fetchMyClasses, joinClass } from '../api/student';
-import '../index.css';
 
 export default function MyClassesPage() {
   const [list, setList] = useState([]);
@@ -10,6 +21,7 @@ export default function MyClassesPage() {
   const [showJoin, setShowJoin] = useState(false);
   const [joinId, setJoinId] = useState('');
   const navigate = useNavigate();
+  const toast = useToast();
 
   const load = async () => {
     setLoading(true);
@@ -34,57 +46,70 @@ export default function MyClassesPage() {
       setShowJoin(false);
       setJoinId('');
       load();
-      alert('加入成功');
+      toast({ title: '加入成功', status: 'success', position: 'top' });
     } catch {
-      alert('加入失败');
+      toast({ title: '加入失败', status: 'error', position: 'top' });
     }
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem' }}>我的班级</h2>
-          <button className="button btn-secondary" style={{ width: 'auto' }} onClick={() => setShowJoin(!showJoin)}>
-            加入班级
-          </button>
-        </div>
+    <Box p={4} maxW="960px" mx="auto">
+      <Flex justify="space-between" align="center" mb={4} flexWrap="wrap" gap={2}>
+        <Heading size="lg">我的班级</Heading>
+        <Button size="sm" colorScheme="teal" onClick={() => setShowJoin(!showJoin)}>
+          加入班级
+        </Button>
+      </Flex>
 
-        {showJoin && (
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-            <input
-              placeholder="班级ID"
-              value={joinId}
-              onChange={(e) => setJoinId(e.target.value)}
-              style={{ width: 'auto' }}
-            />
-            <button className="button btn-secondary" style={{ width: 'auto' }} onClick={handleJoin}>提交</button>
-          </div>
-        )}
+      {showJoin && (
+        <Flex gap={2} mb={4} flexWrap="wrap">
+          <Input
+            placeholder="班级ID"
+            value={joinId}
+            onChange={(e) => setJoinId(e.target.value)}
+            width="auto"
+          />
+          <Button size="sm" onClick={handleJoin} colorScheme="teal">
+            提交
+          </Button>
+        </Flex>
+      )}
 
-        {error && <div className="error">{error}</div>}
+      {error && (
+        <Text color="red.500" mb={2}>
+          {error}
+        </Text>
+      )}
 
-        {loading ? (
-          <div>加载中...</div>
-        ) : (
-          <div className="grid-2">
-            {list.map((c) => (
-              <div key={c.id} className="class-box">
-                <strong>{c.name}</strong>
-                <span className="chip" style={{ marginLeft: '0.5rem' }}>{c.subject}</span>
-                <div style={{ fontSize: '0.875rem', width: '100%' }}>学生人数：{c.student_count}</div>
-                <button
-                  className="button btn-secondary"
-                  style={{ width: 'auto' }}
-                  onClick={() => navigate(`/student/classes/${c.id}`)}
-                >
-                  查看
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      {loading ? (
+        <Text>加载中...</Text>
+      ) : (
+        <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4}>
+          {list.map((c) => (
+            <Box
+              key={c.id}
+              p={4}
+              borderWidth="1px"
+              borderRadius="md"
+              _hover={{ shadow: 'md', transform: 'translateY(-2px)', borderColor: 'teal.400' }}
+              transition="all 0.2s"
+            >
+              <Heading size="md" mb={2}>
+                {c.name}
+              </Heading>
+              <Tag colorScheme="blue" mr={2} mb={2}>{c.subject}</Tag>
+              <Text fontSize="sm" mb={2}>学生人数：{c.student_count}</Text>
+              <Button
+                leftIcon={<ViewIcon />}
+                size="sm"
+                onClick={() => navigate(`/student/classes/${c.id}`)}
+              >
+                查看
+              </Button>
+            </Box>
+          ))}
+        </SimpleGrid>
+      )}
+    </Box>
   );
 }
