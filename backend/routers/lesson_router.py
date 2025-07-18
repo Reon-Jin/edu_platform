@@ -201,6 +201,7 @@ async def optimize_courseware(
     new_md = await optimize_lesson(
         req.topic, req.markdown, req.instruction, current_user.id
     )
+    lesson_markdown_cache[req.topic] = new_md
     return {"markdown": new_md}
 
 

@@ -12,6 +12,7 @@ export default function AdminDashboard() {
         const d = await fetchDashboard();
         setData(d);
       } catch (err) {
+        console.error(err);
         setError('加载失败');
       }
     };

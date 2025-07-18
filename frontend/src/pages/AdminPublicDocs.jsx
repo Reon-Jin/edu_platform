@@ -19,6 +19,7 @@ export default function AdminPublicDocs() {
       const data = await fetchPublicDocs();
       setList(data);
     } catch (err) {
+      console.error(err);
       setError('加载失败');
     } finally {
       setLoading(false);
@@ -36,6 +37,7 @@ export default function AdminPublicDocs() {
       await uploadPublicDoc(file);
       load();
     } catch (err) {
+      console.error(err);
       alert('上传失败');
     }
   };
@@ -46,6 +48,7 @@ export default function AdminPublicDocs() {
       await deletePublicDoc(id);
       load();
     } catch (err) {
+      console.error(err);
       alert('删除失败');
     }
   };

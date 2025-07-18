@@ -18,6 +18,7 @@ export default function AdminCoursewareEdit() {
         const data = await fetchCoursewarePreview(id);
         setMarkdown(data.markdown || '');
       } catch (err) {
+        console.error(err);
         setError('加载失败');
       } finally {
         setLoading(false);
@@ -31,6 +32,7 @@ export default function AdminCoursewareEdit() {
       await updateCourseware(id, markdown);
       alert('已保存');
     } catch (err) {
+      console.error(err);
       alert('保存失败');
     }
   };
@@ -47,6 +49,7 @@ export default function AdminCoursewareEdit() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error(err);
       alert('下载失败');
     }
   };

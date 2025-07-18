@@ -3,6 +3,7 @@ import {
   prepareLessonMarkdown,
   downloadCoursewarePdf,
   saveCourseware,
+  updateCourseware,
   optimizeLesson,
 } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
@@ -37,9 +38,14 @@ export default function TeacherLesson() {
   const handleSave = async () => {
     setError("");
     try {
-      const savedCourseware = await saveCourseware({ topic });
-      setSaved(true);
-      setCwId(savedCourseware.id);
+      if (cwId) {
+        await updateCourseware(cwId, markdown);
+        setSaved(true);
+      } else {
+        const savedCourseware = await saveCourseware({ topic });
+        setSaved(true);
+        setCwId(savedCourseware.id);
+      }
     } catch (err) {
       console.error(err);
       setError("保存教案失败");
@@ -52,6 +58,7 @@ export default function TeacherLesson() {
       return;
     }
     try {
+      await updateCourseware(cwId, markdown);
       const blob = await downloadCoursewarePdf(cwId);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

@@ -38,6 +38,7 @@ export default function ClassManagementPage() {
       const data = await fetchTeacherClasses();
       setList(data);
     } catch (err) {
+      console.error(err);
       setError('加载失败');
     } finally {
       setLoading(false);
@@ -57,6 +58,7 @@ export default function ClassManagementPage() {
       await load();
       toast({ title: '创建成功', status: 'success', position: 'top' });
     } catch (err) {
+      console.error(err);
       toast({ title: '创建失败', status: 'error', position: 'top' });
     }
   };

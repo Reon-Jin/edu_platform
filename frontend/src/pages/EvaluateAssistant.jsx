@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import api from "../api/api";
 import { generateSelfPractice, fetchStudentAnalysis } from "../api/student";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";

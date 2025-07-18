@@ -23,6 +23,7 @@ export default function LessonPreview() {
         const previewData = await fetchLessonPreview(cw_id);
         setMarkdown(previewData.markdown);
       } catch (error) {
+        console.error(error);
         setError("加载预览失败，请稍后重试");  // 显示加载错误信息
       } finally {
         setLoading(false);
@@ -57,6 +58,7 @@ export default function LessonPreview() {
       alert("已保存");
       setEditMode(false);
     } catch (err) {
+      console.error(err);
       alert("保存失败");
     }
   };
