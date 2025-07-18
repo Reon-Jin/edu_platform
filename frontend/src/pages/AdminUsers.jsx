@@ -15,6 +15,7 @@ export default function AdminUsers() {
       const data = await fetchUsers(r);
       setList(data);
     } catch (err) {
+      console.error(err);
       setError('加载失败');
     } finally {
       setLoading(false);
@@ -31,6 +32,7 @@ export default function AdminUsers() {
       await deleteUser(uid);
       load(role);
     } catch (err) {
+      console.error(err);
       alert('删除失败');
     }
   };

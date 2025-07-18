@@ -25,6 +25,7 @@ export default function DocumentManage() {
       const data = scope === 'public' ? await fetchPublicDocuments() : await fetchMyDocuments();
       setList(data);
     } catch (e) {
+      console.error(e);
       setError('加载失败');
     } finally {
       setLoading(false);
@@ -45,6 +46,7 @@ export default function DocumentManage() {
       setProgress(0);
       load('my');
     } catch (err) {
+      console.error(err);
       alert('上传失败');
       setUploading(false);
     }
@@ -74,6 +76,7 @@ export default function DocumentManage() {
       await deleteDocument(id);
       load('my');
     } catch (err) {
+      console.error(err);
       alert('删除失败');
     }
   };

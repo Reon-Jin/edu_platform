@@ -16,6 +16,7 @@ export default function AdminCoursewares() {
       const data = await fetchCoursewares();
       setList(data);
     } catch (err) {
+      console.error(err);
       setError('加载失败');
     } finally {
       setLoading(false);
@@ -32,6 +33,7 @@ export default function AdminCoursewares() {
       alert('已共享');
       load();
     } catch (err) {
+      console.error(err);
       alert('操作失败');
     }
   };
@@ -48,6 +50,7 @@ export default function AdminCoursewares() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
+      console.error(err);
       alert('下载失败');
     }
   };
