@@ -27,6 +27,7 @@ import {
 } from '@chakra-ui/react';
 import { ViewIcon, DeleteIcon, ArrowBackIcon, EditIcon, EmailIcon } from '@chakra-ui/icons';
 import { fetchTeacherClass, removeStudent, deleteClass } from '../api/teacher';
+import '../index.css';
 
 export default function TeacherClassDetailPage() {
   const { cid } = useParams();
@@ -72,7 +73,11 @@ export default function TeacherClassDetailPage() {
   };
 
   if (!info) {
-    return <Text p={4}>加载中...</Text>;
+    return (
+      <div className="container">
+        <div className="card">加载中...</div>
+      </div>
+    );
   }
 
   const students = info.students
@@ -82,7 +87,8 @@ export default function TeacherClassDetailPage() {
     );
 
   return (
-    <Box p={4} pb={20} maxW="960px" mx="auto">
+    <div className="container">
+      <Box className="card" pb={20}>
       <Breadcrumb mb={4} fontSize="sm">
         <BreadcrumbItem>
           <BreadcrumbLink onClick={() => navigate('/teacher/lesson')}>首页</BreadcrumbLink>
@@ -211,6 +217,7 @@ export default function TeacherClassDetailPage() {
           编辑信息
         </Button>
       </Flex>
-    </Box>
+      </Box>
+    </div>
   );
 }
