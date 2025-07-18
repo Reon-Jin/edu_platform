@@ -1,202 +1,174 @@
+# backend/utils/rag_pipeline.py
+
 import os
 import re
-import json
-import sqlite3
+import logging
+import platform
+from pathlib import Path
 from typing import List, Tuple
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from nltk.tokenize import word_tokenize
-from sqlalchemy import text
+from sqlalchemy import select, text
 import textract
 
-# 初始化嵌入模型
+from backend.models import Document, DocumentActivation
+
+# Try to import pywin32 COM if available
+try:
+    import win32com.client
+    from win32com.client import gencache, constants
+except ImportError:
+    win32com = None
+
+# Initialize the embedding model once
 _model = None
 
 
-def get_model():
+def get_model() -> SentenceTransformer:
+    """Return a singleton SentenceTransformer model."""
     global _model
     if _model is None:
         _model = SentenceTransformer("all-MiniLM-L6-v2")
     return _model
 
 
-# ====== 构建索引 ======
+def extract_text(path: str) -> str:
+    """
+    Extract plain text from a document.
+     - .txt/.md: read directly
+     - .doc: on Windows, convert to .docx via COM then use textract
+     - others (.docx, .pdf, etc.): use textract directly
+    """
+    suffix = Path(path).suffix.lower()
 
+    if suffix in {".txt", ".md"}:
+        try:
+            return Path(path).read_text(encoding="utf-8", errors="ignore")
+        except Exception as e:
+            logging.error("Failed to read %s: %s", path, e)
+            return ""
 
-def _read_txt_files(kb_dir: str) -> List[Tuple[str, str]]:
-    """读取目录下的所有 txt 文件，返回 (文件名, 内容)"""
-    items = []
-    for fn in os.listdir(kb_dir):
-        if fn.lower().endswith(".txt"):
-            path = os.path.join(kb_dir, fn)
-            with open(path, "r", encoding="utf-8") as f:
-                items.append((fn, f.read()))
-    return items
+    if suffix == ".doc":
+        if platform.system() != "Windows" or win32com is None:
+            logging.error("Cannot extract .doc on non-Windows or missing pywin32: %s", path)
+            return ""
+        tmp_path = str(path) + "x"  # abc.doc -> abc.docx
+        word = None
+        doc = None
+        try:
+            word = gencache.EnsureDispatch("Word.Application")
+            word.Visible = False
+            doc = word.Documents.Open(os.path.abspath(path), ReadOnly=True)
+            doc.SaveAs(os.path.abspath(tmp_path), FileFormat=constants.wdFormatXMLDocument)
+            doc.Close(False)
+            text_bytes = textract.process(tmp_path)
+            return text_bytes.decode("utf-8", errors="ignore")
+        except Exception as e:
+            logging.error("Failed to extract from .doc %s: %s", path, e)
+            return ""
+        finally:
+            if doc:
+                try:
+                    doc.Close(False)
+                except Exception:
+                    pass
+            if word:
+                try:
+                    word.Quit()
+                except Exception:
+                    pass
+            if os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
+
+    # fallback for .docx, .pdf, etc.
+    try:
+        raw = textract.process(path)
+        return raw.decode("utf-8", errors="ignore")
+    except Exception as e:
+        logging.error("textract failed on %s: %s", path, e)
+        return ""
 
 
 def _chunk_text(text: str, size: int = 400, overlap: int = 50) -> List[str]:
+    """Tokenize and split text into overlapping chunks."""
     tokens = word_tokenize(text)
     chunks = []
     step = size - overlap
     for i in range(0, len(tokens), step):
         part = tokens[i : i + size]
-        if not part:
-            continue
-        chunks.append(" ".join(part))
+        if part:
+            chunks.append(" ".join(part))
     return chunks
 
 
-import os
-import textract
-from win32com.client import Dispatch
-
-def extract_text(path: str) -> str:
-    """Extract plain text from supported document formats, including legacy .doc."""
-    ext = os.path.splitext(path)[1].lower()
-    # 纯文本快速通道
-    if ext in {".txt", ".md"}:
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
-
-    # .doc 转换为 .docx
-    if ext == ".doc":
-        tmp_path = path + "x"  # e.g. abc.doc -> abc.docx
-        word = Dispatch("Word.Application")
-        word.Visible = False
-        doc = word.Documents.Open(os.path.abspath(path))
-        doc.SaveAs(os.path.abspath(tmp_path), FileFormat=16)  # 16 = wdFormatDocumentDefault (.docx)
-        doc.Close()
-        word.Quit()
-        # 用 textract 读取生成的 .docx
-        text = textract.process(tmp_path).decode("utf-8", errors="ignore")
-        os.remove(tmp_path)
-        return text
-
-    # 其余格式（.docx, .pdf 等）交给 textract
-    try:
-        return textract.process(path).decode("utf-8", errors="ignore")
-    except Exception as e:
-        raise ValueError(f"Unsupported file type or extraction failed: {path}") from e
-
-
-
 def chunk_document(path: str) -> List[str]:
+    """Extract text then chunk it into fixed-size segments."""
     text = extract_text(path)
-    return _chunk_text(text)
+    return _chunk_text(text) if text else []
 
 
-def build_index(kb_dir: str, db_path: str):
-    """根据知识库目录构建 FTS5 + 向量索引"""
-    items = _read_txt_files(kb_dir)
-    if not items:
-        raise RuntimeError("未找到任何知识文本")
-
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-    cur.execute(
-        "CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING fts5(doc, section, content)"
-    )
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS vectors(id INTEGER PRIMARY KEY, vector BLOB)"
-    )
-
-    model = get_model()
-    idx = 0
-    for doc, text in items:
-        sections = re.split(r"\n(?=\d+\.)", text)
-        for sec in sections:
-            clean = sec.strip()
-            if not clean:
-                continue
-            chunks = _chunk_text(clean)
-            for ck in chunks:
-                cur.execute(
-                    "INSERT INTO chunks(doc, section, content) VALUES(?,?,?)",
-                    (doc, sec[:20], ck),
-                )
-                vector = model.encode(ck)
-                cur.execute(
-                    "INSERT INTO vectors(id, vector) VALUES(?,?)",
-                    (idx, vector.tobytes()),
-                )
-                idx += 1
-    conn.commit()
-    conn.close()
-
-
-# ====== 检索 ======
-
-
-def _fetch_vectors(conn, ids: List[int]) -> np.ndarray:
-    cur = conn.cursor()
-    q = "SELECT id, vector FROM vectors WHERE id IN (%s)" % ",".join("?" * len(ids))
-    rows = cur.execute(q, ids).fetchall()
-    rows.sort(key=lambda x: ids.index(x[0]))
-    vecs = [np.frombuffer(r[1], dtype=np.float32) for r in rows]
-    return np.vstack(vecs)
-
-
-def retrieve(query: str, db_path: str, top_k: int = 5) -> List[Tuple[str, str]]:
-    """使用 FTS5 与向量检索，若命中小标题则返回整段内容"""
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-
-    tokens = word_tokenize(query)
-    fts_query = " OR ".join(tokens) if tokens else query
-
-    # ---- 尝试匹配小标题 ----
-    if tokens:
-        sec_query = " OR ".join(f"section:{t}" for t in tokens)
-        cur.execute(
-            "SELECT DISTINCT doc, section FROM chunks WHERE chunks MATCH ?",
-            (sec_query,),
-        )
-        sec_rows = cur.fetchall()
-        if sec_rows:
-            sections = []
-            for doc, sec in sec_rows:
-                cur.execute(
-                    "SELECT content FROM chunks WHERE doc=? AND section=?",
-                    (doc, sec),
-                )
-                texts = [r[0] for r in cur.fetchall()]
-                sections.append((doc, " ".join(texts)))
-
-            model = get_model()
-            q_vec = model.encode(query)
-            vecs = model.encode([txt for _, txt in sections])
-            sims = vecs @ q_vec
-            idxs = sims.argsort()[-top_k:][::-1]
-            conn.close()
-            return [sections[i] for i in idxs]
-
-    # ---- 常规检索 ----
-    cur.execute(
-        "SELECT rowid, doc, content FROM chunks WHERE chunks MATCH ?",
-        (fts_query,),
-    )
-    rows = cur.fetchall()
-    # 若结果过少，降级为遍历所有向量
-    if len(rows) < top_k:
-        cur.execute("SELECT rowid, doc, content FROM chunks")
-        rows = cur.fetchall()
-
-    ids = [r[0] - 1 for r in rows]  # rowid 从1开始，与向量表索引对应
-    vecs = _fetch_vectors(conn, ids)
+def retrieve_paragraphs(
+    query: str,
+    user_id: int,
+    session,
+    top_k: int = 5
+) -> List[Tuple[int, str]]:
+    """
+    Retrieve the top_k most relevant paragraphs for `query` from
+    the teacher's activated documents.
+    Returns a list of (doc_id, paragraph_text).
+    """
     model = get_model()
     q_vec = model.encode(query)
-    sims = vecs @ q_vec
-    top_indices = sims.argsort()[-top_k:][::-1]
-    results = [(rows[i][1], rows[i][2]) for i in top_indices]
-    conn.close()
-    return results
+
+    # fetch all active documents for this user
+    stmt = (
+        select(Document)
+        .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
+        .where(
+            DocumentActivation.teacher_id == user_id,
+            DocumentActivation.is_active == 1
+        )
+    )
+    docs = session.exec(stmt).all()
+
+    candidates: List[Tuple[int, str, float]] = []
+    for doc in docs:
+        full_text = extract_text(doc.filepath)
+        if not full_text:
+            continue
+
+        # split into paragraphs on blank lines
+        paras = [p.strip() for p in full_text.split("\n\n") if p.strip()]
+        if not paras:
+            continue
+
+        # embed all paragraphs
+        para_vecs = model.encode(paras)
+        sims = para_vecs @ q_vec  # inner product similarity
+        best_idx = int(np.argmax(sims))
+        candidates.append((doc.id, paras[best_idx], float(sims[best_idx])))
+
+    # sort by similarity score and return top_k
+    candidates.sort(key=lambda x: x[2], reverse=True)
+    top = candidates[:top_k]
+    return [(doc_id, para) for doc_id, para, _ in top]
 
 
 def retrieve_from_db(
-    query: str, user_id: int, session, top_k: int = 5
-) -> List[Tuple[str, str]]:
-    """Retrieve relevant chunks for a teacher from MySQL document tables."""
+    query: str,
+    user_id: int,
+    session,
+    top_k: int = 5
+) -> List[Tuple[int, str]]:
+    """
+    Fallback retrieval by chunk, returns list of (doc_id, chunk_text).
+    """
     q_vec = get_model().encode(query)
     sql = (
         "SELECT v.doc_id, v.chunk_index, v.vector_blob, d.filepath "
@@ -209,13 +181,15 @@ def retrieve_from_db(
     rows = session.exec(stmt).all()
     if not rows:
         return []
+
     vectors = [np.frombuffer(r.vector_blob, dtype=np.float32) for r in rows]
     sims = np.array(vectors) @ q_vec
     idxs = sims.argsort()[-top_k:][::-1]
-    results = []
+
+    results: List[Tuple[int, str]] = []
     for i in idxs:
         r = rows[i]
         chunks = chunk_document(r.filepath)
         text_chunk = chunks[r.chunk_index] if r.chunk_index < len(chunks) else ""
-        results.append((os.path.basename(r.filepath), text_chunk))
+        results.append((r.doc_id, text_chunk))
     return results

@@ -1,17 +1,18 @@
+# backend/services/document_service.py
+
 from pathlib import Path
 from typing import List
 from datetime import datetime
 import logging
-from pydantic import BaseModel
 
 import numpy as np
+from pydantic import BaseModel
 from sqlmodel import Session, select
 from sqlalchemy import delete as sa_delete
 
 from backend.config import engine, settings
 from backend.models import Document, DocumentVector, DocumentActivation
 from backend.utils.rag_pipeline import get_model, chunk_document
-from backend.utils.word_utils import convert_doc_to_docx
 
 
 class DocumentWithActivation(BaseModel):
@@ -20,7 +21,7 @@ class DocumentWithActivation(BaseModel):
     filepath: str
     uploaded_at: datetime
     is_active: bool
-    is_public: bool          # 新增字段
+    is_public: bool
 
     class Config:
         from_attributes = True
@@ -47,27 +48,24 @@ def save_document(
     owner_id: int, filename: str, data: bytes, is_public: bool = False
 ) -> Document:
     with Session(engine, expire_on_commit=False) as sess:
+        # Create document metadata
         doc = Document(
-            owner_id=owner_id, filename=filename, filepath="", is_public=is_public
+            owner_id=owner_id,
+            filename=filename,
+            filepath="",
+            is_public=is_public,
         )
         sess.add(doc)
         sess.commit()
         sess.refresh(doc)
 
+        # Write file to storage (treat .doc and .docx the same)
         doc_dir = Path(settings.DOC_STORAGE_DIR) / str(owner_id) / str(doc.id)
         doc_dir.mkdir(parents=True, exist_ok=True)
         path = doc_dir / filename
         path.write_bytes(data)
 
-        if path.suffix.lower() == ".doc":
-            try:
-                path = Path(convert_doc_to_docx(path))
-            except Exception as e:
-                sess.delete(doc)
-                sess.commit()
-                raise RuntimeError(f"DOC conversion failed: {e}")
-            doc.filename = path.name
-
+        # Update filepath and initial activation flag
         doc.filepath = str(path)
         sess.add(doc)
         sess.add(
@@ -75,10 +73,12 @@ def save_document(
         )
         sess.commit()
 
+    # Index the document asynchronously
     try:
         _index_document(doc.id, path)
     except Exception as e:
         logging.error("Indexing document %s failed: %s", doc.id, e)
+
     return doc
 
 
@@ -122,7 +122,7 @@ def list_public_documents(teacher_id: int) -> List[DocumentWithActivation]:
                     filepath=doc.filepath,
                     uploaded_at=doc.uploaded_at,
                     is_active=bool(active) if active is not None else False,
-                    is_public=doc.is_public,                # 填充公共标记
+                    is_public=doc.is_public,
                 )
             )
         return result
@@ -154,13 +154,15 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
         if not doc or doc.owner_id != owner_id or doc.is_public:
             return False
 
-        # 1. 删除所有 chunk vectors
+        # 1. Remove all chunk vectors
         sess.execute(sa_delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
 
-        # 2. 删除所有 activation 记录，避免外键冲突
-        sess.execute(sa_delete(DocumentActivation).where(DocumentActivation.doc_id == doc_id))
+        # 2. Remove all activation records
+        sess.execute(
+            sa_delete(DocumentActivation).where(DocumentActivation.doc_id == doc_id)
+        )
 
-        # 3. 清理文件系统
+        # 3. Clean up filesystem
         path = Path(doc.filepath)
         if path.exists():
             try:
@@ -172,7 +174,7 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
                 p.unlink(missing_ok=True)
             path.parent.rmdir()
 
-        # 4. 删除文档元数据并提交
+        # 4. Delete metadata
         sess.delete(doc)
         sess.commit()
         return True
@@ -180,6 +182,7 @@ def delete_document(doc_id: int, owner_id: int) -> bool:
 
 def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
     with Session(engine, expire_on_commit=False) as sess:
+        # Create public document metadata
         doc = Document(
             owner_id=owner_id,
             filename=filename,
@@ -191,28 +194,23 @@ def save_public_document(owner_id: int, filename: str, data: bytes) -> Document:
         sess.commit()
         sess.refresh(doc)
 
+        # Write file to storage
         doc_dir = Path(settings.DOC_STORAGE_DIR) / "public" / str(doc.id)
         doc_dir.mkdir(parents=True, exist_ok=True)
         path = doc_dir / filename
         path.write_bytes(data)
 
-        if path.suffix.lower() == ".doc":
-            try:
-                path = Path(convert_doc_to_docx(path))
-            except Exception as e:
-                sess.delete(doc)
-                sess.commit()
-                raise RuntimeError(f"DOC conversion failed: {e}")
-            doc.filename = path.name
-
+        # Update filepath
         doc.filepath = str(path)
         sess.add(doc)
         sess.commit()
 
+    # Index the public document
     try:
         _index_document(doc.id, path)
     except Exception as e:
         logging.error("Indexing public document %s failed: %s", doc.id, e)
+
     return doc
 
 
@@ -221,7 +219,11 @@ def delete_public_document(doc_id: int) -> bool:
         doc = sess.get(Document, doc_id)
         if not doc or not doc.is_public:
             return False
+
+        # Remove vectors
         sess.execute(sa_delete(DocumentVector).where(DocumentVector.doc_id == doc_id))
+
+        # Clean up filesystem
         path = Path(doc.filepath)
         if path.exists():
             try:
@@ -232,6 +234,8 @@ def delete_public_document(doc_id: int) -> bool:
             for p in path.parent.glob("*"):
                 p.unlink(missing_ok=True)
             path.parent.rmdir()
+
+        # Delete metadata
         sess.delete(doc)
         sess.commit()
         return True
