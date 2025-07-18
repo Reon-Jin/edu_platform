@@ -73,7 +73,7 @@ export default function TeacherLesson() {
     setError("");
     setLoading(true);
     try {
-      const newMd = await optimizeLesson({ markdown, instruction });
+      const newMd = await optimizeLesson({ topic, markdown, instruction });
       setMarkdown(newMd);
     } catch (err) {
       console.error(err);

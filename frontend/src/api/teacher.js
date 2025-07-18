@@ -41,11 +41,12 @@ export async function downloadCoursewarePdf(cw_id) {
 
 /**
  * 根据教师要求优化教案 Markdown
- * @param {{ markdown: string, instruction: string }} params
+ * @param {{ topic: string, markdown: string, instruction: string }} params
  * @returns {Promise<string>} 优化后的 Markdown
  */
-export async function optimizeLesson({ markdown, instruction }) {
+export async function optimizeLesson({ topic, markdown, instruction }) {
   const resp = await api.post("/teacher/lesson/optimize", {
+    topic,
     markdown,
     instruction,
   });

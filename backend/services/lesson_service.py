@@ -57,11 +57,23 @@ async def generate_lesson(topic: str, user_id: int) -> str:
     return markdown_content
 
 
-async def optimize_lesson(markdown: str, instruction: str) -> str:
-    """根据教师的额外要求优化现有教案 Markdown。"""
+async def optimize_lesson(topic: str, markdown: str, instruction: str, user_id: int) -> str:
+    """根据教师的要求和知识库片段优化教案 Markdown。"""
+    snippets = _retrieve_snippets(topic, user_id)
+    if snippets:
+        header = (
+            f"以下是与“{topic}”相关的本地知识库片段，共 {len(snippets)} 条（仅供参考）：\n\n"
+            + "\n".join(f"- [{doc}] {text}" for doc, text in snippets)
+            + "\n\n"
+        )
+    else:
+        header = (
+            f"本地知识库中未找到与“{topic}”相关的内容，可依据自身经验优化。\n\n"
+        )
+
     prompt = (
-        "你是一名教学助手，请根据老师的以下要求对给出的教案内容进行修改优化，"
-        "并返回新的教案 Markdown：\n\n"
+        "你是一名教学助手，请结合提供的知识库内容和老师的要求，对教案进行修改优化：\n\n"
+        f"{header}"
         f"老师要求：{instruction}\n\n"
         f"原教案内容：\n{markdown}\n\n"
         "请直接输出优化后的 Markdown，不要使用 ``` 包裹。"

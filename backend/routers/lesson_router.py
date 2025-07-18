@@ -43,6 +43,7 @@ class CoursewareUpdate(BaseModel):
 
 
 class LessonOptimizeRequest(BaseModel):
+    topic: str
     markdown: str
     instruction: str
 
@@ -191,10 +192,15 @@ async def optimize_courseware(
 ):
     if not current_user.role or current_user.role.name != "teacher":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师角色访问")
-    if not req.markdown.strip() or not req.instruction.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="markdown 和 instruction 不能为空")
+    if not (req.topic.strip() and req.markdown.strip() and req.instruction.strip()):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="topic、markdown 和 instruction 不能为空",
+        )
 
-    new_md = await optimize_lesson(req.markdown, req.instruction)
+    new_md = await optimize_lesson(
+        req.topic, req.markdown, req.instruction, current_user.id
+    )
     return {"markdown": new_md}
 
 
