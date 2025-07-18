@@ -1,21 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  SimpleGrid,
+  Text,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  useToast,
+} from '@chakra-ui/react';
+import { ArrowBackIcon } from '@chakra-ui/icons';
 import { fetchStudentClass, leaveClass } from '../api/student';
-import '../index.css';
 
 export default function StudentClassDetailPage() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const [info, setInfo] = useState(null);
+  const toast = useToast();
 
   const handleLeave = async () => {
     if (!window.confirm('确认退出该班级吗？')) return;
     try {
       await leaveClass(cid);
-      alert('已退出班级');
+      toast({ title: '已退出班级', status: 'success', position: 'top' });
       navigate(-1);
     } catch {
-      alert('退出失败');
+      toast({ title: '退出失败', status: 'error', position: 'top' });
     }
   };
 
@@ -24,60 +37,50 @@ export default function StudentClassDetailPage() {
   }, [cid]);
 
   if (!info) {
-    return (
-      <div className="container">
-        <div className="card">加载中...</div>
-      </div>
-    );
+    return <Text p={4}>加载中...</Text>;
   }
 
   return (
-    <div className="container" style={{ paddingBottom: '20px' }}>
-      <div className="card">
-        <div style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/student/homeworks')}>首页</span>
-          {' / '}
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate('/student/classes')}>我的班级</span>
-          {' / '}
-          <span>{info.name}</span>
-        </div>
+    <Box p={4} pb={20} maxW="960px" mx="auto">
+      <Breadcrumb mb={4} fontSize="sm">
+        <BreadcrumbItem>
+          <BreadcrumbLink onClick={() => navigate('/student/homeworks')}>首页</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadcrumbLink onClick={() => navigate('/student/classes')}>我的班级</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem isCurrentPage>
+          <BreadcrumbLink>{info.name}</BreadcrumbLink>
+        </BreadcrumbItem>
+      </Breadcrumb>
 
-        <div className="grid-2" style={{ marginBottom: '1rem' }}>
-          <div>
-            <strong>班级名称</strong>
-            <div>{info.name}</div>
-          </div>
-          <div>
-            <strong>ID</strong>
-            <div>{info.id}</div>
-          </div>
-          <div>
-            <strong>学科</strong>
-            <div>{info.subject}</div>
-          </div>
-          <div>
-            <strong>学生人数</strong>
-            <div>{info.student_count}</div>
-          </div>
-        </div>
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={4}>
+        <Box>
+          <Text fontWeight="bold">班级名称</Text>
+          <Text>{info.name}</Text>
+        </Box>
+        <Box>
+          <Text fontWeight="bold">ID</Text>
+          <Text>{info.id}</Text>
+        </Box>
+        <Box>
+          <Text fontWeight="bold">学科</Text>
+          <Text>{info.subject}</Text>
+        </Box>
+        <Box>
+          <Text fontWeight="bold">学生人数</Text>
+          <Text>{info.student_count}</Text>
+        </Box>
+      </SimpleGrid>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="button btn-tertiary"
-            style={{ width: 'auto' }}
-            onClick={() => navigate(-1)}
-          >
-            ← 返回
-          </button>
-          <button
-            className="button btn-tertiary"
-            style={{ width: 'auto' }}
-            onClick={handleLeave}
-          >
-            退出班级
-          </button>
-        </div>
-      </div>
-    </div>
+      <Flex gap={2} position={{ base: 'static', md: 'fixed' }} bottom={4} right={4}>
+        <Button leftIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} size="sm">
+          返回
+        </Button>
+        <Button onClick={handleLeave} colorScheme="red" size="sm">
+          退出班级
+        </Button>
+      </Flex>
+    </Box>
   );
 }
