@@ -179,3 +179,4 @@ backend/.env
 .vscode/
 
 backend/storage/
+/backend/word_files
