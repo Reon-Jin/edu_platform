@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import { fetchStudentClass, leaveClass } from '../api/student';
+import '../index.css';
 
 export default function StudentClassDetailPage() {
   const { cid } = useParams();
@@ -37,11 +38,16 @@ export default function StudentClassDetailPage() {
   }, [cid]);
 
   if (!info) {
-    return <Text p={4}>加载中...</Text>;
+    return (
+      <div className="container">
+        <div className="card">加载中...</div>
+      </div>
+    );
   }
 
   return (
-    <Box p={4} pb={20} maxW="960px" mx="auto">
+    <div className="container">
+      <Box className="card" pb={20}>
       <Breadcrumb mb={4} fontSize="sm">
         <BreadcrumbItem>
           <BreadcrumbLink onClick={() => navigate('/student/homeworks')}>首页</BreadcrumbLink>
@@ -81,6 +87,7 @@ export default function StudentClassDetailPage() {
           退出班级
         </Button>
       </Flex>
-    </Box>
+      </Box>
+    </div>
   );
 }

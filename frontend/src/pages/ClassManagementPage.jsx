@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { ViewIcon } from '@chakra-ui/icons';
 import { fetchTeacherClasses, createClass } from '../api/teacher';
+import '../index.css';
 
 const subjects = ['语文','数学','英语','物理','化学','地理','生物','历史','政治'];
 
@@ -73,7 +74,8 @@ export default function ClassManagementPage() {
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Box p={4} maxW="960px" mx="auto">
+    <div className="container">
+      <Box className="card">
       <Flex justify="space-between" align="center" mb={4} flexWrap="wrap" gap={2}>
         <Heading size="lg">班级管理</Heading>
         <Button onClick={() => setShowForm(!showForm)} colorScheme="teal" size="sm">
@@ -156,6 +158,7 @@ export default function ClassManagementPage() {
           下一页
         </Button>
       </Flex>
-    </Box>
+      </Box>
+    </div>
   );
 }
