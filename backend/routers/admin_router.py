@@ -255,14 +255,15 @@ def delete_public_doc(doc_id: int, current: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="文档不存在")
     return {"status": "ok"}
 
-
 @router.get("/dashboard")
 def dashboard(current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
+
     with Session(engine) as sess:
         teacher_count = sess.exec(
             select(func.count()).select_from(User).join(Role).where(Role.name == "teacher")
@@ -292,7 +293,7 @@ def dashboard(current: User = Depends(get_current_user)):
             trend.setdefault(key, {"teacher": 0, "student": 0})
             if r == "teacher":
                 trend[key]["teacher"] = c
-            elif r == "student":
+            else:
                 trend[key]["student"] = c
 
         dau = sess.exec(
@@ -359,7 +360,7 @@ def dashboard(current: User = Depends(get_current_user)):
             else:
                 dist["F"] += 1
 
-        # --- Subject mastery (avg score ratio) ---
+        # --- Subject mastery ---
         rows = sess.exec(
             select(Submission, Exercise)
             .join(Homework, Submission.homework_id == Homework.id)
@@ -369,9 +370,9 @@ def dashboard(current: User = Depends(get_current_user)):
         subj_map = {}
         for sub, ex in rows:
             total = compute_total_points(ex)
-            d = subj_map.setdefault(ex.subject or "未知", {"score": 0.0, "total": 0.0})
-            d["score"] += sub.score
-            d["total"] += total
+            entry = subj_map.setdefault(ex.subject or "未知", {"score": 0.0, "total": 0.0})
+            entry["score"] += sub.score
+            entry["total"] += total
         mastery = {
             k: (v["score"] / v["total"] if v["total"] else 0.0)
             for k, v in subj_map.items()
@@ -381,11 +382,8 @@ def dashboard(current: User = Depends(get_current_user)):
         cw_rows = sess.exec(select(Courseware.created_at)).all()
         cw_week = {}
         cw_month = {}
-        # 直接迭代 datetime 对象，不再用 (dt,)
-        for dt in cw_rows:
-            # 如果 sess.exec 返回 [(dt1,), (dt2,), ...]，可以展开成：
-            if isinstance(dt, tuple):
-                dt = dt[0]
+        for row in cw_rows:
+            dt = row[0] if isinstance(row, tuple) else row
             wk = dt.strftime("%Y-%W")
             mo = dt.strftime("%Y-%m")
             cw_week[wk] = cw_week.get(wk, 0) + 1
@@ -394,12 +392,12 @@ def dashboard(current: User = Depends(get_current_user)):
         # --- Question type distribution ---
         qtype_counts = {}
         ex_rows = sess.exec(select(Exercise.prompt)).all()
-        for (prompt,) in ex_rows:
-            for block in prompt:
+        for row in ex_rows:
+            prompt = row[0] if isinstance(row, tuple) else row
+            for block in prompt or []:
                 t = block.get("type")
-                qtype_counts[t] = qtype_counts.get(t, 0) + len(
-                    block.get("items", [])
-                )
+                items = block.get("items", [])
+                qtype_counts[t] = qtype_counts.get(t, 0) + len(items)
 
         # --- System performance ---
         perf_rows = sess.exec(
