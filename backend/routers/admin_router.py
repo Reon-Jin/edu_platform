@@ -8,13 +8,15 @@ from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from sqlalchemy import func
 from pydantic import BaseModel
+from backend.utils.scoring import compute_total_points
 
 from backend.auth import get_current_user
 from backend.config import engine
 from backend.routers.lesson_router import _generate_and_store_pdf
 from backend.models import (
     User, Role, Courseware, Exercise, Homework, Submission,
-    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent, Document
+    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent, Document,
+    RequestMetric,
 )
 from backend.services.document_service import (
     save_public_document,
@@ -260,6 +262,7 @@ def dashboard(current: User = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
     with Session(engine) as sess:
         teacher_count = sess.exec(
             select(func.count()).select_from(User).join(Role).where(Role.name == "teacher")
@@ -269,38 +272,160 @@ def dashboard(current: User = Depends(get_current_user)):
         ).one()
         cw_count = sess.exec(select(func.count()).select_from(Courseware)).one()
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
-        teacher_today = sess.exec(
-            select(func.count()).select_from(LoginEvent).join(User).join(Role)
-            .where(Role.name == "teacher", LoginEvent.created_at >= today)
+        # --- User activity metrics ---
+        daily_rows = sess.exec(
+            select(
+                func.date(LoginEvent.created_at),
+                Role.name,
+                func.count(func.distinct(LoginEvent.user_id)),
+            )
+            .join(User, User.id == LoginEvent.user_id)
+            .join(Role, User.role_id == Role.id)
+            .where(LoginEvent.created_at >= month_ago)
+            .group_by(func.date(LoginEvent.created_at), Role.name)
+            .order_by(func.date(LoginEvent.created_at))
+        ).all()
+        trend = {}
+        for d, r, c in daily_rows:
+            key = str(d)
+            trend.setdefault(key, {"teacher": 0, "student": 0})
+            if r == "teacher":
+                trend[key]["teacher"] = c
+            elif r == "student":
+                trend[key]["student"] = c
+
+        dau = sess.exec(
+            select(func.count(func.distinct(LoginEvent.user_id))).where(
+                LoginEvent.created_at >= today
+            )
         ).one()
-        student_today = sess.exec(
-            select(func.count()).select_from(LoginEvent).join(User).join(Role)
-            .where(Role.name == "student", LoginEvent.created_at >= today)
+        wau = sess.exec(
+            select(func.count(func.distinct(LoginEvent.user_id))).where(
+                LoginEvent.created_at >= week_ago
+            )
         ).one()
-        teacher_week = sess.exec(
-            select(func.count()).select_from(LoginEvent).join(User).join(Role)
-            .where(Role.name == "teacher", LoginEvent.created_at >= week_ago)
-        ).one()
-        student_week = sess.exec(
-            select(func.count()).select_from(LoginEvent).join(User).join(Role)
-            .where(Role.name == "student", LoginEvent.created_at >= week_ago)
+        mau = sess.exec(
+            select(func.count(func.distinct(LoginEvent.user_id))).where(
+                LoginEvent.created_at >= month_ago
+            )
         ).one()
 
-        rows = sess.exec(
-            select(Courseware.prep_start, Courseware.prep_end)
-            .where(Courseware.prep_start != None, Courseware.prep_end != None)
+        ratio_rows = sess.exec(
+            select(Role.name, func.count(func.distinct(LoginEvent.user_id)))
+            .join(User, User.id == LoginEvent.user_id)
+            .join(Role, User.role_id == Role.id)
+            .where(LoginEvent.created_at >= today)
+            .group_by(Role.name)
         ).all()
-        durations = [ (e - s).total_seconds() for s, e in rows if e >= s ]
-        efficiency = sum(durations) / len(durations) if durations else 0.0
+        ratio = {r: c for r, c in ratio_rows}
+
+        # --- Learning efficiency ---
+        sub_rows = sess.exec(
+            select(Homework.assigned_at, Submission.submitted_at)
+            .join(Submission, Submission.homework_id == Homework.id)
+            .where(Submission.status == "completed")
+        ).all()
+        times = [ (sub - assign).total_seconds() / 3600 for assign, sub in sub_rows if sub >= assign ]
+        avg_completion = sum(times) / len(times) if times else 0.0
+
+        # --- Homework completion rate ---
+        hw_total = sess.exec(select(func.count()).select_from(Homework)).one()
+        sub_total = sess.exec(select(func.count()).select_from(Submission).where(Submission.status == "completed")).one()
+        completion_rate = sub_total / hw_total if hw_total else 0
+
+        # --- Score distribution ---
+        scores = sess.exec(select(Submission.score).where(Submission.status == "completed")).all()
+        dist = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
+        for s in scores:
+            if s >= 90:
+                dist["A"] += 1
+            elif s >= 80:
+                dist["B"] += 1
+            elif s >= 70:
+                dist["C"] += 1
+            elif s >= 60:
+                dist["D"] += 1
+            else:
+                dist["F"] += 1
+
+        # --- Subject mastery (avg score ratio) ---
+        rows = sess.exec(
+            select(Submission, Exercise)
+            .join(Homework, Submission.homework_id == Homework.id)
+            .join(Exercise, Homework.exercise_id == Exercise.id)
+            .where(Submission.status == "completed")
+        ).all()
+        subj_map = {}
+        for sub, ex in rows:
+            total = compute_total_points(ex)
+            d = subj_map.setdefault(ex.subject or "未知", {"score": 0.0, "total": 0.0})
+            d["score"] += sub.score
+            d["total"] += total
+        mastery = {k: (v["score"] / v["total"] if v["total"] else 0.0) for k, v in subj_map.items()}
+
+        # --- Courseware production ---
+        cw_rows = sess.exec(select(Courseware.created_at)).all()
+        cw_week = {}
+        cw_month = {}
+        for (dt,) in cw_rows:
+            wk = dt.strftime("%Y-%W")
+            mo = dt.strftime("%Y-%m")
+            cw_week[wk] = cw_week.get(wk, 0) + 1
+            cw_month[mo] = cw_month.get(mo, 0) + 1
+
+        # --- Question type distribution ---
+        qtype_counts = {}
+        ex_rows = sess.exec(select(Exercise.prompt)).all()
+        for (prompt,) in ex_rows:
+            for block in prompt:
+                t = block.get("type")
+                qtype_counts[t] = qtype_counts.get(t, 0) + len(block.get("items", []))
+
+        # --- System performance ---
+        perf_rows = sess.exec(
+            select(func.avg(RequestMetric.duration_ms),
+                   func.sum(func.case((RequestMetric.status_code >= 500, 1), else_=0)),
+                   func.count())
+            .where(RequestMetric.created_at >= week_ago)
+        ).one()
+        avg_response = perf_rows[0] or 0.0
+        errors = perf_rows[1] or 0
+        total_req = perf_rows[2] or 1
+        error_rate = errors / total_req if total_req else 0
+
+    trend_list = [
+        {"date": d, "teacher": v["teacher"], "student": v["student"]} for d, v in sorted(trend.items())
+    ]
 
     return {
-        "teacher_count": teacher_count,
-        "student_count": student_count,
-        "courseware_count": cw_count,
-        "exercise_count": ex_count,
-        "teacher_usage_today": teacher_today,
-        "student_usage_today": student_today,
-        "teacher_usage_week": teacher_week,
-        "student_usage_week": student_week,
-        "teaching_efficiency": efficiency,
+        "counts": {
+            "teacher": teacher_count,
+            "student": student_count,
+            "courseware": cw_count,
+            "exercise": ex_count,
+        },
+        "activity": {
+            "trend": trend_list,
+            "dau": dau,
+            "wau": wau,
+            "mau": mau,
+            "ratio": ratio,
+        },
+        "learning": {
+            "avg_completion_hours": avg_completion,
+        },
+        "homework": {
+            "completion_rate": completion_rate,
+            "score_dist": dist,
+            "mastery": mastery,
+        },
+        "courseware_prod": {
+            "week": cw_week,
+            "month": cw_month,
+            "qtype": qtype_counts,
+        },
+        "system": {
+            "avg_response_ms": avg_response,
+            "error_rate": error_rate,
+        },
     }
