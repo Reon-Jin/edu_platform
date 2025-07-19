@@ -208,6 +208,10 @@ export async function downloadAnswersPdf(exId) {
   return resp.data;
 }
 
+export async function deleteExercise(exId) {
+  await api.delete(`/teacher/exercise/${exId}`);
+}
+
 // src/api/teacher.js
 
 /**
@@ -238,6 +242,10 @@ export async function fetchLessonPreview(cw_id) {
 export async function updateCourseware(cw_id, markdown) {
   const resp = await api.post(`/teacher/lesson/update/${cw_id}`, { markdown });
   return resp.data;
+}
+
+export async function deleteCourseware(cw_id) {
+  await api.delete(`/teacher/lesson/${cw_id}`);
 }
 
 /** 列出所有学生 */

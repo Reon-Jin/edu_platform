@@ -9,10 +9,18 @@ from pydantic import BaseModel
 from backend.schemas.exercise_schema import GenerateExerciseRequest, ExercisePreviewOut, ExerciseOut
 from backend.schemas.homework_schema import HomeworkOut
 from backend.services.exercise_service import (
-    preview_exercise, save_exercise, save_and_assign_exercise,
-    get_exercise, get_homework, list_exercises,
-    download_questions_pdf, download_answers_pdf,
-    assign_homework, stats_for_exercise, render_exercise_pdf
+    preview_exercise,
+    save_exercise,
+    save_and_assign_exercise,
+    get_exercise,
+    get_homework,
+    list_exercises,
+    download_questions_pdf,
+    download_answers_pdf,
+    assign_homework,
+    stats_for_exercise,
+    render_exercise_pdf,
+    delete_exercise,
 )
 from backend.auth import get_current_user
 from backend.models import User
@@ -139,3 +147,14 @@ def api_stats(ex_id: int, user: User = Depends(get_current_user)):
     if not ex or ex.teacher_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权查看")
     return stats_for_exercise(ex_id)
+
+
+@router.delete("/{ex_id}")
+def api_delete(ex_id: int, user: User = Depends(get_current_user)):
+    if user.role.name != "teacher":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限教师访问")
+    ex = get_exercise(ex_id)
+    if not ex or ex.teacher_id != user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="未找到练习")
+    delete_exercise(ex_id)
+    return {"status": "ok"}
