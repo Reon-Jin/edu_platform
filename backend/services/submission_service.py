@@ -114,22 +114,20 @@ def grade_submission(submission_id: int):
         explanations = data.get("explanations", {})
         scores_dict  = data.get("scores", {})
 
-        # 计算总分
+        # 计算总分：遍历练习的所有题目，按题型权重累加
         total_score = 0
-        # 构建 qid->题型映射
-        qtype_map = {}
         for block in ex.prompt:
+            base = point_map.get(block.get("type"), 1)
             for item in block.get("items", []):
-                qtype_map[str(item.get("id"))] = block.get("type")
+                qid = str(item.get("id"))
+                if qid in scores_dict:
+                    try:
+                        total_score += float(scores_dict[qid])
+                    except ValueError:
+                        pass
+                    continue
 
-        for qid, result in results.items():
-            base = point_map.get(qtype_map.get(str(qid), ""), 1)
-            if str(qid) in scores_dict:
-                try:
-                    total_score += float(scores_dict[str(qid)])
-                except ValueError:
-                    pass
-            else:
+                result = results.get(qid)
                 if result in ("correct", "正确", True):
                     total_score += base
 
