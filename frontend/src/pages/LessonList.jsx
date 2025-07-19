@@ -1,7 +1,7 @@
 // src/pages/LessonList.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { fetchLessonList } from "../api/teacher";
+import { fetchLessonList, deleteCourseware } from "../api/teacher";
 import { formatDateTime } from "../utils";
 import "../index.css";
 
@@ -27,6 +27,17 @@ export default function LessonList() {
     loadLessons();
   }, []);
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('确定删除?')) return;
+    try {
+      await deleteCourseware(id);
+      setLessons(lessons.filter((l) => l.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError('删除失败');
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -48,10 +59,15 @@ export default function LessonList() {
                 <tr key={lesson.id}>
                   <td>{lesson.topic}</td>
                   <td>{formatDateTime(lesson.created_at)}</td>
-                  <td>
-                    <Link to={`/teacher/lesson/preview/${lesson.id}`}>
-                      预览
-                    </Link>
+                  <td className="actions-cell">
+                    <Link to={`/teacher/lesson/preview/${lesson.id}`}>预览</Link>
+                    <button
+                      className="icon-button tooltip"
+                      onClick={() => handleDelete(lesson.id)}
+                      aria-label="删除"
+                    >
+                      🗑️<span className="tooltip-text">删除</span>
+                    </button>
                   </td>
                 </tr>
               ))}

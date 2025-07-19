@@ -21,7 +21,7 @@ from backend.utils.pdf_utils import (
     format_answers_html,
     render_pdf,
 )
-from backend.models import Exercise, Homework, Class
+from backend.models import Exercise, Homework, Class, Submission
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.config import engine
 
@@ -416,7 +416,6 @@ def assign_homework(exercise_id: int, class_id: int | None = None) -> Homework:
 
 
 def stats_for_exercise(exercise_id: int) -> Dict[str, Any]:
-    from backend.models import Submission
 
     with Session(engine) as sess:
         subs = sess.exec(
@@ -427,3 +426,21 @@ def stats_for_exercise(exercise_id: int) -> Dict[str, Any]:
         total = len(subs)
         avg = sum(s.score for s in subs) / total if total else 0.0
         return {"total_submissions": total, "average_score": avg}
+
+
+def delete_exercise(exercise_id: int) -> bool:
+    """Delete an exercise and all related homework/submissions."""
+    with Session(engine, expire_on_commit=False) as sess:
+        ex = sess.get(Exercise, exercise_id)
+        if not ex:
+            return False
+
+        # remove related homework and submissions
+        for hw in sess.exec(select(Homework).where(Homework.exercise_id == exercise_id)):
+            for sub in sess.exec(select(Submission).where(Submission.homework_id == hw.id)):
+                sess.delete(sub)
+            sess.delete(hw)
+
+        sess.delete(ex)
+        sess.commit()
+        return True

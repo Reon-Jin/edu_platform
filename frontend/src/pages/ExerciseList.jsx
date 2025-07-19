@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchExerciseList } from "../api/teacher";
+import { fetchExerciseList, deleteExercise } from "../api/teacher";
 import { formatDateTime } from "../utils";
 import "../index.css";
 
@@ -26,6 +26,17 @@ export default function ExerciseList() {
     load();
   }, []);
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('确定删除?')) return;
+    try {
+      await deleteExercise(id);
+      setList(list.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError('删除失败');
+    }
+  };
+
   return (
     <div className="container">
       <div className="card">
@@ -47,8 +58,15 @@ export default function ExerciseList() {
                 <tr key={ex.id}>
                   <td>{ex.subject}</td>
                   <td>{formatDateTime(ex.created_at)}</td>
-                  <td>
+                  <td className="actions-cell">
                     <Link to={`/teacher/exercise/preview/${ex.id}`}>预览</Link>
+                    <button
+                      className="icon-button tooltip"
+                      onClick={() => handleDelete(ex.id)}
+                      aria-label="删除"
+                    >
+                      🗑️<span className="tooltip-text">删除</span>
+                    </button>
                   </td>
                 </tr>
               ))}
