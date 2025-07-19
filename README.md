@@ -2,25 +2,48 @@
 This is an AI-driven EDU platform designed for both teachers and students, allowing up-to-date AI-powered course designing and learning experience.
 
 ## Installation and Environment
-Conda
-Python=3.10.x
-node=22.13.0
-npm=10.9.2
+The project requires both a Python and Node.js environment.
 
-## launch backend fastapi
-```bash
-uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
-```
+### Backend requirements
+- Python 3.10 or newer
+- `pip` for installing `backend/requirements.txt`
 
-## launch frontend
-```bash
-npm run dev
-```
+### Frontend requirements
+- Node.js 22.13.0
+- npm 10.9.2
 
-## Prepare knowledge base
+## Installation
 
-Build the lesson knowledge base and RAG index:
+### Backend setup
+1. Create and activate a virtual environment
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+2. Install Python dependencies
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+3. Configure environment variables by creating `backend/.env`.
+   The file should define at least:
+   ```ini
+   MYSQL_URI=<your database uri>
+   DEEPSEEK_API_KEY=<api key>
+   DEEPSEEK_ENDPOINT=<api endpoint>
+   ```
+4. Start the API server
+   ```bash
+   uvicorn backend.main:app --reload
+   ```
 
-```bash
-python backend/scripts/prepare_knowledge.py
-```
+### Frontend setup
+1. Install packages
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Start the dev server
+   ```bash
+   npm run dev
+   ```
+
