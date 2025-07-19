@@ -344,18 +344,23 @@ def dashboard(current: User = Depends(get_current_user)):
         completion_rate = sub_total / hw_total if hw_total else 0
 
         # --- Score distribution ---
-        scores = sess.exec(
-            select(Submission.score).where(Submission.status == "completed")
+        score_rows = sess.exec(
+            select(Submission.score, Exercise)
+            .join(Homework, Submission.homework_id == Homework.id)
+            .join(Exercise, Homework.exercise_id == Exercise.id)
+            .where(Submission.status == "completed")
         ).all()
         dist = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
-        for (s,) in scores:
-            if s >= 90:
+        for score, ex in score_rows:
+            total = compute_total_points(ex)
+            ratio = score / total if total else 0
+            if ratio >= 0.9:
                 dist["A"] += 1
-            elif s >= 80:
+            elif ratio >= 0.8:
                 dist["B"] += 1
-            elif s >= 70:
+            elif ratio >= 0.7:
                 dist["C"] += 1
-            elif s >= 60:
+            elif ratio >= 0.6:
                 dist["D"] += 1
             else:
                 dist["F"] += 1

@@ -1,5 +1,4 @@
 # backend/services/submission_service.py
-
 import json
 import re
 from typing import Dict, Any, List, Optional
@@ -9,6 +8,7 @@ from backend.models import Exercise, Homework, Submission, ClassStudent, Class
 from backend.utils.deepseek_client import call_deepseek_api
 from backend.services.analysis_service import analyze_and_save_homeworks
 from backend.utils.scoring import compute_total_points
+
 
 def submit_homework(homework_id: int, student_id: int, answers: Dict[str, Any]) -> Submission:
     """
@@ -25,6 +25,7 @@ def submit_homework(homework_id: int, student_id: int, answers: Dict[str, Any]) 
         sess.commit()
         sess.refresh(sub)
         return sub
+
 
 def grade_submission(submission_id: int):
     """
@@ -82,14 +83,21 @@ def grade_submission(submission_id: int):
 
         # 构建批改 prompt（用 letter_answers 而非原始 sub.answers）
         point_map = ex.points or {}
-        sa_point = point_map.get("short_answer", 1)
+        sa_pt = point_map.get("short_answer", 1)
+        sc_pt = point_map.get("single_choice", 1)
+        mc_pt = point_map.get("multiple_choice", 1)
+        fb_pt = point_map.get("fill_in_blank", 1)
+        cd_pt = point_map.get("coding", 1)
         prompt = (
             "请根据下面的 JSON：\n"
             f"题目: {json.dumps(ex.prompt, ensure_ascii=False)}\n"
             f"标准答案: {json.dumps(ex.answers, ensure_ascii=False)}\n"
             f"学生答案: {json.dumps(letter_answers, ensure_ascii=False)}\n\n"
-            f"请判断学生答案并给出解析。其中简答题按照满分 {sa_point} 分给出 0 到 {sa_point} 的得分，"
+            f"请判断学生答案并给出解析。其中简答题按照满分 {sa_pt} 分给出 0 到 {sa_pt} 的得分，"
             "其他题型判断对错即可。"
+            f"分值说明：单选题 {sc_pt} 分；多选题 {mc_pt} 分；"
+            f"填空题 {fb_pt} 分；简答题 {sa_pt} 分；编程题 {cd_pt} 分。\n"
+            "请严格按照上述分值给出每道题的分数。\n"
             "返回 JSON：{ \"results\": {qid: 'correct|wrong|partial'}, \"scores\": {qid: number}, "
             "\"explanations\": {qid: '解析'} }。"
             "请只返回 JSON，不要有其它任何多余内容，包括任何markdown符号。"
@@ -114,23 +122,23 @@ def grade_submission(submission_id: int):
         explanations = data.get("explanations", {})
         scores_dict  = data.get("scores", {})
 
-        # 计算总分
+        # 计算总分：遍历练习的所有题目，按题目ID优先、题型其次的分值累加
         total_score = 0
-        # 构建 qid->题型映射
-        qtype_map = {}
         for block in ex.prompt:
+            qtype = block.get("type")
+            default_base = point_map.get(qtype, 1)
             for item in block.get("items", []):
-                qtype_map[str(item.get("id"))] = block.get("type")
+                qid = str(item.get("id"))
+                base = point_map.get(qid, default_base)
 
-        for qid, result in results.items():
-            base = point_map.get(qtype_map.get(str(qid), ""), 1)
-            if str(qid) in scores_dict:
-                try:
-                    total_score += float(scores_dict[str(qid)])
-                except ValueError:
-                    pass
-            else:
-                if result in ("correct", "正确", True):
+                if qid in scores_dict:
+                    try:
+                        total_score += float(scores_dict[qid])
+                    except ValueError:
+                        pass
+                    continue
+
+                if results.get(qid) in ("correct", "正确", "对", True):
                     total_score += base
 
         sub.score    = int(round(total_score))
