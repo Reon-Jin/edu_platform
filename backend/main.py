@@ -2,10 +2,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Session
 from sqlalchemy import inspect, text
+from time import perf_counter
 
 from backend.config import engine
+from backend.models import RequestMetric
 from backend.auth import router as auth_router
 from backend.routers.lesson_router import router as lesson_router
 from backend.routers.exercise_router import router as exercise_router
@@ -24,6 +26,23 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=False,
 )
+
+
+@app.middleware("http")
+async def record_metrics(request: Request, call_next):
+    start = perf_counter()
+    response = await call_next(request)
+    duration = (perf_counter() - start) * 1000
+    with Session(engine) as sess:
+        metric = RequestMetric(
+            path=request.url.path,
+            method=request.method,
+            status_code=response.status_code,
+            duration_ms=duration,
+        )
+        sess.add(metric)
+        sess.commit()
+    return response
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)

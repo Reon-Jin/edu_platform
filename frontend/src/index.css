@@ -756,3 +756,45 @@ table tr:hover {
   margin: 0.5rem 0 1rem;
   font-weight: bold;
 }
+
+/* index.css */
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+}
+
+.chart-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card h4 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+  text-align: center;
+}

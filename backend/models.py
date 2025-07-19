@@ -267,3 +267,13 @@ class ClassStudent(SQLModel, table=True):
 
     class_: Class = Relationship(back_populates="students")
     student: User = Relationship(back_populates="class_memberships")
+
+class RequestMetric(SQLModel, table=True):
+    __tablename__ = "request_metric"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    path: str = Field(max_length=255)
+    method: str = Field(max_length=10)
+    status_code: int
+    duration_ms: float
+    created_at: datetime = Field(default_factory=datetime.utcnow)
