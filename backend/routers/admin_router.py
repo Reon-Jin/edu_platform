@@ -6,7 +6,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
-from sqlalchemy import func
+from sqlalchemy import func,case
 from pydantic import BaseModel
 from backend.utils.scoring import compute_total_points
 
@@ -272,6 +272,7 @@ def dashboard(current: User = Depends(get_current_user)):
         ).one()
         cw_count = sess.exec(select(func.count()).select_from(Courseware)).one()
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
+
         # --- User activity metrics ---
         daily_rows = sess.exec(
             select(
@@ -325,18 +326,28 @@ def dashboard(current: User = Depends(get_current_user)):
             .join(Submission, Submission.homework_id == Homework.id)
             .where(Submission.status == "completed")
         ).all()
-        times = [ (sub - assign).total_seconds() / 3600 for assign, sub in sub_rows if sub >= assign ]
+        times = [
+            (sub - assign).total_seconds() / 3600
+            for assign, sub in sub_rows
+            if sub >= assign
+        ]
         avg_completion = sum(times) / len(times) if times else 0.0
 
         # --- Homework completion rate ---
         hw_total = sess.exec(select(func.count()).select_from(Homework)).one()
-        sub_total = sess.exec(select(func.count()).select_from(Submission).where(Submission.status == "completed")).one()
+        sub_total = sess.exec(
+            select(func.count())
+            .select_from(Submission)
+            .where(Submission.status == "completed")
+        ).one()
         completion_rate = sub_total / hw_total if hw_total else 0
 
         # --- Score distribution ---
-        scores = sess.exec(select(Submission.score).where(Submission.status == "completed")).all()
+        scores = sess.exec(
+            select(Submission.score).where(Submission.status == "completed")
+        ).all()
         dist = {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
-        for s in scores:
+        for (s,) in scores:
             if s >= 90:
                 dist["A"] += 1
             elif s >= 80:
@@ -361,13 +372,20 @@ def dashboard(current: User = Depends(get_current_user)):
             d = subj_map.setdefault(ex.subject or "未知", {"score": 0.0, "total": 0.0})
             d["score"] += sub.score
             d["total"] += total
-        mastery = {k: (v["score"] / v["total"] if v["total"] else 0.0) for k, v in subj_map.items()}
+        mastery = {
+            k: (v["score"] / v["total"] if v["total"] else 0.0)
+            for k, v in subj_map.items()
+        }
 
         # --- Courseware production ---
         cw_rows = sess.exec(select(Courseware.created_at)).all()
         cw_week = {}
         cw_month = {}
-        for (dt,) in cw_rows:
+        # 直接迭代 datetime 对象，不再用 (dt,)
+        for dt in cw_rows:
+            # 如果 sess.exec 返回 [(dt1,), (dt2,), ...]，可以展开成：
+            if isinstance(dt, tuple):
+                dt = dt[0]
             wk = dt.strftime("%Y-%W")
             mo = dt.strftime("%Y-%m")
             cw_week[wk] = cw_week.get(wk, 0) + 1
@@ -379,13 +397,17 @@ def dashboard(current: User = Depends(get_current_user)):
         for (prompt,) in ex_rows:
             for block in prompt:
                 t = block.get("type")
-                qtype_counts[t] = qtype_counts.get(t, 0) + len(block.get("items", []))
+                qtype_counts[t] = qtype_counts.get(t, 0) + len(
+                    block.get("items", [])
+                )
 
         # --- System performance ---
         perf_rows = sess.exec(
-            select(func.avg(RequestMetric.duration_ms),
-                   func.sum(func.case((RequestMetric.status_code >= 500, 1), else_=0)),
-                   func.count())
+            select(
+                func.avg(RequestMetric.duration_ms),
+                func.sum(case((RequestMetric.status_code >= 500, 1), else_=0)),
+                func.count(),
+            )
             .where(RequestMetric.created_at >= week_ago)
         ).one()
         avg_response = perf_rows[0] or 0.0
@@ -394,7 +416,8 @@ def dashboard(current: User = Depends(get_current_user)):
         error_rate = errors / total_req if total_req else 0
 
     trend_list = [
-        {"date": d, "teacher": v["teacher"], "student": v["student"]} for d, v in sorted(trend.items())
+        {"date": d, "teacher": v["teacher"], "student": v["student"]}
+        for d, v in sorted(trend.items())
     ]
 
     return {
@@ -411,21 +434,13 @@ def dashboard(current: User = Depends(get_current_user)):
             "mau": mau,
             "ratio": ratio,
         },
-        "learning": {
-            "avg_completion_hours": avg_completion,
-        },
+        "learning": {"avg_completion_hours": avg_completion},
         "homework": {
             "completion_rate": completion_rate,
             "score_dist": dist,
             "mastery": mastery,
         },
-        "courseware_prod": {
-            "week": cw_week,
-            "month": cw_month,
-            "qtype": qtype_counts,
-        },
-        "system": {
-            "avg_response_ms": avg_response,
-            "error_rate": error_rate,
-        },
+        "courseware_prod": {"week": cw_week, "month": cw_month, "qtype": qtype_counts},
+        "system": {"avg_response_ms": avg_response, "error_rate": error_rate},
     }
+
