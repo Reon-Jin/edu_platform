@@ -5,8 +5,13 @@ import '../index.css';
 export default function AdminUsers() {
   const [list, setList] = useState([]);
   const [role, setRole] = useState('');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const filtered = list.filter((u) =>
+    u.username.toLowerCase().includes(search.toLowerCase())
+  );
 
   const load = async (r) => {
     setLoading(true);
@@ -48,6 +53,13 @@ export default function AdminUsers() {
             <option value="teacher">教师</option>
             <option value="student">学生</option>
           </select>
+          <input
+            className="input"
+            placeholder="搜索用户"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: 'auto', marginTop: 0, marginLeft: '0.5rem' }}
+          />
         </div>
         {error && <div className="error">{error}</div>}
         {loading ? (
@@ -63,7 +75,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {list.map((u) => (
+              {filtered.map((u) => (
                 <tr key={u.id}>
                   <td>{u.id}</td>
                   <td>{u.username}</td>
