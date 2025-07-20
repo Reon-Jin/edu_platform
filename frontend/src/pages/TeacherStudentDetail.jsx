@@ -12,9 +12,14 @@ export default function TeacherStudentDetail() {
   const cid = searchParams.get('cid');
   const [analysis, setAnalysis] = useState('');
   const [homeworks, setHomeworks] = useState([]);
+  const [search, setSearch] = useState('');
   const [loadingHw, setLoadingHw] = useState(false);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const filtered = homeworks.filter((h) =>
+    h.subject.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     setAnalysis('');
@@ -55,6 +60,13 @@ export default function TeacherStudentDetail() {
           )}
         </div>
         <h3 style={{ marginTop: '1rem' }}>已完成作业</h3>
+        <input
+          className="input"
+          placeholder="搜索作业"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {loadingHw ? (
           <div>加载中...</div>
         ) : (
@@ -68,7 +80,7 @@ export default function TeacherStudentDetail() {
               </tr>
             </thead>
             <tbody>
-              {homeworks.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.homework_id}>
                   <td>{p.homework_id}</td>
                   <td>{p.subject}</td>

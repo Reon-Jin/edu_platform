@@ -5,7 +5,12 @@ import "../index.css";
 
 export default function StudentChatHistory() {
   const [history, setHistory] = useState([]);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
+
+  const filtered = history.filter((h) =>
+    h.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -35,8 +40,15 @@ export default function StudentChatHistory() {
           返回
         </button>
         <h2>历史记录</h2>
+        <input
+          className="input"
+          placeholder="搜索记录"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         <ul>
-          {history.map((item) => (
+          {filtered.map((item) => (
             <li key={item.id}>
               <Link to={`/student/ai/${item.id}`}>{item.title}</Link>
               <button

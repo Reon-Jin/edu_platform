@@ -5,6 +5,11 @@ import "../index.css";
 
 export default function SelfPracticeList() {
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
+
+  const filtered = list.filter((p) =>
+    p.topic.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -18,6 +23,13 @@ export default function SelfPracticeList() {
     <div className="container">
       <div className="card">
         <h2>我的随练</h2>
+        <input
+          className="input"
+          placeholder="搜索主题"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         <table>
           <thead>
             <tr>
@@ -26,7 +38,7 @@ export default function SelfPracticeList() {
             </tr>
           </thead>
           <tbody>
-            {list.map((p) => (
+            {filtered.map((p) => (
               <tr key={p.id}>
                 <td>{p.topic}</td>
                 <td>
