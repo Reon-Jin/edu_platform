@@ -730,7 +730,7 @@ table tr:hover {
 
 /* 如果你想显式给每个卡片一个固定宽度，确保它不会被压缩或撑大 */
 .question-config-card {
-  flex: 0 0 180px;      /* 固定宽度，避免压缩或拉伸 */
+  flex: 0 0 220px;      /* 固定宽度，避免压缩或拉伸 */
   background: #fff;
   padding: 1rem;
   border-radius: 8px;
