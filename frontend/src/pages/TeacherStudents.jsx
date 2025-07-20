@@ -5,8 +5,13 @@ import '../index.css';
 
 export default function TeacherStudents() {
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const filtered = list.filter((s) =>
+    s.username.toLowerCase().includes(search.toLowerCase())
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,6 +35,13 @@ export default function TeacherStudents() {
     <div className="container">
       <div className="card">
         <h2>学生列表</h2>
+        <input
+          className="input"
+          placeholder="搜索学生"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>
@@ -43,7 +55,7 @@ export default function TeacherStudents() {
               </tr>
             </thead>
             <tbody>
-              {list.map((s) => (
+              {filtered.map((s) => (
                 <tr key={s.id}>
                   <td>{s.id}</td>
                   <td>{s.username}</td>

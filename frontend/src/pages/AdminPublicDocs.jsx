@@ -9,10 +9,15 @@ import { formatDateTime } from '../utils';
 
 export default function AdminPublicDocs() {
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+
+  const filtered = list.filter((d) =>
+    d.filename.toLowerCase().includes(search.toLowerCase())
+  );
 
   const load = async () => {
     setLoading(true);
@@ -75,6 +80,13 @@ export default function AdminPublicDocs() {
     <div className="container">
       <div className="card">
         <h2>公共资料库</h2>
+        <input
+          className="input"
+          placeholder="搜索文件"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         <div
           className="upload-dropzone"
           onDrop={handleDrop}
@@ -109,7 +121,7 @@ export default function AdminPublicDocs() {
               </tr>
             </thead>
             <tbody>
-              {list.map((d) => (
+              {filtered.map((d) => (
                 <tr key={d.id}>
                   <td>{d.filename}</td>
                   <td>{formatDateTime(d.uploaded_at)}</td>

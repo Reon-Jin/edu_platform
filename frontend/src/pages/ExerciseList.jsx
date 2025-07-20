@@ -6,8 +6,13 @@ import "../index.css";
 
 export default function ExerciseList() {
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const filtered = list.filter((ex) =>
+    ex.subject.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -41,6 +46,13 @@ export default function ExerciseList() {
     <div className="container">
       <div className="card">
         <h2>我的练习列表</h2>
+        <input
+          className="input"
+          placeholder="搜索练习"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>
@@ -54,7 +66,7 @@ export default function ExerciseList() {
               </tr>
             </thead>
             <tbody>
-              {list.map((ex) => (
+              {filtered.map((ex) => (
                 <tr key={ex.id}>
                   <td>{ex.subject}</td>
                   <td>{formatDateTime(ex.created_at)}</td>

@@ -12,11 +12,16 @@ import { formatDateTime } from '../utils';
 export default function DocumentManage() {
   const [tab, setTab] = useState('my');
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+
+  const filtered = list.filter((d) =>
+    d.filename.toLowerCase().includes(search.toLowerCase())
+  );
 
   const load = async (scope) => {
     setLoading(true);
@@ -123,6 +128,13 @@ export default function DocumentManage() {
           </div>
         )}
         {error && <div className="error">{error}</div>}
+        <input
+          className="input"
+          placeholder="搜索文件"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {loading ? (
           <div>加载中...</div>
         ) : (
@@ -136,7 +148,7 @@ export default function DocumentManage() {
               </tr>
             </thead>
             <tbody>
-              {list.map((d) => (
+              {filtered.map((d) => (
                 <tr key={d.id}>
                   <td>{d.filename}</td>
                   <td>{formatDateTime(d.uploaded_at)}</td>

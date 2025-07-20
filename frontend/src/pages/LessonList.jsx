@@ -7,8 +7,13 @@ import "../index.css";
 
 export default function LessonList() {
   const [lessons, setLessons] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");  // 用于显示错误信息
+
+  const filtered = lessons.filter((l) =>
+    l.topic.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     const loadLessons = async () => {
@@ -42,6 +47,13 @@ export default function LessonList() {
     <div className="container">
       <div className="card">
         <h2>我的教案列表</h2>
+        <input
+          className="input"
+          placeholder="搜索教案"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {error && <div className="error">{error}</div>}  {/* 错误显示 */}
         {loading ? (
           <div>加载中...</div>
@@ -55,7 +67,7 @@ export default function LessonList() {
               </tr>
             </thead>
             <tbody>
-              {lessons.map((lesson) => (
+              {filtered.map((lesson) => (
                 <tr key={lesson.id}>
                   <td>{lesson.topic}</td>
                   <td>{formatDateTime(lesson.created_at)}</td>

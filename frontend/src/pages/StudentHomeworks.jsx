@@ -6,6 +6,11 @@ import "../index.css";
 export default function StudentHomeworks() {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
+
+  const filtered = list.filter((hw) =>
+    hw.subject.toLowerCase().includes(search.toLowerCase())
+  );
 
   const statusMap = {
     not_submitted: "未提交",
@@ -29,6 +34,13 @@ export default function StudentHomeworks() {
     <div className="container">
       <div className="card">
         <h2>我的作业</h2>
+        <input
+          className="input"
+          placeholder="搜索作业"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         <table>
           <thead>
             <tr>
@@ -38,7 +50,7 @@ export default function StudentHomeworks() {
             </tr>
           </thead>
           <tbody>
-            {list.map((hw) => (
+            {filtered.map((hw) => (
               <tr key={hw.homework_id}>
                 <td>{hw.subject}</td>
                 <td>

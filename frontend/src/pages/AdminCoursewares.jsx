@@ -6,8 +6,13 @@ import { formatDateTime } from '../utils';
 
 export default function AdminCoursewares() {
   const [list, setList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const filtered = list.filter((c) =>
+    c.topic.toLowerCase().includes(search.toLowerCase())
+  );
 
   const load = async () => {
     setLoading(true);
@@ -59,6 +64,13 @@ export default function AdminCoursewares() {
     <div className="container">
       <div className="card">
         <h2>课件管理</h2>
+        <input
+          className="input"
+          placeholder="搜索课件"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ width: 'auto' }}
+        />
         {error && <div className="error">{error}</div>}
         {loading ? (
           <div>加载中...</div>
@@ -74,7 +86,7 @@ export default function AdminCoursewares() {
               </tr>
             </thead>
             <tbody>
-              {list.map((c) => (
+              {filtered.map((c) => (
                 <tr key={c.id}>
                   <td>{c.id}</td>
                   <td>{c.topic}</td>
