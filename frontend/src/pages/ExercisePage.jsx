@@ -202,39 +202,45 @@ export default function ExercisePage() {
           />
         </div>
 
-        <div className="card">
-          <h2>配置题量</h2>
-          <div className="question-config-grid">
-            {[
+          <div className="card">
+            <h2>配置题量</h2>
+          {[
+            [
               { label: "单选题", numKey: "num_single_choice", scoreKey: "score_single_choice" },
               { label: "多选题", numKey: "num_multiple_choice", scoreKey: "score_multiple_choice" },
               { label: "填空题", numKey: "num_fill_blank", scoreKey: "score_fill_blank" },
+            ],
+            [
               { label: "简答题", numKey: "num_short_answer", scoreKey: "score_short_answer" },
               { label: "编程题", numKey: "num_programming", scoreKey: "score_programming" },
-            ].map(({ label, numKey, scoreKey }) => (
-              <div className="question-config-card" key={numKey}>
-                <h4>{label}</h4>
-                <div className="config-row">
-                  <span>数量</span>
-                  <Stepper
-                    value={form[numKey]}
-                    onChange={(v) => setForm((p) => ({ ...p, [numKey]: v }))}
-                    min={0}
-                    max={20}
-                  />
+            ],
+          ].map((group, idx) => (
+            <div className="question-config-grid" key={idx}>
+              {group.map(({ label, numKey, scoreKey }) => (
+                <div className="question-config-card" key={numKey}>
+                  <h4>{label}</h4>
+                  <div className="config-row">
+                    <span>数量</span>
+                    <Stepper
+                      value={form[numKey]}
+                      onChange={(v) => setForm((p) => ({ ...p, [numKey]: v }))}
+                      min={0}
+                      max={20}
+                    />
+                  </div>
+                  <div className="config-row">
+                    <span>分值</span>
+                    <Stepper
+                      value={form[scoreKey]}
+                      onChange={(v) => setForm((p) => ({ ...p, [scoreKey]: v }))}
+                      min={1}
+                      max={100}
+                    />
+                  </div>
                 </div>
-                <div className="config-row">
-                  <span>分值</span>
-                  <Stepper
-                    value={form[scoreKey]}
-                    onChange={(v) => setForm((p) => ({ ...p, [scoreKey]: v }))}
-                    min={1}
-                    max={100}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ))}
 
           <div className="total-count">共计 {total} 题，总分 {totalScore}</div>
           <button className="button btn-secondary" type="submit" disabled={loading}>

@@ -719,16 +719,18 @@ table tr:hover {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
+
+/* 练习题量配置卡片布局 */
 .question-config-grid {
   display: flex;
-  flex-wrap: wrap;      /* 允许换行 */
-  gap: 1rem;            /* 卡片之间的间距 */
-  justify-content: flex-start; /* 左对齐，右侧留空 */
+  justify-content: center; /* 每行居中 */
+  gap: 1rem;               /* 卡片之间的间距 */
+  margin-bottom: 1rem;     /* 行间距 */
 }
 
 /* 如果你想显式给每个卡片一个固定宽度，确保它不会被压缩或撑大 */
 .question-config-card {
-  flex: 0 0 200px;      /* 0: 不放大; 0: 不收缩; 200px: 固定基础宽度 */
+  flex: 0 0 180px;      /* 固定宽度，避免压缩或拉伸 */
   background: #fff;
   padding: 1rem;
   border-radius: 8px;
