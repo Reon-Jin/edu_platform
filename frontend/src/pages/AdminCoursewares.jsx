@@ -98,7 +98,7 @@ export default function AdminCoursewares() {
                   <tr key={c.id}>
                     <td>{c.id}</td>
                     <td>{c.topic}</td>
-                    <td>{c.teacher_id}</td>
+                    <td>{c.teacher_username}</td>
                     <td>{formatDateTime(c.created_at)}</td>
                     <td>
                       <div className="action-buttons">

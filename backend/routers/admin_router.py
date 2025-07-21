@@ -40,6 +40,7 @@ class CoursewareMeta(BaseModel):
     id: int
     topic: str
     teacher_id: int
+    teacher_username: str
     created_at: datetime
 
     class Config:
@@ -50,6 +51,7 @@ class CoursewarePreview(BaseModel):
     id: int
     topic: str
     teacher_id: int
+    teacher_username: str
     markdown: str
     created_at: datetime
 
@@ -131,9 +133,18 @@ def list_coursewares(current: User = Depends(get_current_user)):
     if not current.role or current.role.name != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
     with Session(engine) as sess:
-        stmt = select(Courseware)
-        items = sess.exec(stmt).all()
-        return [CoursewareMeta(id=c.id, topic=c.topic, teacher_id=c.teacher_id, created_at=c.created_at) for c in items]
+        stmt = select(Courseware, User).join(User, Courseware.teacher_id == User.id)
+        rows = sess.exec(stmt).all()
+        return [
+            CoursewareMeta(
+                id=c.id,
+                topic=c.topic,
+                teacher_id=c.teacher_id,
+                teacher_username=u.username,
+                created_at=c.created_at,
+            )
+            for c, u in rows
+        ]
 
 
 @router.post("/courseware/{cid}/share")
@@ -166,7 +177,15 @@ def preview_courseware(cid: int, current: User = Depends(get_current_user)):
         cw = sess.get(Courseware, cid)
         if not cw:
             raise HTTPException(404, "课件不存在")
-        return CoursewarePreview(id=cw.id, topic=cw.topic, teacher_id=cw.teacher_id, markdown=cw.markdown, created_at=cw.created_at)
+        teacher = sess.get(User, cw.teacher_id)
+        return CoursewarePreview(
+            id=cw.id,
+            topic=cw.topic,
+            teacher_id=cw.teacher_id,
+            teacher_username=teacher.username if teacher else "",
+            markdown=cw.markdown,
+            created_at=cw.created_at,
+        )
 
 
 @router.get("/courseware/{cid}/download")
@@ -205,7 +224,14 @@ def update_courseware(cid: int, data: CoursewareUpdate, current: User = Depends(
         sess.add(cw)
         sess.commit()
         _generate_and_store_pdf(cw.id, cw.markdown)
-        return CoursewareMeta(id=cw.id, topic=cw.topic, teacher_id=cw.teacher_id, created_at=cw.created_at)
+        teacher = sess.get(User, cw.teacher_id)
+        return CoursewareMeta(
+            id=cw.id,
+            topic=cw.topic,
+            teacher_id=cw.teacher_id,
+            teacher_username=teacher.username if teacher else "",
+            created_at=cw.created_at,
+        )
 
 
 @router.get("/public_docs", response_model=List[DocumentInfo])
