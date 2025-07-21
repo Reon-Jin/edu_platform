@@ -116,14 +116,14 @@ export default function AdminDashboard() {
     ],
   };
 
-  // 课件生成 (按月)
-  const monthKeys = Object.keys(data.courseware_prod.month).sort();
-  const cwMonthData = {
-    labels: monthKeys,
+  // 课件生成 (按天)
+  const dayKeys = Object.keys(data.courseware_prod.day).sort();
+  const cwDayData = {
+    labels: dayKeys,
     datasets: [
       {
         label: '课件数',
-        data: monthKeys.map(k => data.courseware_prod.month[k]),
+        data: dayKeys.map(k => data.courseware_prod.day[k]),
         backgroundColor: 'rgba(255,99,132,0.3)',
         borderColor: 'rgba(255,99,132,1)',
         borderWidth: 2,
@@ -254,10 +254,10 @@ export default function AdminDashboard() {
 
           <div className="card chart-card">
             <div className="chart-card-header">
-              <h4>课件生成（按月）</h4>
+              <h4>课件生成（按天）</h4>
               <button className="chart-export">导出</button>
             </div>
-            <Line data={cwMonthData} options={{ plugins: { legend: { position: 'top' } } }} />
+            <Line data={cwDayData} options={{ plugins: { legend: { position: 'top' } } }} />
           </div>
 
           <div className="card chart-card">

@@ -319,7 +319,14 @@ def dashboard(current: User = Depends(get_current_user)):
             .where(LoginEvent.created_at >= today)
             .group_by(Role.name)
         ).all()
-        ratio = {r: c for r, c in ratio_rows}
+        t_active = 0
+        s_active = 0
+        for r, c in ratio_rows:
+            if r == "teacher":
+                t_active = c
+            elif r == "student":
+                s_active = c
+        ratio = {"teacher": t_active, "student": s_active}
 
         # --- Learning efficiency ---
         sub_rows = sess.exec(
@@ -386,13 +393,13 @@ def dashboard(current: User = Depends(get_current_user)):
         # --- Courseware production ---
         cw_rows = sess.exec(select(Courseware.created_at)).all()
         cw_week = {}
-        cw_month = {}
+        cw_day = {}
         for row in cw_rows:
             dt = row[0] if isinstance(row, tuple) else row
             wk = dt.strftime("%Y-%W")
-            mo = dt.strftime("%Y-%m")
+            day = dt.strftime("%Y-%m-%d")
             cw_week[wk] = cw_week.get(wk, 0) + 1
-            cw_month[mo] = cw_month.get(mo, 0) + 1
+            cw_day[day] = cw_day.get(day, 0) + 1
 
         # --- Question type distribution ---
         qtype_counts = {}
@@ -443,7 +450,7 @@ def dashboard(current: User = Depends(get_current_user)):
             "score_dist": dist,
             "mastery": mastery,
         },
-        "courseware_prod": {"week": cw_week, "month": cw_month, "qtype": qtype_counts},
+        "courseware_prod": {"week": cw_week, "day": cw_day, "qtype": qtype_counts},
         "system": {"avg_response_ms": avg_response, "error_rate": error_rate},
     }
 
