@@ -111,7 +111,7 @@ export default function ExercisePreview() {
   const typeLabels = {
     single_choice: "单选题",
     multiple_choice: "多选题",
-    fill_blank: "填空题",
+    fill_in_blank: "填空题",
     short_answer: "简答题",
     coding: "编程题",
   };
