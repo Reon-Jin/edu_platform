@@ -1,0 +1,228 @@
+/* —— 顶级撑满 —— */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+.sa-container {
+  height: 100%;
+  display: flex;
+}
+/* —— 主区垂直布局 —— */
+.sa-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+/* —— 聊天区撑满中间 —— */
+/* 把原来的 .sa-messages 改成这样： */
+.sa-messages {
+  /* 取消 flex 自动拉伸 */
+  flex: none;
+  /* 固定高度，比如视口高度的 60% 或者 400px */
+  height: 70vh;      /* 也可以写 400px */
+  overflow-y: auto;  /* 超出出现滚动条 */
+  margin-bottom: 1rem;
+  padding-right: 0.5rem;
+}
+
+
+/* 以下是你原来的样式，不必改动，放在上面那段之后即可 */
+.sa-sidebar {
+  width: 200px;
+  border-right: 1px solid #e2e8f0;
+  padding: 1rem;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+.sa-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sa-btn-mini {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  background: #38b2ac;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sa-session-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+.sa-session-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0;
+}
+.sa-session-item.active .sa-session-title {
+  font-weight: bold;
+  color: #2c5282;
+}
+.sa-session-title {
+  flex: 1;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sa-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  font-size: 1rem;
+  color: #e53e3e;
+}
+
+.sa-main {
+  flex: 1;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+.sa-banner {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, #4fd1c5, #4c51bf);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+.sa-logo {
+  width: 32px;
+  margin-right: 0.5rem;
+}
+.sa-tip {
+  font-size: 0.85rem;
+  color: #718096;
+  margin-bottom: 1rem;
+}
+/* 让每条消息行撑满父容器 */
+.sa-msg {
+  display: flex;
+  width: 100%;        /* ← 关键，之前可能没加 */
+  margin-bottom: 0.75rem;
+}
+
+/* AI 消息保持左对齐 */
+.sa-msg-ai {
+  justify-content: flex-start;
+  flex-direction: row;
+}
+
+/* 我 的消息靠右、头像在右边 */
+/* —— 强制“我”的气泡靠右 —— */
+.sa-msg-user .sa-bubble {
+  margin-left: auto !important;
+  margin-right: 0.5rem;  /* 留一点右边距，看着不贴边 */
+}
+
+/* 同时头像也顺序反一下 */
+.sa-msg-user {
+  display: flex;             /* 确保头像和气泡是 flex 排列 */
+  align-items: flex-start;
+}
+.sa-msg-user .sa-avatar {
+  order: 2;                   /* 头像排在气泡后面 */
+  margin-left: 0.5rem;        /* 气泡和头像之间留空 */
+}
+.sa-msg-user .sa-bubble {
+  order: 1;
+}
+
+
+.sa-avatar {
+  font-size: 0.75rem;
+  color: #fff;
+  background: #718096;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.5rem;
+}
+/* —— 气泡内部留更多空间 —— */
+.sa-bubble {
+  /* 原来可能是 padding: 0.5rem 0.75rem; */
+  padding: 0.75rem 1rem;       /* 左右内边距都调大一点 */
+}
+
+/* —— 针对有序列表 —— */
+.sa-bubble ol {
+  list-style-position: inside; /* 把“1.”挪到盒子内部 */
+  padding-left: 1rem;          /* 列表内容再往右缩一点 */
+  margin: 0.5rem 0;            /* 上下留点间距 */
+}
+
+/* —— 针对无序列表（如果也有类似问题） —— */
+.sa-bubble ul {
+  list-style-position: inside;
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+}
+
+.sa-msg-user .sa-bubble {
+  background: #bee3f8;
+}
+.sa-hot-qs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.sa-chip {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #4fd1c5;
+  border-radius: 12px;
+  background: #f0fcfb;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.sa-input-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sa-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.sa-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sa-icon-btn {
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.sa-send-btn {
+  background: linear-gradient(90deg, #4fd1c5, #4c51bf);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sa-footer {
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+.sa-footer a {
+  color: #4c51bf;
+  text-decoration: none;
+  margin: 0 0.5rem;
+}

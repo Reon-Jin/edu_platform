@@ -19,6 +19,26 @@ html, body, #root {
   gap: 1rem; /* space between stacked elements */
 }
 
+/* 只作用在这一页 */
+.container.hw-page {
+  /* 让子元素不再垂直居中，而是靠顶部 */
+  align-items: stretch;
+  justify-content: flex-start;
+  /* 减少上下空白，左右根据需要微调 */
+  padding: 2rem 4rem;
+  /* 取消最小高度限制，以内容为准 */
+  min-height: auto;
+}
+
+/* 覆盖本页的 hw-card：拉满大部分宽度，不受 max-width 限制 */
+.container.hw-page .hw-card {
+  width: 90%;
+  max-width: none;
+  /* 底部不留多余空隙 */
+  margin: 2rem auto 0;
+}
+
+
 .class-box {
   border: 1px solid #d1e9e8;
   border-radius: 8px;
@@ -799,4 +819,281 @@ table tr:hover {
   margin-bottom: 12px;
   font-size: 1rem;
   text-align: center;
+}
+
+.eval-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.eval-container-horizontal {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;     /* 略微缩小左右间距 */
+  padding: 2rem;
+  max-width: 1200px; /* 最大宽度，可根据你页面宽度调整 */
+  margin: 0 auto;  /* 居中 */
+}
+
+.eval-container-horizontal .analysis {
+  flex: 2;         /* 左侧占比 2 */
+  min-width: 0;    /* 避免内容撑破布局 */
+}
+
+.eval-container-horizontal .form-card {
+  flex: 0 0 300px; /* 右侧固定 300px */
+}
+
+
+.eval-card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.eval-card.analysis {
+  background-color: #f9fafb;
+}
+
+.eval-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #334155;
+  border-left: 4px solid #3b82f6;
+  padding-left: 0.75rem;
+}
+
+.eval-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.eval-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eval-input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.eval-button {
+  margin-top: 1.5rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #64748b;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.eval-button.primary {
+  background-color: #3b82f6;
+}
+
+.eval-button:hover {
+  background-color: #1d4ed8;
+}
+
+.eval-preview {
+  margin-top: 2rem;
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 1rem;
+}
+
+.eval-preview-block {
+  margin-bottom: 1rem;
+}
+
+.eval-preview-item {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ——— Homework 页面专属样式（前缀 hw- 保证不冲突） ——— */
+
+/* ========== Homework 页面专属样式（前缀 hw-） ========== */
+
+.hw-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(90deg, #4ECDC4, #556270);
+  color: #fff;
+}
+.hw-header-left {
+  display: flex;
+  flex-direction: column;
+}
+.hw-header-title {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  margin: 0;
+}
+.hw-header-title .hw-icon {
+  margin-right: 0.5rem;
+  font-size: 1.6rem;
+}
+.hw-header-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+.hw-header-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* 统计信息栏 */
+.hw-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.hw-stats-item {
+  text-align: center;
+}
+.hw-stats-number {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #333;
+}
+.hw-stats-label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* 搜索框组 */
+.hw-search-group {
+  display: flex;
+  align-items: center;
+  /* 缩小左右内边距，使搜索框更接近卡片边缘 */
+  padding: 0.75rem 1rem;
+}
+.hw-search-icon {
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+  color: #888;
+}
+.hw-search-input {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* 作业列表表格 */
+.hw-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  margin: 0 1.5rem 1.5rem;
+}
+.hw-table th {
+  background: #f9f9f9;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+}
+.hw-table td {
+  background: white;
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+}
+.hw-table tbody tr:hover td {
+  background: #f5faff;
+}
+.hw-subject-cell {
+  font-weight: 500;
+  color: #333;
+}
+
+/* 状态 Badge */
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.hw-badge-not_submitted {
+  background: #fff4e5;
+  color: #d46b08;
+}
+.hw-badge-grading {
+  background: #fffbe6;
+  color: #d48806;
+}
+.hw-badge-completed {
+  background: #f6ffed;
+  color: #389e0d;
+}
+
+/* 操作按钮 */
+.hw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.hw-btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+.hw-btn-primary {
+  background: #4ECDC4;
+  color: #fff;
+}
+.hw-btn-primary:hover {
+  background: #40b3aa;
+}
+.hw-btn:hover {
+  background: #eee;
+}
+.hw-btn .hw-btn-icon {
+  margin-right: 0.3rem;
+  vertical-align: middle;
+}
+
+/* 分页区域 */
+.hw-pagination {
+  text-align: right;
+  /* 减小上下内边距，让分页更紧凑 */
+  padding: 0.5rem 1rem;
+}
+.hw-page-btn {
+  margin-left: 0.5rem;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+.hw-page-btn:hover {
+  background: #e0e0e0;
 }
