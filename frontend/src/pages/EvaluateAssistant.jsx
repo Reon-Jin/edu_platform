@@ -62,31 +62,45 @@ export default function EvaluateAssistant() {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        {/* 菜单布局下无需返回按钮 */}
-        <h2>评测助手</h2>
-        {error && <div className="error">{error}</div>}
-        <div className="markdown-preview" style={{ minHeight: '6rem', marginBottom: '1rem' }}>
-          {analysisLoading ? '正在努力为您分析学习情况…' : (
+    <div className="eval-container-horizontal">
+      {/* 左侧：学习情况分析 */}
+      <div className="eval-card analysis" style={{ flex: 1 }}>
+        <h2 className="eval-title">评测助手</h2>
+        {error && <div className="eval-error">{error}</div>}
+        <div
+          className="eval-markdown-preview"
+          style={{ minHeight: "6rem", marginBottom: "1rem" }}
+        >
+          {analysisLoading ? (
+            "正在努力为您分析学习情况…"
+          ) : (
             <ReactMarkdown children={analysis} remarkPlugins={[remarkGfm]} />
           )}
         </div>
-        <form onSubmit={gen}>
-          <label>
+      </div>
+
+      {/* 右侧：自定义随练生成卡片 */}
+      <div
+        className="eval-card form-card"
+        style={{ flexBasis: "320px", maxWidth: "100%" }}
+      >
+        <h2 className="eval-title">📝 自定义随练生成</h2>
+        <form onSubmit={gen} className="eval-form">
+          <label className="eval-group">
             主题
             <input
-              className="input"
+              className="eval-input"
               name="topic"
               value={form.topic}
               onChange={handleChange}
+              placeholder="如 李白、修辞、诗歌分析"
               required
             />
           </label>
-          <label>
+          <label className="eval-group">
             单选题数量
             <input
-              className="input"
+              className="eval-input"
               type="number"
               name="num_single_choice"
               value={form.num_single_choice}
@@ -94,10 +108,10 @@ export default function EvaluateAssistant() {
               min="0"
             />
           </label>
-          <label>
+          <label className="eval-group">
             多选题数量
             <input
-              className="input"
+              className="eval-input"
               type="number"
               name="num_multiple_choice"
               value={form.num_multiple_choice}
@@ -105,10 +119,10 @@ export default function EvaluateAssistant() {
               min="0"
             />
           </label>
-          <label>
+          <label className="eval-group">
             填空题数量
             <input
-              className="input"
+              className="eval-input"
               type="number"
               name="num_fill_blank"
               value={form.num_fill_blank}
@@ -116,10 +130,10 @@ export default function EvaluateAssistant() {
               min="0"
             />
           </label>
-          <label>
+          <label className="eval-group">
             简答题数量
             <input
-              className="input"
+              className="eval-input"
               type="number"
               name="num_short_answer"
               value={form.num_short_answer}
@@ -127,10 +141,10 @@ export default function EvaluateAssistant() {
               min="0"
             />
           </label>
-          <label>
+          <label className="eval-group">
             编程题数量
             <input
-              className="input"
+              className="eval-input"
               type="number"
               name="num_programming"
               value={form.num_programming}
@@ -138,35 +152,52 @@ export default function EvaluateAssistant() {
               min="0"
             />
           </label>
-          <button className="button" type="submit" disabled={loading}>
+          <button
+            className="eval-button eval-button--primary"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "生成中…" : "生成随练"}
           </button>
         </form>
+
+        {/* 随练结果预览（在右卡片内） */}
         {preview && (
-          <>
-            <div className="actions">
-              <button className="button" onClick={() => navigate("/student/self_practice")}>我的随练</button>
+          <div className="eval-preview" style={{ marginTop: "1.5rem" }}>
+            <div className="eval-actions">
+              <button
+                className="eval-button"
+                onClick={() => navigate("/student/self_practice")}
+              >
+                我的随练
+              </button>
             </div>
-            <div style={{ marginTop: "1rem" }}>
-              {preview.questions.map((block, bIdx) => (
-                <div key={bIdx} style={{ marginBottom: "1rem" }}>
-                  <strong>{block.type}</strong>
-                  {block.items.map((item, i) => (
-                    <div key={i} style={{ marginLeft: "1rem" }}>
-                      {item.question}
-                      {item.options && (
-                        <ul>
-                          {item.options.map((opt, j) => (
-                            <li key={j}>{opt}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </>
+            {preview.questions.map((block, bIdx) => (
+              <div
+                key={bIdx}
+                className="eval-preview-block"
+                style={{ marginBottom: "1rem" }}
+              >
+                <strong>{block.type}</strong>
+                {block.items.map((item, i) => (
+                  <div
+                    key={i}
+                    className="eval-preview-item"
+                    style={{ marginLeft: "1rem", marginTop: "0.5rem" }}
+                  >
+                    {item.question}
+                    {item.options && (
+                      <ul>
+                        {item.options.map((opt, j) => (
+                          <li key={j}>{opt}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
