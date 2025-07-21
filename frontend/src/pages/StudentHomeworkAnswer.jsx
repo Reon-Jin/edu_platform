@@ -39,7 +39,7 @@ export default function StudentHomeworkAnswer() {
   const submit = async () => {
     try {
       await api.post(`/student/homeworks/${hw_id}/submit`, { answers });
-      navigate(`/student/homeworks/result/${hw_id}`);
+      navigate(`/student/homeworks`);
     } catch (err) {
       console.error(err);
       setError("提交失败");
