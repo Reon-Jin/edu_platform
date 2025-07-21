@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Stepper from "../components/Stepper";
 
 import {
@@ -34,6 +34,25 @@ export default function ExercisePage() {
   const [assignedClasses, setAssignedClasses] = useState([]);
   const [classList, setClassList] = useState([]);
   const [showClasses, setShowClasses] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(false);
+
+  const grouped = useMemo(() => {
+    if (!preview) return {};
+    return preview.questions.reduce((acc, block) => {
+      const { type, items } = block;
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(...items);
+      return acc;
+    }, {});
+  }, [preview]);
+
+  const typeLabels = {
+    single_choice: "单选题",
+    multiple_choice: "多选题",
+    fill_blank: "填空题",
+    short_answer: "简答题",
+    coding: "编程题",
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -279,6 +298,14 @@ export default function ExercisePage() {
             >
               <i className="icon icon-download" /> 下载答案 PDF
             </button>
+            <label style={{ marginLeft: "auto" }}>
+              <input
+                type="checkbox"
+                checked={showAnswers}
+                onChange={() => setShowAnswers((v) => !v)}
+              />
+              显示答案
+            </label>
           </div>
 
           {showClasses && (
@@ -301,18 +328,31 @@ export default function ExercisePage() {
           )}
 
           <div style={{ marginTop: "1rem" }}>
-            {preview.questions.map((block, bIdx) => (
-              <div key={bIdx} style={{ marginBottom: "1rem" }}>
-                <strong>{block.type}</strong>
-                {block.items.map((item, i) => (
-                  <div key={i} style={{ marginLeft: "1rem" }}>
+            {Object.entries(grouped).map(([type, items]) => (
+              <div key={type} style={{ marginBottom: "2rem" }}>
+                <h3>{typeLabels[type] || type}</h3>
+                {items.map((item, idx) => (
+                  <div
+                    key={item.id ?? idx}
+                    style={{ margin: "0.5rem 0 1rem 1rem" }}
+                  >
+                    <strong>{idx + 1}. </strong>
                     {item.question}
-                    {item.options && (
-                      <ul>
+                    {item.options && item.options.length > 0 && (
+                      <ul style={{ marginTop: "0.5rem" }}>
                         {item.options.map((opt, j) => (
                           <li key={j}>{opt}</li>
                         ))}
                       </ul>
+                    )}
+                    {showAnswers && (
+                      <div style={{ marginTop: "0.25rem", color: "#555" }}>
+                        答案：
+                        {String(
+                          preview.answers[item.id] ??
+                            preview.answers[String(item.id)]
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
