@@ -45,6 +45,31 @@ export async function fetchDashboard() {
   return resp.data;
 }
 
+export async function fetchRealTimeOnline() {
+  const resp = await api.get('/admin/real_time_online');
+  return resp.data;
+}
+
+export async function fetchParticipationRates() {
+  const resp = await api.get('/admin/participation_rates');
+  return resp.data;
+}
+
+export async function fetchPerformanceMetrics() {
+  const resp = await api.get('/admin/performance_metrics');
+  return resp.data;
+}
+
+export async function fetchTeacherStats() {
+  const resp = await api.get('/admin/teacher_stats');
+  return resp.data;
+}
+
+export async function fetchNewCourseTrend() {
+  const resp = await api.get('/admin/new_course_trend');
+  return resp.data;
+}
+
 // ----- Public document management -----
 export async function uploadPublicDoc(file) {
   const form = new FormData();
