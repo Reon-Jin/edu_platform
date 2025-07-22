@@ -1,10 +1,12 @@
 /* —— 顶级撑满 —— */
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
 }
 .sa-container {
-  height: 100%;
+  height: 100vh; /* occupy full viewport */
   display: flex;
 }
 /* —— 主区垂直布局 —— */
@@ -16,11 +18,8 @@ html, body, #root {
 /* —— 聊天区撑满中间 —— */
 /* 把原来的 .sa-messages 改成这样： */
 .sa-messages {
-  /* 取消 flex 自动拉伸 */
-  flex: none;
-  /* 固定高度，比如视口高度的 60% 或者 400px */
-  height: 70vh;      /* 也可以写 400px */
-  overflow-y: auto;  /* 超出出现滚动条 */
+  flex: 1;          /* fill remaining space */
+  overflow-y: auto; /* scroll when content overflows */
   margin-bottom: 1rem;
   padding-right: 0.5rem;
 }
