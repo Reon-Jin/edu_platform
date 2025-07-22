@@ -61,10 +61,6 @@ body, .dashboard {
   min-width: 200px;            /* 增大最小宽度 */
   min-height: 120px;           /* 增大最小高度 */
   transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 .availability-card:hover {
   transform: translateY(-6px);
@@ -211,7 +207,6 @@ body, .dashboard {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 .chart-card:hover {
   box-shadow: 0 8px 20px var(--shadow-hover);
@@ -251,10 +246,6 @@ body, .dashboard {
   padding: 1rem;
   border-radius: 0.75rem;
   font-size: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 .error-card {
   background: #FFE6E6;
