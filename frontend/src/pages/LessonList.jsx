@@ -1,11 +1,14 @@
 // src/pages/LessonList.jsx
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { IconButton } from '@chakra-ui/react';
+import { ViewIcon } from '@chakra-ui/icons';
 import { fetchLessonList, deleteCourseware } from "../api/teacher";
 import { formatDateTime } from "../utils";
 import "../index.css";
 
 export default function LessonList() {
+  const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,7 +75,13 @@ export default function LessonList() {
                   <td>{lesson.topic}</td>
                   <td>{formatDateTime(lesson.created_at)}</td>
                   <td className="actions-cell">
-                    <Link to={`/teacher/lesson/preview/${lesson.id}`}>预览</Link>
+                    <IconButton
+                      size="sm"
+                      mr={1}
+                      icon={<ViewIcon />}
+                      aria-label="预览"
+                      onClick={() => navigate(`/teacher/lesson/preview/${lesson.id}`)}
+                    />
                     <button
                       className="icon-button tooltip"
                       onClick={() => handleDelete(lesson.id)}
