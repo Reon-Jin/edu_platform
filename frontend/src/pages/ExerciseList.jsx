@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { IconButton } from '@chakra-ui/react';
+import { ViewIcon } from '@chakra-ui/icons';
 import { fetchExerciseList, deleteExercise } from "../api/teacher";
 import { formatDateTime } from "../utils";
 import "../index.css";
 
 export default function ExerciseList() {
+  const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,7 +74,13 @@ export default function ExerciseList() {
                   <td>{ex.subject}</td>
                   <td>{formatDateTime(ex.created_at)}</td>
                   <td className="actions-cell">
-                    <Link to={`/teacher/exercise/preview/${ex.id}`}>预览</Link>
+                    <IconButton
+                      size="sm"
+                      mr={1}
+                      icon={<ViewIcon />}
+                      aria-label="预览"
+                      onClick={() => navigate(`/teacher/exercise/preview/${ex.id}`)}
+                    />
                     <button
                       className="icon-button tooltip"
                       onClick={() => handleDelete(ex.id)}
