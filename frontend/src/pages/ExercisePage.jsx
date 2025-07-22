@@ -268,7 +268,10 @@ export default function ExercisePage() {
       </form>
 
       {showPreview && preview && (
-        <div className="preview-area card" style={{ marginTop: "1rem" }}>
+        <div
+          className="preview-area card"
+          style={{ marginTop: "1rem", maxWidth: "960px" }}
+        >
           <div className="actions">
             <button
               className="button btn-secondary"

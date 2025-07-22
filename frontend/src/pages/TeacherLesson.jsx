@@ -133,19 +133,6 @@ export default function TeacherLesson() {
                 margin: "1rem 0",
               }}
             >
-              {/* 保存教案 */}
-              <button
-                className="button btn-secondary"
-                onClick={handleSave}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  width: "30%",
-                  minWidth: "120px",
-                }}
-              >
-                <i className="icon icon-save" /> 保存教案
-              </button>
 
               {/* AI 优化 */}
               <button
@@ -159,6 +146,20 @@ export default function TeacherLesson() {
                 }}
               >
                 <i className="icon icon-magic" /> AI优化
+              </button>
+
+              {/* 保存教案 */}
+              <button
+                className="button btn-secondary"
+                onClick={handleSave}
+                style={{
+                  padding: "0.5rem 1rem",
+                  fontSize: "0.9rem",
+                  width: "30%",
+                  minWidth: "120px",
+                }}
+              >
+                <i className="icon icon-save" /> 保存教案
               </button>
 
               {/* 下载 PDF */}
