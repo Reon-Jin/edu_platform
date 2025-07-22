@@ -193,7 +193,7 @@ body, .dashboard {
 
 .chart-card canvas,
 .overview-card canvas {
-  margin: 0 auto;
+  margin: auto;
 }
 
 /* 图表区域 */
@@ -210,8 +210,7 @@ body, .dashboard {
   transition: box-shadow 0.2s;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch; /* keep header left aligned */
 }
 .chart-card:hover {
   box-shadow: 0 8px 20px var(--shadow-hover);
