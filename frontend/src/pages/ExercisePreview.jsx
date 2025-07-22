@@ -118,7 +118,7 @@ export default function ExercisePreview() {
 
   return (
     <div className="container">
-      <div className="card">
+      <div className="card" style={{ maxWidth: "960px" }}>
         <button
           className="button btn-tertiary"
           style={{ width: "auto", marginBottom: "1rem" }}
