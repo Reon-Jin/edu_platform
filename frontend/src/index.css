@@ -20,23 +20,33 @@ html, body, #root {
 }
 
 /* 只作用在这一页 */
+/* 整体页面容器 */
 .container.hw-page {
-  /* 让子元素不再垂直居中，而是靠顶部 */
-  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  /* 顶部开始对齐，子元素不再垂直居中 */
+  align-items: flex-start;
   justify-content: flex-start;
-  /* 减少上下空白，左右根据需要微调 */
-  padding: 2rem 4rem;
-  /* 取消最小高度限制，以内容为准 */
+  /* 上下左右内边距，根据需要微调 */
+  padding: 1.5rem 2rem;
+  /* 让容器宽度撑满视口 */
+  width: 100vw;
+  max-width: 100%;
+  margin: 0 auto;
+  /* 取消最小高度的限制 */
   min-height: auto;
+  box-sizing: border-box;
 }
 
-/* 覆盖本页的 hw-card：拉满大部分宽度，不受 max-width 限制 */
+/* 本页所有卡片（hw-card）都撑满容器宽度，不受 max-width 限制 */
 .container.hw-page .hw-card {
-  width: 90%;
+  width: 100%;
   max-width: none;
-  /* 底部不留多余空隙 */
-  margin: 2rem auto 0;
+  /* 只留顶部间距，去掉底部多余空隙 */
+  margin: 0 0 2rem;
+  box-sizing: border-box;
 }
+
 
 
 .class-box {
