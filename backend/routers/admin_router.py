@@ -580,14 +580,14 @@ def teacher_stats(current: User = Depends(get_current_user)):
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
         class_count = sess.exec(select(func.count()).select_from(Class)).one()
 
-        dist_rows = (
-            sess.exec(
-                select(Class.name, func.count(ClassStudent.student_id))
-                .join(ClassStudent, ClassStudent.class_id == Class.id, isouter=True)
-                .group_by(Class.id)
-            ).all()
-        )
-        distribution = {name: count for name, count in dist_rows}
+        class_rows = sess.exec(select(Class.subject, Class.name).order_by(Class.subject)).all()
+        subj_map = {}
+        for subject, name in class_rows:
+            subj_map.setdefault(subject, []).append(name)
+        distribution = {
+            subj: {"count": len(names), "classes": names}
+            for subj, names in subj_map.items()
+        }
 
     return {
         "teacherCount": teacher_count,

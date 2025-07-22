@@ -174,9 +174,13 @@ body, .dashboard {
   color: var(--color-text);
 }
 
-/* 特殊：班级分布宽卡占满 */
-.structure-group .overview-card:nth-child(2) {
-  flex: 1 1 100%;
+/* 组织结构卡片并排显示 */
+.structure-group .overview-card {
+  flex: 1 1 calc(50% - 1rem);
+}
+
+.class-chart-card canvas {
+  max-height: 200px;
 }
 
 /* 图表区域 */

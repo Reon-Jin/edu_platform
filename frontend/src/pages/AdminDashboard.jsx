@@ -152,6 +152,32 @@ export default function AdminDashboard() {
     }],
   };
 
+  const subjectLabels = Object.keys(stats.classDistribution);
+  const classDistData = {
+    labels: subjectLabels,
+    datasets: [{
+      data: subjectLabels.map(s => stats.classDistribution[s].count),
+      backgroundColor: [
+        '#FF6384','#36A2EB','#FFCE56','#4BC0C0',
+        '#9966FF','#F67019','#F53794','#B234AB'
+      ],
+      hoverOffset: 4,
+    }],
+  };
+  const classDistOptions = {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const label = ctx.label || '';
+            const names = stats.classDistribution[label].classes.join(', ');
+            return `${label}: ${ctx.parsed}个班级\n${names}`;
+          },
+        },
+      },
+    },
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard">
@@ -270,13 +296,9 @@ export default function AdminDashboard() {
                 <h4>班级数量</h4>
                 <p>{stats.classCount}</p>
               </div>
-              <div className="card overview-card">
+              <div className="card overview-card class-chart-card">
                 <h4>班级分布</h4>
-                <p>
-                  {Object.entries(stats.classDistribution)
-                    .map(([k, v]) => `${k}:${v}`)
-                    .join(' ')}
-                </p>
+                <Pie data={classDistData} options={classDistOptions} />
               </div>
             </div>
           </div>
