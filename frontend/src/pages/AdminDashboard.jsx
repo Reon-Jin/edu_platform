@@ -12,7 +12,14 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { fetchDashboard } from '../api/admin';
+import {
+  fetchDashboard,
+  fetchRealTimeOnline,
+  fetchParticipationRates,
+  fetchPerformanceMetrics,
+  fetchTeacherStats,
+  fetchNewCourseTrend,
+} from '../api/admin';
 import '../ui/AdminDashboard.css';
 
 ChartJS.register(
@@ -30,6 +37,11 @@ ChartJS.register(
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [online, setOnline] = useState(null);
+  const [participation, setParticipation] = useState(null);
+  const [performance, setPerformance] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [courseTrend, setCourseTrend] = useState(null);
 
   // 英文题型到中文的映射
   const qTypeMap = {
@@ -42,8 +54,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const d = await fetchDashboard();
+        const [d, onlineData, part, perf, stat, trend] = await Promise.all([
+          fetchDashboard(),
+          fetchRealTimeOnline(),
+          fetchParticipationRates(),
+          fetchPerformanceMetrics(),
+          fetchTeacherStats(),
+          fetchNewCourseTrend(),
+        ]);
         setData(d);
+        setOnline(onlineData);
+        setParticipation(part);
+        setPerformance(perf);
+        setStats(stat);
+        setCourseTrend(trend);
       } catch (err) {
         console.error(err);
         setError('加载失败');
@@ -58,7 +82,7 @@ export default function AdminDashboard() {
       </div>
     );
   }
-  if (!data) {
+  if (!data || !online || !participation || !performance || !stats || !courseTrend) {
     return (
       <div className="container">
         <div className="card loading-card">加载中...</div>
@@ -71,20 +95,7 @@ export default function AdminDashboard() {
   const teacherSeries = data.activity.trend.map(t => t.teacher);
   const studentSeries = data.activity.trend.map(t => t.student);
 
-  // 当前活跃角色占比
-  const ratioData = {
-    labels: ['教师', '学生'],
-    datasets: [
-      {
-        data: [
-          data.activity.ratio.teacher || 0,
-          data.activity.ratio.student || 0,
-        ],
-        backgroundColor: ['#36A2EB', '#FF6384'],
-        hoverOffset: 4,
-      },
-    ],
-  };
+
 
   // 成绩分布
   const scoreData = {
@@ -127,6 +138,27 @@ export default function AdminDashboard() {
         backgroundColor: 'rgba(255,99,132,0.3)',
         borderColor: 'rgba(255,99,132,1)',
         borderWidth: 2,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  // 新建课程／练习趋势
+  const newCourseData = {
+    labels: courseTrend.labels,
+    datasets: [
+      {
+        label: '课程',
+        data: courseTrend.course,
+        borderColor: '#36A2EB',
+        backgroundColor: 'rgba(54,162,235,0.3)',
+        tension: 0.3,
+      },
+      {
+        label: '练习',
+        data: courseTrend.exercise,
+        borderColor: '#FF6384',
+        backgroundColor: 'rgba(255,99,132,0.3)',
         tension: 0.3,
       },
     ],
@@ -190,6 +222,42 @@ export default function AdminDashboard() {
             <h4>平均响应时长 (ms)</h4>
             <p>{data.system.avg_response_ms.toFixed(1)}</p>
           </div>
+          <div className="card overview-card">
+            <h4>实时在线教师数</h4>
+            <p>{online.teachers}</p>
+          </div>
+          <div className="card overview-card">
+            <h4>实时在线学生数</h4>
+            <p>{online.students}</p>
+          </div>
+          <div className="card overview-card">
+            <h4>作业参与率</h4>
+            <p>{(participation.assignmentParticipationRate * 100).toFixed(1)}%</p>
+          </div>
+          <div className="card overview-card">
+            <h4>练习参与率</h4>
+            <p>{(participation.exerciseParticipationRate * 100).toFixed(1)}%</p>
+          </div>
+          <div className="card overview-card">
+            <h4>平均接口错误率</h4>
+            <p>{(performance.averageErrorRate * 100).toFixed(2)}%</p>
+          </div>
+          <div className="card overview-card">
+            <h4>平均页面加载时长 (ms)</h4>
+            <p>{performance.averageLoadTime.toFixed(1)}</p>
+          </div>
+          <div className="card overview-card">
+            <h4>班级数量</h4>
+            <p>{stats.classCount}</p>
+          </div>
+          <div className="card overview-card">
+            <h4>班级分布</h4>
+            <p>
+              {Object.entries(stats.classDistribution)
+                .map(([k, v]) => `${k}:${v}`)
+                .join(' ')}
+            </p>
+          </div>
         </div>
       </section>
 
@@ -228,13 +296,6 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="card chart-card">
-            <div className="chart-card-header">
-              <h4>当前活跃角色占比</h4>
-              <button className="chart-export">导出</button>
-            </div>
-            <Doughnut data={ratioData} />
-          </div>
 
           <div className="card chart-card">
             <div className="chart-card-header">
@@ -258,6 +319,14 @@ export default function AdminDashboard() {
               <button className="chart-export">导出</button>
             </div>
             <Line data={cwDayData} options={{ plugins: { legend: { position: 'top' } } }} />
+          </div>
+
+          <div className="card chart-card">
+            <div className="chart-card-header">
+              <h4>新建课程／练习趋势</h4>
+              <button className="chart-export">导出</button>
+            </div>
+            <Line data={newCourseData} options={{ plugins: { legend: { position: 'top' } } }} />
           </div>
 
           <div className="card chart-card">

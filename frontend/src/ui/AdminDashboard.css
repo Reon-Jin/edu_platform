@@ -73,8 +73,9 @@
   gap: 1rem;
 }
 .overview-card {
-  flex: 1 1 calc(33.333% - 1rem);
+  flex: 1 1 calc(25% - 1rem);
   text-align: center;
+  word-break: break-all;
 }
 .overview-card h4 {
   margin-bottom: 0.5rem;

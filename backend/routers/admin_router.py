@@ -15,8 +15,15 @@ from backend.config import engine
 from backend.routers.lesson_router import _generate_and_store_pdf
 from backend.models import (
     User, Role, Courseware, Exercise, Homework, Submission,
-    ChatHistory, ChatSession, ChatMessage, Practice, LoginEvent, Document,
+    ChatHistory,
+    ChatSession,
+    ChatMessage,
+    Practice,
+    LoginEvent,
+    Document,
     RequestMetric,
+    Class,
+    ClassStudent,
 )
 from backend.services.document_service import (
     save_public_document,
@@ -479,4 +486,152 @@ def dashboard(current: User = Depends(get_current_user)):
         "courseware_prod": {"week": cw_week, "day": cw_day, "qtype": qtype_counts},
         "system": {"avg_response_ms": avg_response, "error_rate": error_rate},
     }
+
+
+@router.get("/real_time_online")
+def real_time_online(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
+    today = datetime.utcnow().date()
+    with Session(engine) as sess:
+        rows = (
+            sess.exec(
+                select(Role.name, func.count(func.distinct(LoginEvent.user_id)))
+                .join(User, User.id == LoginEvent.user_id)
+                .join(Role, User.role_id == Role.id)
+                .where(LoginEvent.created_at >= today)
+                .group_by(Role.name)
+            ).all()
+        )
+        teachers = 0
+        students = 0
+        for r, c in rows:
+            if r == "teacher":
+                teachers = c
+            elif r == "student":
+                students = c
+    return {"teachers": teachers, "students": students}
+
+
+@router.get("/participation_rates")
+def participation_rates(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
+    with Session(engine) as sess:
+        hw_total = sess.exec(select(func.count()).select_from(Homework)).one()
+        sub_total = sess.exec(
+            select(func.count())
+            .select_from(Submission)
+            .where(Submission.status == "completed")
+        ).one()
+        assignment_rate = sub_total / hw_total if hw_total else 0
+
+        student_count = sess.exec(
+            select(func.count()).select_from(User).join(Role).where(Role.name == "student")
+        ).one()
+        practice_students = sess.exec(
+            select(func.count(func.distinct(Practice.student_id)))
+        ).one()
+        exercise_rate = practice_students / student_count if student_count else 0
+
+    return {
+        "assignmentParticipationRate": assignment_rate,
+        "exerciseParticipationRate": exercise_rate,
+    }
+
+
+@router.get("/performance_metrics")
+def performance_metrics(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    with Session(engine) as sess:
+        avg_dur, err_cnt, total = (
+            sess.exec(
+                select(
+                    func.avg(RequestMetric.duration_ms),
+                    func.sum(case((RequestMetric.status_code >= 400, 1), else_=0)),
+                    func.count(),
+                ).where(RequestMetric.created_at >= week_ago)
+            ).one()
+        )
+    avg_load = avg_dur or 0.0
+    total = total or 1
+    error_rate = (err_cnt or 0) / total
+    return {"averageLoadTime": avg_load, "averageErrorRate": error_rate}
+
+
+@router.get("/teacher_stats")
+def teacher_stats(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
+    with Session(engine) as sess:
+        teacher_count = sess.exec(
+            select(func.count()).select_from(User).join(Role).where(Role.name == "teacher")
+        ).one()
+        student_count = sess.exec(
+            select(func.count()).select_from(User).join(Role).where(Role.name == "student")
+        ).one()
+        cw_count = sess.exec(select(func.count()).select_from(Courseware)).one()
+        ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
+        class_count = sess.exec(select(func.count()).select_from(Class)).one()
+
+        dist_rows = (
+            sess.exec(
+                select(Class.name, func.count(ClassStudent.student_id))
+                .join(ClassStudent, ClassStudent.class_id == Class.id, isouter=True)
+                .group_by(Class.id)
+            ).all()
+        )
+        distribution = {name: count for name, count in dist_rows}
+
+    return {
+        "teacherCount": teacher_count,
+        "studentCount": student_count,
+        "coursewareCount": cw_count,
+        "exerciseCount": ex_count,
+        "classCount": class_count,
+        "classDistribution": distribution,
+    }
+
+
+@router.get("/new_course_trend")
+def new_course_trend(current: User = Depends(get_current_user)):
+    if not current.role or current.role.name != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="仅限管理员访问")
+
+    today = datetime.utcnow().date()
+    start = today - timedelta(days=13)
+    with Session(engine) as sess:
+        cw_rows = (
+            sess.exec(
+                select(func.date(Courseware.created_at), func.count())
+                .where(Courseware.created_at >= start)
+                .group_by(func.date(Courseware.created_at))
+            ).all()
+        )
+        ex_rows = (
+            sess.exec(
+                select(func.date(Exercise.created_at), func.count())
+                .where(Exercise.created_at >= start)
+                .group_by(func.date(Exercise.created_at))
+            ).all()
+        )
+
+    cw_map = {str(d): c for d, c in cw_rows}
+    ex_map = {str(d): c for d, c in ex_rows}
+    labels = []
+    cw_list = []
+    ex_list = []
+    for i in range(14):
+        day = start + timedelta(days=i)
+        key = str(day)
+        labels.append(key)
+        cw_list.append(cw_map.get(key, 0))
+        ex_list.append(ex_map.get(key, 0))
+    return {"labels": labels, "course": cw_list, "exercise": ex_list}
 
