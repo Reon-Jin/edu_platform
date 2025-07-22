@@ -232,6 +232,10 @@ export default function AdminDashboard() {
                 <h4>练习数量</h4>
                 <p>{data.counts.exercise}</p>
               </div>
+              <div className="card overview-card">
+                <h4>公共资料数</h4>
+                <p>{data.counts.public_doc}</p>
+              </div>
             </div>
           </div>
 
@@ -278,12 +282,12 @@ export default function AdminDashboard() {
             <h3 className="group-title">参与度</h3>
             <div className="group-cards">
               <div className="card overview-card">
-                <h4>作业参与率</h4>
-                <p>{(participation.assignmentParticipationRate * 100).toFixed(1)}%</p>
+                <h4>作业完成率</h4>
+                <p>{(participation.assignmentCompletionRate * 100).toFixed(1)}%</p>
               </div>
               <div className="card overview-card">
-                <h4>练习参与率</h4>
-                <p>{(participation.exerciseParticipationRate * 100).toFixed(1)}%</p>
+                <h4>随练使用率</h4>
+                <p>{(participation.practiceUsageRate * 100).toFixed(1)}%</p>
               </div>
             </div>
           </div>
