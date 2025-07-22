@@ -48,6 +48,7 @@ export default function AdminDashboard() {
     multiple_choice: '多选题',
     fill_in_blank: '填空题',
     short_answer: '简答题',
+    coding: '编程题',
   };
 
   useEffect(() => {

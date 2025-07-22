@@ -54,6 +54,7 @@ export default function StudentHomeworkResult() {
     multiple_choice: "多选题",
     fill_in_blank: "填空题",
     short_answer: "简答题",
+    coding:"编程题",
   };
 
   // 把所有题目扁平到 questions 数组，方便后面点击查看
