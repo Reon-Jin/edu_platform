@@ -148,6 +148,10 @@ body, .dashboard {
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .overview-card::before {
   content: '';
@@ -183,6 +187,11 @@ body, .dashboard {
   max-height: 200px;
 }
 
+.chart-card canvas,
+.overview-card canvas {
+  margin: 0 auto;
+}
+
 /* 图表区域 */
 .charts-section .charts-grid {
   display: grid;
@@ -195,6 +204,9 @@ body, .dashboard {
   box-shadow: 0 4px 12px var(--shadow-light);
   padding: 1rem;
   transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .chart-card:hover {
   box-shadow: 0 8px 20px var(--shadow-hover);
@@ -204,6 +216,7 @@ body, .dashboard {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
+  width: 100%;
 }
 .chart-card-header h4 {
   margin: 0;
