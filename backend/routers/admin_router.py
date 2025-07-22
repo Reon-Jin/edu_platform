@@ -306,6 +306,9 @@ def dashboard(current: User = Depends(get_current_user)):
         ).one()
         cw_count = sess.exec(select(func.count()).select_from(Courseware)).one()
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
+        public_doc_count = sess.exec(
+            select(func.count()).select_from(Document).where(Document.is_public == True)
+        ).one()
 
         # --- User activity metrics ---
         daily_rows = sess.exec(
@@ -469,6 +472,7 @@ def dashboard(current: User = Depends(get_current_user)):
             "student": student_count,
             "courseware": cw_count,
             "exercise": ex_count,
+            "public_doc": public_doc_count,
         },
         "activity": {
             "trend": trend_list,
@@ -521,12 +525,11 @@ def participation_rates(current: User = Depends(get_current_user)):
 
     with Session(engine) as sess:
         hw_total = sess.exec(select(func.count()).select_from(Homework)).one()
-        sub_total = sess.exec(
-            select(func.count())
-            .select_from(Submission)
+        completed_hw = sess.exec(
+            select(func.count(func.distinct(Submission.homework_id)))
             .where(Submission.status == "completed")
         ).one()
-        assignment_rate = sub_total / hw_total if hw_total else 0
+        completion_rate = completed_hw / hw_total if hw_total else 0
 
         student_count = sess.exec(
             select(func.count()).select_from(User).join(Role).where(Role.name == "student")
@@ -534,11 +537,11 @@ def participation_rates(current: User = Depends(get_current_user)):
         practice_students = sess.exec(
             select(func.count(func.distinct(Practice.student_id)))
         ).one()
-        exercise_rate = practice_students / student_count if student_count else 0
+        usage_rate = practice_students / student_count if student_count else 0
 
     return {
-        "assignmentParticipationRate": assignment_rate,
-        "exerciseParticipationRate": exercise_rate,
+        "assignmentCompletionRate": completion_rate,
+        "practiceUsageRate": usage_rate,
     }
 
 
@@ -580,14 +583,14 @@ def teacher_stats(current: User = Depends(get_current_user)):
         ex_count = sess.exec(select(func.count()).select_from(Exercise)).one()
         class_count = sess.exec(select(func.count()).select_from(Class)).one()
 
-        dist_rows = (
-            sess.exec(
-                select(Class.name, func.count(ClassStudent.student_id))
-                .join(ClassStudent, ClassStudent.class_id == Class.id, isouter=True)
-                .group_by(Class.id)
-            ).all()
-        )
-        distribution = {name: count for name, count in dist_rows}
+        class_rows = sess.exec(select(Class.subject, Class.name).order_by(Class.subject)).all()
+        subj_map = {}
+        for subject, name in class_rows:
+            subj_map.setdefault(subject, []).append(name)
+        distribution = {
+            subj: {"count": len(names), "classes": names}
+            for subj, names in subj_map.items()
+        }
 
     return {
         "teacherCount": teacher_count,

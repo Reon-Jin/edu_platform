@@ -48,6 +48,7 @@ export default function AdminDashboard() {
     multiple_choice: '多选题',
     fill_in_blank: '填空题',
     short_answer: '简答题',
+    coding: '编程题',
   };
 
   useEffect(() => {
@@ -152,6 +153,32 @@ export default function AdminDashboard() {
     }],
   };
 
+  const subjectLabels = Object.keys(stats.classDistribution);
+  const classDistData = {
+    labels: subjectLabels,
+    datasets: [{
+      data: subjectLabels.map(s => stats.classDistribution[s].count),
+      backgroundColor: [
+        '#FF6384','#36A2EB','#FFCE56','#4BC0C0',
+        '#9966FF','#F67019','#F53794','#B234AB'
+      ],
+      hoverOffset: 4,
+    }],
+  };
+  const classDistOptions = {
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const label = ctx.label || '';
+            const names = stats.classDistribution[label].classes.join(', ');
+            return `${label}: ${ctx.parsed}个班级\n${names}`;
+          },
+        },
+      },
+    },
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard">
@@ -206,6 +233,10 @@ export default function AdminDashboard() {
                 <h4>练习数量</h4>
                 <p>{data.counts.exercise}</p>
               </div>
+              <div className="card overview-card">
+                <h4>公共资料数</h4>
+                <p>{data.counts.public_doc}</p>
+              </div>
             </div>
           </div>
 
@@ -252,12 +283,12 @@ export default function AdminDashboard() {
             <h3 className="group-title">参与度</h3>
             <div className="group-cards">
               <div className="card overview-card">
-                <h4>作业参与率</h4>
-                <p>{(participation.assignmentParticipationRate * 100).toFixed(1)}%</p>
+                <h4>作业完成率</h4>
+                <p>{(participation.assignmentCompletionRate * 100).toFixed(1)}%</p>
               </div>
               <div className="card overview-card">
-                <h4>练习参与率</h4>
-                <p>{(participation.exerciseParticipationRate * 100).toFixed(1)}%</p>
+                <h4>随练使用率</h4>
+                <p>{(participation.practiceUsageRate * 100).toFixed(1)}%</p>
               </div>
             </div>
           </div>
@@ -270,13 +301,9 @@ export default function AdminDashboard() {
                 <h4>班级数量</h4>
                 <p>{stats.classCount}</p>
               </div>
-              <div className="card overview-card">
+              <div className="card overview-card class-chart-card">
                 <h4>班级分布</h4>
-                <p>
-                  {Object.entries(stats.classDistribution)
-                    .map(([k, v]) => `${k}:${v}`)
-                    .join(' ')}
-                </p>
+                <Pie data={classDistData} options={classDistOptions} />
               </div>
             </div>
           </div>

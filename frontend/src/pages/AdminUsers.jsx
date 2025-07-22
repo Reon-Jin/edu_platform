@@ -81,7 +81,10 @@ export default function AdminUsers() {
                   <td>{u.username}</td>
                   <td>{u.role}</td>
                   <td>
-                    <button className="button" onClick={() => handleDelete(u.id)}>
+                    <button
+                      className="admin-action-btn admin-delete-btn"
+                      onClick={() => handleDelete(u.id)}
+                    >
                       删除
                     </button>
                   </td>

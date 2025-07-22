@@ -21,6 +21,14 @@ export default function EvaluateAssistant() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const typeLabels = {
+    single_choice: "单选题",
+    multiple_choice: "多选题",
+    fill_in_blank: "填空题",
+    short_answer: "简答题",
+    coding: "编程题",
+  };
+
   useEffect(() => {
     const load = async () => {
       setAnalysis("");
@@ -178,7 +186,7 @@ export default function EvaluateAssistant() {
                 className="eval-preview-block"
                 style={{ marginBottom: "1rem" }}
               >
-                <strong>{block.type}</strong>
+                <strong>{typeLabels[block.type] || block.type}</strong>
                 {block.items.map((item, i) => (
                   <div
                     key={i}
