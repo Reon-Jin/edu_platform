@@ -24,6 +24,8 @@ from backend.models import (
     RequestMetric,
     Class,
     ClassStudent,
+    DocumentActivation,
+    DocumentVector,
 )
 from backend.services.document_service import (
     save_public_document,
@@ -130,6 +132,28 @@ def delete_user(uid: int, current: User = Depends(get_current_user)):
             sess.delete(s)
         for p in sess.exec(select(Practice).where(Practice.student_id == uid)):
             sess.delete(p)
+        # 删除用户关联的文档及其向量/激活记录
+        for d in sess.exec(select(Document).where(Document.owner_id == uid)):
+            for vec in sess.exec(select(DocumentVector).where(DocumentVector.doc_id == d.id)):
+                sess.delete(vec)
+            for act in sess.exec(
+                select(DocumentActivation).where(DocumentActivation.doc_id == d.id)
+            ):
+                sess.delete(act)
+            sess.delete(d)
+        for act in sess.exec(
+            select(DocumentActivation).where(DocumentActivation.teacher_id == uid)
+        ):
+            sess.delete(act)
+        # 删除用户担任教师的班级及其关联
+        for c in sess.exec(select(Class).where(Class.teacher_id == uid)):
+            for cs in sess.exec(select(ClassStudent).where(ClassStudent.class_id == c.id)):
+                sess.delete(cs)
+            for hw in sess.exec(select(Homework).where(Homework.class_id == c.id)):
+                for sub in sess.exec(select(Submission).where(Submission.homework_id == hw.id)):
+                    sess.delete(sub)
+                sess.delete(hw)
+            sess.delete(c)
         sess.delete(user)
         sess.commit()
         return {"status": "ok"}
