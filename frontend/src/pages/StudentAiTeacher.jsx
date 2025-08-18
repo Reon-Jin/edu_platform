@@ -16,6 +16,7 @@ export default function StudentAiTeacher() {
   const [current, setCurrent] = useState(null);
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState("");
+  const [useDocs, setUseDocs] = useState(true);
   const endRef = useRef(null);
 
   // 常用的“热门问题”
@@ -95,7 +96,7 @@ export default function StudentAiTeacher() {
     const base = api.defaults.baseURL || "";
     const url = `${base}/student/ai/session/${current}/ask_stream?question=${encodeURIComponent(
       q
-    )}&token=${token}`;
+    )}&use_docs=${useDocs}&token=${token}`;
     const es = new EventSource(url);
     es.onmessage = (e) => {
       const t = e.data;
@@ -197,6 +198,18 @@ export default function StudentAiTeacher() {
         {/* 温馨提示 */}
         <div className="sa-tip">
           💡 建议输入完整的问题描述以获得更精准回答。
+        </div>
+
+        {/* 文档上下文开关 */}
+        <div className="sa-doc-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={useDocs}
+              onChange={(e) => setUseDocs(e.target.checked)}
+            />
+            启用教师文档
+          </label>
         </div>
 
         {/* 消息列表 */}

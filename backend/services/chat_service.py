@@ -2,8 +2,15 @@ from typing import List, Iterator
 from sqlmodel import Session, select
 from sqlalchemy import func
 from backend.config import engine
-from backend.models import ChatHistory, ChatSession, ChatMessage
+from backend.models import (
+    ChatHistory,
+    ChatSession,
+    ChatMessage,
+    Class,
+    ClassStudent,
+)
 from backend.utils.deepseek_client import call_deepseek_api, call_deepseek_api_chat
+from backend.utils.rag_pipeline import retrieve_paragraphs
 from datetime import datetime
 
 def ask_question(student_id: int, question: str) -> ChatHistory:
@@ -55,7 +62,17 @@ def get_messages(student_id: int, session_id: int) -> List[ChatMessage]:
         return sess.exec(stmt).all()
 
 
-def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessage:
+def _get_teacher_id(sess: Session, student_id: int) -> int | None:
+    return sess.exec(
+        select(Class.teacher_id)
+        .join(ClassStudent, ClassStudent.class_id == Class.id)
+        .where(ClassStudent.student_id == student_id)
+    ).first()
+
+
+def ask_in_session(
+    student_id: int, session_id: int, question: str, use_docs: bool = True
+) -> ChatMessage:
     with Session(engine) as sess:
         session = sess.get(ChatSession, session_id)
         if not session or session.student_id != student_id:
@@ -63,9 +80,28 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
         user_msg = ChatMessage(session_id=session_id, role="user", content=question)
         sess.add(user_msg)
         sess.commit()
-        msgs = sess.exec(select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at)).all()
+        msgs = sess.exec(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.created_at)
+        ).all()
         conv = [{"role": m.role, "content": m.content} for m in msgs]
         conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
+
+        if use_docs:
+            tid = _get_teacher_id(sess, student_id)
+            if tid:
+                paras = retrieve_paragraphs(question, tid, sess)
+                if paras:
+                    context = "\n\n".join(p for _, p in paras)
+                    conv.insert(
+                        1,
+                        {
+                            "role": "system",
+                            "content": f"以下为教师文档中的相关段落：\n{context}",
+                        },
+                    )
+
         resp = call_deepseek_api_chat(conv)
         answer = resp["choices"][0]["message"]["content"]
         ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)
@@ -76,7 +112,7 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
 
 
 def ask_in_session_stream(
-    student_id: int, session_id: int, question: str
+    student_id: int, session_id: int, question: str, use_docs: bool = True
 ) -> Iterator[str]:
     """Ask a question in a session and yield the answer token by token."""
     with Session(engine) as sess:
@@ -95,6 +131,19 @@ def ask_in_session_stream(
         )
         conv = [{"role": m.role, "content": m.content} for m in msgs]
         conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
+        if use_docs:
+            tid = _get_teacher_id(sess, student_id)
+            if tid:
+                paras = retrieve_paragraphs(question, tid, sess)
+                if paras:
+                    context = "\n\n".join(p for _, p in paras)
+                    conv.insert(
+                        1,
+                        {
+                            "role": "system",
+                            "content": f"以下为教师文档中的相关段落：\n{context}",
+                        },
+                    )
         resp = call_deepseek_api_chat(conv)
         answer = resp["choices"][0]["message"]["content"]
         ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)

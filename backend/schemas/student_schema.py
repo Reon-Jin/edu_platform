@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class AskRequest(BaseModel):
     question: str
+    use_docs: bool = True
 
 class ChatOut(BaseModel):
     id: int
