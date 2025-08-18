@@ -36,6 +36,12 @@ export default function EvaluateAssistant() {
       try {
         const resp = await fetchStudentAnalysis();
         setAnalysis(resp.analysis || "");
+        if (resp.recommendation) {
+          setForm((prev) => ({
+            ...prev,
+            ...resp.recommendation,
+          }));
+        }
       } catch (err) {
         console.error(err);
         setError("加载分析失败");

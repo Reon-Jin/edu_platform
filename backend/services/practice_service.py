@@ -4,6 +4,7 @@ from typing import Dict, Any, List
 from sqlmodel import Session, select
 from backend.config import engine
 from backend.models import Practice
+from backend.services.analysis_service import get_latest_analysis
 from backend.services.exercise_service import _build_pdf, preview_exercise
 from io import BytesIO
 
@@ -24,6 +25,33 @@ def generate_practice(
     num_short_answer: int = 0,
     num_programming: int = 0,
 ) -> Practice:
+    if (
+        (not topic)
+        or all(
+            n == 0
+            for n in [
+                num_single_choice,
+                num_multiple_choice,
+                num_fill_blank,
+                num_short_answer,
+                num_programming,
+            ]
+        )
+    ):
+        latest = get_latest_analysis(student_id)
+        if isinstance(latest, dict):
+            rec = latest.get("recommendation", {})
+            topic = topic or rec.get("topic", topic)
+            num_single_choice = rec.get(
+                "num_single_choice", num_single_choice
+            )
+            num_multiple_choice = rec.get(
+                "num_multiple_choice", num_multiple_choice
+            )
+            num_fill_blank = rec.get("num_fill_blank", num_fill_blank)
+            num_short_answer = rec.get("num_short_answer", num_short_answer)
+            num_programming = rec.get("num_programming", num_programming)
+
     data = preview_exercise(
         topic=topic,
         num_single_choice=num_single_choice,

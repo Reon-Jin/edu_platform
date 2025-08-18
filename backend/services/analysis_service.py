@@ -1,5 +1,7 @@
 import json
+import re
 from typing import Dict, Any, Optional
+
 from sqlmodel import Session, select
 
 from backend.config import engine
@@ -21,15 +23,25 @@ def analyze_student_practice(student_id: int) -> Dict[str, Any]:
             for p in practices
         ]
     prompt = (
-        "根据以下学生的练习情况给出学习情况分析，并给出学习建议：\n"
+        "请根据以下学生的练习情况给出学习分析，并使用JSON格式输出，"
+        "需包含analysis(文字描述)、weak_points(数组)以及recommendation(对象，"
+        "含topic、num_single_choice、num_multiple_choice、num_fill_blank、"
+        "num_short_answer、num_programming)：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
     )
     try:
         resp = call_deepseek_api(prompt)
         content = resp["choices"][0]["message"]["content"]
+        text = re.sub(r"^```(?:json)?\s*", "", content)
+        text = re.sub(r"\s*```$", "", text)
+        data = json.loads(text)
     except Exception as e:
-        content = f"分析失败: {e}"
-    return {"analysis": content}
+        data = {
+            "analysis": f"分析失败: {e}",
+            "weak_points": [],
+            "recommendation": {},
+        }
+    return data
 
 
 def _collect_homework_summary(
@@ -84,27 +96,43 @@ def analyze_student_homeworks(
     """Analyze student's completed homework submissions."""
     summary = _collect_homework_summary(student_id, teacher_id, class_id)
     prompt = (
-        "根据以下学生的作业情况（每份作业的满分、得分以及错题）给出学习情况分析，并给出学习建议：\n"
+        "请根据以下学生的作业情况（每份作业的满分、得分以及错题）给出学习分析。"
+        "使用JSON格式返回，需包含analysis(文字描述)、weak_points(数组)以及"
+        "recommendation(对象，含topic、num_single_choice、num_multiple_choice、"
+        "num_fill_blank、num_short_answer、num_programming)：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
     )
     try:
         resp = call_deepseek_api(prompt)
         content = resp["choices"][0]["message"]["content"]
+        text = re.sub(r"^```(?:json)?\s*", "", content)
+        text = re.sub(r"\s*```$", "", text)
+        data = json.loads(text)
     except Exception as e:
-        content = f"分析失败: {e}"
-    return {"analysis": content}
+        data = {
+            "analysis": f"分析失败: {e}",
+            "weak_points": [],
+            "recommendation": {},
+        }
+    return data
 
 
 def analyze_and_save_homeworks(student_id: int, teacher_id: Optional[int] = None) -> str:
     result = analyze_student_homeworks(student_id, teacher_id)
     with Session(engine) as sess:
-        sa = StudentAnalysis(student_id=student_id, teacher_id=teacher_id, content=result["analysis"])
+        sa = StudentAnalysis(
+            student_id=student_id,
+            teacher_id=teacher_id,
+            content=json.dumps(result, ensure_ascii=False),
+        )
         sess.add(sa)
         sess.commit()
     return result["analysis"]
 
 
-def get_latest_analysis(student_id: int, teacher_id: Optional[int] = None) -> Optional[str]:
+def get_latest_analysis(
+    student_id: int, teacher_id: Optional[int] = None
+) -> Optional[Dict[str, Any]]:
     with Session(engine) as sess:
         stmt = (
             select(StudentAnalysis)
@@ -116,4 +144,9 @@ def get_latest_analysis(student_id: int, teacher_id: Optional[int] = None) -> Op
         else:
             stmt = stmt.where(StudentAnalysis.teacher_id.is_(None))
         sa = sess.exec(stmt).first()
-        return sa.content if sa else None
+        if not sa:
+            return None
+        try:
+            return json.loads(sa.content)
+        except Exception:
+            return {"analysis": sa.content}

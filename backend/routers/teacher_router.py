@@ -58,8 +58,8 @@ def student_analysis(
             if not c or c.teacher_id != current.id:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="class not found")
 
-    content = get_latest_analysis(sid, teacher_id=current.id)
-    return {"analysis": content or ""}
+    data = get_latest_analysis(sid, teacher_id=current.id)
+    return data or {"analysis": ""}
 
 @router.get("/{sid}/homeworks", response_model=List[SubmissionMeta])
 def student_homeworks(

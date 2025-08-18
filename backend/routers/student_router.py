@@ -136,5 +136,5 @@ router_analysis = APIRouter(prefix="/student", tags=["student-analysis"])
 
 @router_analysis.get("/analysis")
 def api_analysis(user: User = Depends(get_current_user)):
-    content = get_latest_analysis(user.id)
-    return {"analysis": content or ""}
+    data = get_latest_analysis(user.id)
+    return data or {"analysis": ""}
