@@ -1,0 +1,150 @@
+/* ============== TeacherLayout.css ============== */
+/* —— 主题变量 —— */
+:root {
+  --sidebar-width: 240px;      /* 展开宽度 */
+  --sidebar-collapsed: 60px;   /* 折叠宽度 */
+  --grad-from: #16a5b5;        /* 主色渐变起点 */
+  --grad-to:   #0099c2;        /* 主色渐变终点 */
+  --grad-hover:#14b9d0;        /* 按钮悬停高亮 */
+  --text-dark:#374151;         /* 深色字体 */
+  --bg-main:  #f6f9fc;         /* 页面背景 */
+  --shadow-md:0 4px 12px rgba(0,0,0,.08);
+  --ease:     .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* —— 基础 —— */
+body {
+  margin: 0;
+  font-family: "PingFang SC","Noto Sans CJK",Helvetica,Arial,sans-serif;
+  background: var(--bg-main);
+  color: var(--text-dark);
+}
+
+/* ===== 折叠/展开按钮 ===== */
+.toggle-btn{
+  position: fixed;
+  top: 50%;                         /* 纵向居中 */
+  left: 0;                          /* 贴屏幕最左侧 */
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transform: translateY(-50%);      /* 真正垂直居中 */
+  transition: transform var(--ease), left var(--ease);
+  z-index: 10000;                    /* 始终在最上层 */
+}
+
+/* 折叠时：鼠标移入 → 轻微向右晃动 */
+.toggle-btn:hover{
+  transform: translateY(-50%) translateX(6px);
+}
+
+/* ===== 展开后的位置修正 ===== */
+/* TeacherLayout.jsx 会在展开时给按钮加 .shifted 类 */
+.toggle-btn.shifted{
+  /* 让按钮贴在侧栏外缘：240px - 16px(半径) */
+  left: calc(var(--sidebar-width) - 16px);
+}
+/* 展开状态下的悬停动画（同样向右晃） */
+.toggle-btn.shifted:hover{
+  transform: translateY(-50%) translateX(6px);
+}
+
+/* ===== 侧边栏 ===== */
+.sidebar{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: var(--shadow-md);
+  transition: width var(--ease);
+}
+.sidebar:not(.open){
+  width: var(--sidebar-collapsed);
+  overflow: hidden;
+}
+.sidebar > div:first-child{
+  font-size: .95rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* ===== 通用按钮样式 ===== */
+.button{
+  margin: 12px 0;
+  padding: 14px 0;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background-image: linear-gradient(135deg,var(--grad-from),var(--grad-to));
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--ease);
+}
+.button:hover{
+  background-image: linear-gradient(135deg,var(--grad-hover),var(--grad-to));
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+/* 登出按钮（暖色渐变） */
+.logout-btn{
+  margin-top: auto;
+  background-image: linear-gradient(135deg,#ff5c5c,#ff8147);
+}
+.logout-btn:hover{
+  background-image: linear-gradient(135deg,#ff6d6d,#ff985d);
+}
+
+/* ===== 主内容区 ===== */
+.main-content{
+  /* 折叠状态：只让出 60px （或 0px，看你需求）*/
+  margin-left: var(--sidebar-collapsed);    /* 60px */
+  padding: 32px 40px;
+  min-height: 100vh;
+  transition: margin-left var(--ease);
+}
+.main-content.shifted{
+  /* 展开状态：让出 240px */
+  margin-left: var(--sidebar-width);        /* 240px */
+}
+
+/* ===== 响应式：窄屏顶栏 ===== */
+@media (max-width: 768px){
+  .sidebar,
+  .sidebar:not(.open){
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    padding: 12px 10px;
+    overflow-x: auto;
+  }
+  .button{
+    flex: 1 1 110px;
+    margin: 0 6px;
+    padding: 10px 0;
+    font-size: .9rem;
+  }
+  /* 顶栏模式下隐藏箭头按钮 */
+  .toggle-btn{ display: none; }
+  .main-content,
+  .main-content.shifted{
+    margin: 100px 0 0;
+    padding: 24px 16px;
+  }
+}
