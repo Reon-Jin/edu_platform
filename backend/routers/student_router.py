@@ -18,6 +18,7 @@ from backend.services.chat_service import (
     list_sessions,
     get_messages,
     ask_in_session,
+    ask_in_session_stream,
     delete_session,
 )
 from backend.services.practice_service import (
@@ -27,6 +28,10 @@ from backend.services.practice_service import (
 from fastapi.responses import StreamingResponse
 from urllib.parse import quote
 import io
+import jwt
+from backend.auth import SECRET_KEY, ALGORITHM
+from backend.config import engine
+from sqlmodel import Session
 
 router = APIRouter(prefix="/student/ai", tags=["student-ai"])
 
@@ -63,6 +68,31 @@ def api_get_messages(sid: int, user: User = Depends(get_current_user)):
 def api_ask_in_session(sid: int, req: AskRequest, user: User = Depends(get_current_user)):
     msg = ask_in_session(user.id, sid, req.question)
     return MessageOut(id=msg.id, session_id=msg.session_id, role=msg.role, content=msg.content, created_at=msg.created_at)
+
+
+def _user_from_token(token: str) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        uid = int(payload.get("sub"))
+    except Exception:
+        raise HTTPException(401, "认证失败")
+    with Session(engine) as sess:
+        user = sess.get(User, uid)
+        if not user:
+            raise HTTPException(401, "认证失败")
+        return user
+
+
+@router.get("/session/{sid}/ask_stream")
+def api_ask_in_session_stream(sid: int, question: str, token: str):
+    user = _user_from_token(token)
+    gen = ask_in_session_stream(user.id, sid, question)
+
+    def event_gen():
+        for t in gen:
+            yield f"data: {t}\n\n"
+
+    return StreamingResponse(event_gen(), media_type="text/event-stream")
 
 
 @router.delete("/session/{sid}")

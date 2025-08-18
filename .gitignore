@@ -180,3 +180,4 @@ backend/.env
 
 backend/storage/
 /backend/word_files
+node_modules/

@@ -84,16 +84,38 @@ export default function StudentAiTeacher() {
     if (!question || !current) return;
     const q = question;
     setQuestion("");
-    // 先在 UI 上展示
-    setMessages((prev) => [...prev, { role: "user", content: q }]);
+    const aiIndex = messages.length + 1; // index of upcoming AI message
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: q },
+      { role: "assistant", content: "" },
+    ]);
 
-    try {
-      await api.post(`/student/ai/session/${current}/ask`, { question: q });
-      const r = await api.get(`/student/ai/session/${current}`);
-      setMessages(r.data);
-    } catch (err) {
-      console.error(err);
-    }
+    const token = localStorage.getItem("token");
+    const base = api.defaults.baseURL || "";
+    const url = `${base}/student/ai/session/${current}/ask_stream?question=${encodeURIComponent(
+      q
+    )}&token=${token}`;
+    const es = new EventSource(url);
+    es.onmessage = (e) => {
+      const t = e.data;
+      setMessages((prev) => {
+        const msgs = [...prev];
+        if (msgs[aiIndex]) {
+          msgs[aiIndex].content += t;
+        }
+        return msgs;
+      });
+    };
+    es.onerror = async () => {
+      es.close();
+      try {
+        const r = await api.get(`/student/ai/session/${current}`);
+        setMessages(r.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
   };
 
   // —— 删除会话 —— //
