@@ -20,6 +20,7 @@ from backend.models import (
     ChatMessage,
     Practice,
     LoginEvent,
+    StudentAnalysis,
     Document,
     RequestMetric,
     Class,
@@ -132,6 +133,18 @@ def delete_user(uid: int, current: User = Depends(get_current_user)):
             sess.delete(s)
         for p in sess.exec(select(Practice).where(Practice.student_id == uid)):
             sess.delete(p)
+        for sa in sess.exec(
+            select(StudentAnalysis).where(StudentAnalysis.student_id == uid)
+        ):
+            sess.delete(sa)
+        for sa in sess.exec(
+            select(StudentAnalysis).where(StudentAnalysis.teacher_id == uid)
+        ):
+            sess.delete(sa)
+        for le in sess.exec(select(LoginEvent).where(LoginEvent.user_id == uid)):
+            sess.delete(le)
+        for cs in sess.exec(select(ClassStudent).where(ClassStudent.student_id == uid)):
+            sess.delete(cs)
         # 删除用户关联的文档及其向量/激活记录
         for d in sess.exec(select(Document).where(Document.owner_id == uid)):
             for vec in sess.exec(select(DocumentVector).where(DocumentVector.doc_id == d.id)):
