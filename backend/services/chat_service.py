@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterator
 from sqlmodel import Session, select
 from sqlalchemy import func
 from backend.config import engine
@@ -73,6 +73,39 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
         sess.commit()
         sess.refresh(ai_msg)
         return ai_msg
+
+
+def ask_in_session_stream(
+    student_id: int, session_id: int, question: str
+) -> Iterator[str]:
+    """Ask a question in a session and yield the answer token by token."""
+    with Session(engine) as sess:
+        session = sess.get(ChatSession, session_id)
+        if not session or session.student_id != student_id:
+            raise ValueError("session not found")
+        user_msg = ChatMessage(session_id=session_id, role="user", content=question)
+        sess.add(user_msg)
+        sess.commit()
+        msgs = (
+            sess.exec(
+                select(ChatMessage)
+                .where(ChatMessage.session_id == session_id)
+                .order_by(ChatMessage.created_at)
+            ).all()
+        )
+        conv = [{"role": m.role, "content": m.content} for m in msgs]
+        conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
+        resp = call_deepseek_api_chat(conv)
+        answer = resp["choices"][0]["message"]["content"]
+        ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)
+        sess.add(ai_msg)
+        sess.commit()
+
+    def token_gen() -> Iterator[str]:
+        for ch in answer:
+            yield ch
+
+    return token_gen()
 
 
 def delete_session(student_id: int, session_id: int) -> bool:
