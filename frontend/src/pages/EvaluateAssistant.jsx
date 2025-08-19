@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { generateSelfPractice, fetchStudentAnalysis } from "../api/student";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import "../ui/analysis.css"; // 使用新的独立样式文件
+import "../ui/analysis.css";
 
 export default function EvaluateAssistant() {
   const [analysis, setAnalysis] = useState("");
@@ -19,6 +19,7 @@ export default function EvaluateAssistant() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [focusRight, setFocusRight] = useState(false); // 手动控制：扩大右侧
   const navigate = useNavigate();
 
   const typeLabels = {
@@ -29,7 +30,7 @@ export default function EvaluateAssistant() {
     coding: "编程题",
   };
 
-  // 主题多行文本自动增高
+  // -------- 主题多行文本自动增高 --------
   const topicRef = useRef(null);
   const TOPIC_MAX = 2000;
 
@@ -87,13 +88,41 @@ export default function EvaluateAssistant() {
     }
   };
 
+  // -------- 根据左侧文本“多少”自动收缩左栏、放大右栏 --------
+  const analysisLength = useMemo(() => {
+    const plain = (analysis || "").replace(/[#>*_`[\]()-]/g, "").replace(/\s+/g, " ").trim();
+    return plain.length;
+  }, [analysis]);
+
+  // 小于该阈值视作“内容不多”，让右栏更宽
+  const isCompact = analysisLength > 0 && analysisLength < 320;
+
   return (
     <div className="eval-page">
-      <div className="eval-layout">
+      <div
+        className={[
+          "eval-layout",
+          isCompact ? "is-compact" : "",
+          focusRight ? "is-focus-right" : "",
+        ].join(" ").trim()}
+      >
         {/* 左侧：学习情况分析 */}
         <section className="eval-card">
-          <h2 className="eval-title">评测助手</h2>
+          <div className="eval-card-head">
+            <h2 className="eval-title">评测助手</h2>
+            <button
+              type="button"
+              className="eval-button eval-button--ghost"
+              onClick={() => setFocusRight((v) => !v)}
+              aria-pressed={focusRight}
+              title={focusRight ? "还原布局" : "扩大右侧"}
+            >
+              {focusRight ? "还原" : "扩大右侧"}
+            </button>
+          </div>
+
           {error && <div className="eval-alert">{error}</div>}
+
           <div className="eval-md">
             {analysisLoading ? (
               <div className="eval-hint">正在努力为您分析学习情况…</div>
@@ -103,9 +132,10 @@ export default function EvaluateAssistant() {
           </div>
         </section>
 
-        {/* 右侧：自定义随练生成 */}
+        {/* 右侧：自定义随练生成（sticky） */}
         <aside className="eval-card eval-panel">
           <h2 className="eval-title">📝 自定义随练生成</h2>
+
           <form onSubmit={gen} className="eval-form">
             <label className="eval-group">
               <span className="eval-label">主题</span>

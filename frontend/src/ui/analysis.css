@@ -1,13 +1,13 @@
 :root{
   --bg: #f7fbff;
   --card-bg:#ffffff;
-  --text:#0f172a;          /* slate-900 */
-  --muted:#6b7280;         /* slate-500 */
-  --primary:#3b82f6;       /* blue-500 */
-  --primary-600:#2563eb;   /* blue-600 */
-  --ring:#93c5fd;          /* blue-300 */
-  --border:#e5e7eb;        /* gray-200 */
-  --shadow: 0 8px 24px rgba(15,23,42,0.06);
+  --text:#0f172a;
+  --muted:#6b7280;
+  --primary:#3b82f6;
+  --primary-600:#2563eb;
+  --ring:#93c5fd;
+  --border:#e5e7eb;
+  --shadow: 0 10px 28px rgba(15,23,42,0.06);
   --radius:16px;
   --gap:28px;
   --spacing:14px;
@@ -17,7 +17,6 @@
 }
 
 *{ box-sizing: border-box; }
-
 html,body,#root{ height:100%; }
 body{
   margin:0;
@@ -26,22 +25,40 @@ body{
   font-family: var(--font);
 }
 
-/* 页面边距容器 */
+/* 页面容器 */
 .eval-page{
   padding: 28px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-/* 双栏布局：左 1fr + 右侧自适应面板 */
+/* ===== 双栏布局：默认均衡 =====
+   左侧 minmax(0,1fr) + 右侧 clamp(420px, 34vw, 640px)
+   在 is-compact（左侧内容少）时让右侧更宽
+   在 is-focus-right（手动）时右侧更大
+*/
 .eval-layout{
   display: grid;
-  grid-template-columns: minmax(0,1fr) clamp(380px, 32vw, 560px);
+  grid-template-columns: minmax(0, 1fr) clamp(420px, 34vw, 640px);
   gap: var(--gap);
   align-items: start;
 }
 
-/* 窄屏堆叠 */
+/* 左侧内容少：自动把右侧放大一些 */
+.eval-layout.is-compact{
+  grid-template-columns: minmax(320px, 0.8fr) clamp(520px, 44vw, 760px);
+}
+
+/* 用户手动“扩大右侧” */
+.eval-layout.is-focus-right{
+  grid-template-columns: minmax(280px, 0.6fr) clamp(560px, 56vw, 860px);
+}
+
+/* 窄屏：纵向堆叠 */
 @media (max-width: 1024px){
-  .eval-layout{
+  .eval-layout,
+  .eval-layout.is-compact,
+  .eval-layout.is-focus-right{
     grid-template-columns: 1fr;
   }
 }
@@ -55,38 +72,46 @@ body{
   box-shadow: var(--shadow);
 }
 
-/* 右侧面板保持最大宽度由 grid 控制，无需内联 */
+/* 左卡片头部（标题 + 切换按钮） */
+.eval-card-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 右侧面板：sticky 更易用 */
 .eval-panel{
-  max-width: 100%;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
 }
 
 /* 标题 */
 .eval-title{
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-weight: 800;
+  letter-spacing: .2px;
 }
 
 /* Markdown 区域 */
 .eval-md{
   min-height: 6rem;
-  color: #111827; /* gray-900 */
+  color: #111827;
   line-height: 1.7;
 }
 
 /* 提示/错误 */
 .eval-hint{ color: var(--muted); }
 .eval-alert{
-  background: #fee2e2;         /* red-100 */
-  color: #991b1b;              /* red-800 */
-  border: 1px solid #fecaca;   /* red-200 */
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
   padding: 10px 12px;
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin: 10px 0;
 }
 
 /* 表单 */
@@ -104,7 +129,7 @@ body{
 
 .eval-label{
   font-size: 14px;
-  color: #334155; /* slate-700 */
+  color: #334155;
 }
 
 .eval-input{
@@ -118,7 +143,6 @@ body{
   line-height: 1.6;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-
 .eval-input:focus{
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--ring);
@@ -126,8 +150,8 @@ body{
 
 /* 主题多行输入 */
 .eval-textarea{
-  resize: vertical;   /* 可拖拽拉高 */
-  overflow: hidden;   /* 配合 JS 自动增高 */
+  resize: vertical;
+  overflow: hidden;      /* 配合 JS 自动增高 */
   min-height: 88px;
   max-height: 320px;
   white-space: pre-wrap;
@@ -160,9 +184,7 @@ body{
   background: #eef2ff;
   border-color: #e0e7ff;
 }
-.eval-button:active{
-  transform: translateY(1px);
-}
+.eval-button:active{ transform: translateY(1px); }
 .eval-button:disabled{
   opacity: .6;
   cursor: not-allowed;
@@ -178,32 +200,31 @@ body{
   border-color: var(--primary-600);
 }
 
-/* 预览区域放在右侧卡片内部，限制高度可滚动 */
+/* 透明按钮（用于左卡片头部的布局切换） */
+.eval-button--ghost{
+  background: transparent;
+  border-color: var(--border);
+  color: #334155;
+}
+
+/* 预览区：右侧卡片内部滚动 */
 .eval-preview{
   margin-top: 16px;
   max-height: 46vh;
   overflow: auto;
   padding-right: 4px;
 }
-
 .eval-actions{
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
+.eval-preview-block{ margin: 10px 0 12px; }
+.eval-preview-item{ margin: 6px 0 0 12px; }
 
-.eval-preview-block{
-  margin: 10px 0 12px;
-}
-.eval-preview-item{
-  margin: 6px 0 0 12px;
-}
-
-/* 更友好的列表样式（Markdown/预览） */
+/* 列表（Markdown/预览） */
 .eval-card ul{
   padding-left: 20px;
   margin: 6px 0;
 }
-.eval-card li{
-  line-height: 1.7;
-}
+.eval-card li{ line-height: 1.7; }
