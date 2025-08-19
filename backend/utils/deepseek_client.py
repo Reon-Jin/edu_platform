@@ -1,5 +1,6 @@
 # backend/utils/deepseek_client.py
 
+import json
 import requests
 from backend.config import settings
 
@@ -57,3 +58,58 @@ def call_deepseek_api_chat(messages, model: str = "deepseek-chat", temperature: 
         return resp.json()
     else:
         raise Exception(f"API 请求失败，状态码: {resp.status_code}, 错误信息: {resp.text}")
+
+
+def call_deepseek_api_chat_stream(
+    messages,
+    model: str = "deepseek-chat",
+    temperature: float = 0.7,
+    max_tokens: int = 4096,
+):
+    """调用 Deepseek 聊天接口，流式返回 token"""
+
+    url = settings.DEEPSEEK_ENDPOINT
+    headers = {
+        "Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": True,
+    }
+    print(">>> Deepseek 请求 URL：", url)
+    print(">>> Deepseek 请求头：", headers)
+    print(">>> Deepseek 请求体：", data)
+
+    resp = requests.post(
+        url, headers=headers, json=data, timeout=100, stream=True, allow_redirects=False
+    )
+    print(">>> Deepseek 返回状态码：", resp.status_code)
+    if resp.status_code != 200:
+        text = resp.text
+        print(">>> Deepseek 返回体：", text)
+        raise Exception(
+            f"API 请求失败，状态码: {resp.status_code}, 错误信息: {text}"
+        )
+
+    def gen():
+        for line in resp.iter_lines():
+            if not line:
+                continue
+            decoded = line.decode("utf-8")
+            if decoded.startswith("data: "):
+                payload = decoded[6:]
+                if payload.strip() == "[DONE]":
+                    break
+                try:
+                    data = json.loads(payload)
+                    delta = data["choices"][0]["delta"].get("content", "")
+                except Exception:
+                    delta = ""
+                if delta:
+                    yield delta
+
+    return gen()
