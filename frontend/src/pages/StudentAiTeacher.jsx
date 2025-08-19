@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
+import renderMathInElement from "katex/contrib/auto-render";
 import mermaid from "mermaid";
 import "katex/dist/katex.min.css";
 import "../ui/StudentAiTeacher.css"; // 与 JSX 同目录下的 CSS
@@ -47,16 +48,20 @@ export default function StudentAiTeacher() {
   }, []);
 
   // 将常见的 \(\) 或 \[\] 形式的 LaTeX 包装为 remark-math 可识别的 $ 或 $$
-  // 同时将开头为 graph TD / graph LR 的段落转为 mermaid 代码块
+  // 并清理多余空格，保证 KaTeX 正确渲染；开头为 graph TD / graph LR 的段落转为 mermaid 代码块
   const formatContent = (text) => {
     if (!text) return "";
     let processed = text
       .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
-      .replace(/\\\[(.+?)\\\]/gs, '$$$1$$$');
-    processed = processed.replace(
-      /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
-      (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
-    );
+      .replace(/\\\[(.+?)\\\]/gs, '$$$$1$$$$')
+      .replace(/(?<!\$)\$\s+([^$]*?)\s+\$(?!\$)/g, '$$$1$$')
+      .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => `\n$$${m.trim()}$$\n`);
+    processed = processed
+      .replace(
+        /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
+        (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
+      )
+      .replace(/\n{3,}/g, "\n\n");
     return processed;
   };
 
@@ -118,6 +123,14 @@ export default function StudentAiTeacher() {
   useEffect(() => {
     if (endRef.current) {
       endRef.current.scrollIntoView({ behavior: "smooth" });
+      renderMathInElement(endRef.current.parentElement, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true },
+        ],
+      });
     }
   }, [messages]);
 
@@ -274,7 +287,7 @@ export default function StudentAiTeacher() {
               </div>
               <div className="sa-bubble">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
                   rehypePlugins={[rehypeKatex]}
                   components={{
                     code({ inline, className, children, ...props }) {
