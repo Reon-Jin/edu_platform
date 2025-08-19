@@ -2,8 +2,9 @@ from typing import List, Iterator
 from sqlmodel import Session, select
 from sqlalchemy import func
 from backend.config import engine
-from backend.models import ChatHistory, ChatSession, ChatMessage
+from backend.models import ChatHistory, ChatSession, ChatMessage, Class, ClassStudent
 from backend.utils.deepseek_client import call_deepseek_api, call_deepseek_api_chat
+from backend.utils.rag_pipeline import retrieve_paragraphs
 from datetime import datetime
 
 def ask_question(student_id: int, question: str) -> ChatHistory:
@@ -55,7 +56,9 @@ def get_messages(student_id: int, session_id: int) -> List[ChatMessage]:
         return sess.exec(stmt).all()
 
 
-def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessage:
+def ask_in_session(
+    student_id: int, session_id: int, question: str, use_docs: bool = False
+) -> ChatMessage:
     with Session(engine) as sess:
         session = sess.get(ChatSession, session_id)
         if not session or session.student_id != student_id:
@@ -63,9 +66,29 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
         user_msg = ChatMessage(session_id=session_id, role="user", content=question)
         sess.add(user_msg)
         sess.commit()
-        msgs = sess.exec(select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at)).all()
+        msgs = sess.exec(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.created_at)
+        ).all()
         conv = [{"role": m.role, "content": m.content} for m in msgs]
-        conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
+
+        system_prompt = "你是学生的AI教师，请以此身份帮助学生。"
+        if use_docs:
+            teacher_id = sess.exec(
+                select(Class.teacher_id)
+                .join(ClassStudent, Class.id == ClassStudent.class_id)
+                .where(ClassStudent.student_id == student_id)
+            ).first()
+            if teacher_id:
+                snippets = retrieve_paragraphs(
+                    question, teacher_id, sess, top_k=5, include_inactive=True
+                )
+                if snippets:
+                    refs = "\n".join(f"- {text}" for _, text in snippets)
+                    system_prompt += f"\n\n以下是教师提供的资料：\n{refs}"
+
+        conv.insert(0, {"role": "system", "content": system_prompt})
         resp = call_deepseek_api_chat(conv)
         answer = resp["choices"][0]["message"]["content"]
         ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)
@@ -76,7 +99,10 @@ def ask_in_session(student_id: int, session_id: int, question: str) -> ChatMessa
 
 
 def ask_in_session_stream(
-    student_id: int, session_id: int, question: str
+    student_id: int,
+    session_id: int,
+    question: str,
+    use_docs: bool = False,
 ) -> Iterator[str]:
     """Ask a question in a session and yield the answer token by token."""
     with Session(engine) as sess:
@@ -94,7 +120,23 @@ def ask_in_session_stream(
             ).all()
         )
         conv = [{"role": m.role, "content": m.content} for m in msgs]
-        conv.insert(0, {"role": "system", "content": "你是学生的AI教师，请以此身份帮助学生。"})
+
+        system_prompt = "你是学生的AI教师，请以此身份帮助学生。"
+        if use_docs:
+            teacher_id = sess.exec(
+                select(Class.teacher_id)
+                .join(ClassStudent, Class.id == ClassStudent.class_id)
+                .where(ClassStudent.student_id == student_id)
+            ).first()
+            if teacher_id:
+                snippets = retrieve_paragraphs(
+                    question, teacher_id, sess, top_k=5, include_inactive=True
+                )
+                if snippets:
+                    refs = "\n".join(f"- {text}" for _, text in snippets)
+                    system_prompt += f"\n\n以下是教师提供的资料：\n{refs}"
+
+        conv.insert(0, {"role": "system", "content": system_prompt})
         resp = call_deepseek_api_chat(conv)
         answer = resp["choices"][0]["message"]["content"]
         ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)

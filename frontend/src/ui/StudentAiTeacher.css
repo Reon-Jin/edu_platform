@@ -100,6 +100,10 @@ body,
   color: #718096;
   margin-bottom: 1rem;
 }
+
+.sa-option {
+  margin-bottom: 0.5rem;
+}
 /* 让每条消息行撑满父容器 */
 .sa-msg {
   display: flex;

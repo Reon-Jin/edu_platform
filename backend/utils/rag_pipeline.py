@@ -116,25 +116,29 @@ def retrieve_paragraphs(
     query: str,
     user_id: int,
     session,
-    top_k: int = 5
+    top_k: int = 5,
+    include_inactive: bool = False,
 ) -> List[Tuple[int, str]]:
     """
     Retrieve the top_k most relevant paragraphs for `query` from
-    the teacher's activated documents.
-    Returns a list of (doc_id, paragraph_text).
+    the teacher's documents.  By default only documents that the
+    teacher has activated are considered.  If ``include_inactive`` is
+    ``True`` then all documents associated with the teacher will be
+    used regardless of activation state.
+
+    Returns a list of ``(doc_id, paragraph_text)`` tuples.
     """
     model = get_model()
     q_vec = model.encode(query)
 
-    # fetch all active documents for this user
+    # fetch documents for this teacher
     stmt = (
         select(Document)
         .join(DocumentActivation, DocumentActivation.doc_id == Document.id)
-        .where(
-            DocumentActivation.teacher_id == user_id,
-            DocumentActivation.is_active == 1
-        )
+        .where(DocumentActivation.teacher_id == user_id)
     )
+    if not include_inactive:
+        stmt = stmt.where(DocumentActivation.is_active == 1)
     docs = session.exec(stmt).all()
 
     candidates: List[Tuple[int, str, float]] = []

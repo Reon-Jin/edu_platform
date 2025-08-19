@@ -65,8 +65,10 @@ def api_get_messages(sid: int, user: User = Depends(get_current_user)):
 
 
 @router.post("/session/{sid}/ask", response_model=MessageOut)
-def api_ask_in_session(sid: int, req: AskRequest, user: User = Depends(get_current_user)):
-    msg = ask_in_session(user.id, sid, req.question)
+def api_ask_in_session(
+    sid: int, req: AskRequest, user: User = Depends(get_current_user)
+):
+    msg = ask_in_session(user.id, sid, req.question, use_docs=req.use_docs)
     return MessageOut(id=msg.id, session_id=msg.session_id, role=msg.role, content=msg.content, created_at=msg.created_at)
 
 
@@ -84,9 +86,11 @@ def _user_from_token(token: str) -> User:
 
 
 @router.get("/session/{sid}/ask_stream")
-def api_ask_in_session_stream(sid: int, question: str, token: str):
+def api_ask_in_session_stream(
+    sid: int, question: str, token: str, use_docs: bool = False
+):
     user = _user_from_token(token)
-    gen = ask_in_session_stream(user.id, sid, question)
+    gen = ask_in_session_stream(user.id, sid, question, use_docs=use_docs)
 
     def event_gen():
         for t in gen:
