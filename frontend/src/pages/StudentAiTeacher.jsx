@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import api from "../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
+import renderMathInElement from "katex/contrib/auto-render";
 import mermaid from "mermaid";
 import "katex/dist/katex.min.css";
 import "../ui/StudentAiTeacher.css"; // 与 JSX 同目录下的 CSS
@@ -122,6 +123,14 @@ export default function StudentAiTeacher() {
   useEffect(() => {
     if (endRef.current) {
       endRef.current.scrollIntoView({ behavior: "smooth" });
+      renderMathInElement(endRef.current.parentElement, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true },
+        ],
+      });
     }
   }, [messages]);
 
@@ -278,7 +287,7 @@ export default function StudentAiTeacher() {
               </div>
               <div className="sa-bubble">
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
+                  remarkPlugins={[remarkMath, remarkGfm]}
                   rehypePlugins={[rehypeKatex]}
                   components={{
                     code({ inline, className, children, ...props }) {
