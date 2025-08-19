@@ -3,7 +3,11 @@ from sqlmodel import Session, select
 from sqlalchemy import func
 from backend.config import engine
 from backend.models import ChatHistory, ChatSession, ChatMessage, Class, ClassStudent
-from backend.utils.deepseek_client import call_deepseek_api, call_deepseek_api_chat
+from backend.utils.deepseek_client import (
+    call_deepseek_api,
+    call_deepseek_api_chat,
+    call_deepseek_api_chat_stream,
+)
 from backend.utils.rag_pipeline import retrieve_paragraphs
 from datetime import datetime
 
@@ -105,13 +109,15 @@ def ask_in_session_stream(
     use_docs: bool = False,
 ) -> Iterator[str]:
     """Ask a question in a session and yield the answer token by token."""
-    with Session(engine) as sess:
+    sess = Session(engine)
+    try:
         session = sess.get(ChatSession, session_id)
         if not session or session.student_id != student_id:
             raise ValueError("session not found")
         user_msg = ChatMessage(session_id=session_id, role="user", content=question)
         sess.add(user_msg)
         sess.commit()
+
         msgs = (
             sess.exec(
                 select(ChatMessage)
@@ -137,17 +143,28 @@ def ask_in_session_stream(
                     system_prompt += f"\n\n以下是教师提供的资料：\n{refs}"
 
         conv.insert(0, {"role": "system", "content": system_prompt})
-        resp = call_deepseek_api_chat(conv)
-        answer = resp["choices"][0]["message"]["content"]
-        ai_msg = ChatMessage(session_id=session_id, role="assistant", content=answer)
-        sess.add(ai_msg)
-        sess.commit()
+        stream = call_deepseek_api_chat_stream(conv)
 
-    def token_gen() -> Iterator[str]:
-        for ch in answer:
-            yield ch
+        answer_parts: list[str] = []
 
-    return token_gen()
+        def gen() -> Iterator[str]:
+            try:
+                for tok in stream:
+                    answer_parts.append(tok)
+                    yield tok
+            finally:
+                answer = "".join(answer_parts)
+                ai_msg = ChatMessage(
+                    session_id=session_id, role="assistant", content=answer
+                )
+                sess.add(ai_msg)
+                sess.commit()
+                sess.close()
+
+        return gen()
+    except Exception:
+        sess.close()
+        raise
 
 
 def delete_session(student_id: int, session_id: int) -> bool:
