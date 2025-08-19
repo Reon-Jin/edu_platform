@@ -103,7 +103,14 @@ export default function StudentAiTeacher() {
       setMessages((prev) => {
         const msgs = [...prev];
         if (msgs[aiIndex]) {
-          msgs[aiIndex].content += t;
+          const aiMsg = msgs[aiIndex];
+          const existing = aiMsg.content;
+          const addition = t.startsWith(existing)
+            ? t.slice(existing.length)
+            : t;
+          if (addition) {
+            msgs[aiIndex] = { ...aiMsg, content: existing + addition };
+          }
         }
         return msgs;
       });
