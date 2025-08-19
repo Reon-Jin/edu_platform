@@ -5,7 +5,30 @@ import api from "../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import "../ui/StudentAiTeacher.css";  // 与 JSX 同目录下的 CSS
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import mermaid from "mermaid";
+import "katex/dist/katex.min.css";
+import "../ui/StudentAiTeacher.css"; // 与 JSX 同目录下的 CSS
+
+function Mermaid({ chart }) {
+  const ref = useRef(null);
+  const id = useRef(`mermaid-${Math.random().toString(36).slice(2, 9)}`);
+
+  useEffect(() => {
+    if (ref.current) {
+      try {
+        mermaid.render(id.current, chart, (svg) => {
+          ref.current.innerHTML = svg;
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }, [chart]);
+
+  return <div ref={ref} />;
+}
 
 let initSessionPromise = null;
 
@@ -18,6 +41,24 @@ export default function StudentAiTeacher() {
   const [question, setQuestion] = useState("");
   const [useDocs, setUseDocs] = useState(false);
   const endRef = useRef(null);
+
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: false });
+  }, []);
+
+  // 将常见的 \(\) 或 \[\] 形式的 LaTeX 包装为 remark-math 可识别的 $ 或 $$
+  // 同时将开头为 graph TD / graph LR 的段落转为 mermaid 代码块
+  const formatContent = (text) => {
+    if (!text) return "";
+    let processed = text
+      .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
+      .replace(/\\\[(.+?)\\\]/gs, '$$$1$$$');
+    processed = processed.replace(
+      /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
+      (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
+    );
+    return processed;
+  };
 
   // 常用的“热门问题”
   const hotQuestions = [
@@ -232,8 +273,27 @@ export default function StudentAiTeacher() {
                 {m.role === "user" ? "我" : "AI"}
               </div>
               <div className="sa-bubble">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {m.content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                  components={{
+                    code({ inline, className, children, ...props }) {
+                      const txt = String(children).replace(/\n$/, "");
+                      if (
+                        !inline &&
+                        (className === "language-mermaid" || className === "mermaid")
+                      ) {
+                        return <Mermaid chart={txt} />;
+                      }
+                      return (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >
+                  {formatContent(m.content)}
                 </ReactMarkdown>
               </div>
             </div>
