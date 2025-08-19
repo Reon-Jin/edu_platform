@@ -124,6 +124,13 @@ body {
   margin-left: var(--sidebar-width);        /* 240px */
 }
 
+/* 全屏无滚动的 AI 教师页面 */
+.main-content.ai-page{
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* ===== 响应式：窄屏顶栏 ===== */
 @media (max-width: 768px){
   .sidebar,

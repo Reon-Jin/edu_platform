@@ -6,7 +6,7 @@ body,
   margin: 0;
 }
 .sa-container {
-  height: 100vh; /* occupy full viewport */
+  height: 100%; /* occupy full height of parent */
   display: flex;
 }
 /* —— 主区垂直布局 —— */
