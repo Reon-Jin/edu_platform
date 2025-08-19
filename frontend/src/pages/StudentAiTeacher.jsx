@@ -47,16 +47,20 @@ export default function StudentAiTeacher() {
   }, []);
 
   // 将常见的 \(\) 或 \[\] 形式的 LaTeX 包装为 remark-math 可识别的 $ 或 $$
-  // 同时将开头为 graph TD / graph LR 的段落转为 mermaid 代码块
+  // 并清理多余空格，保证 KaTeX 正确渲染；开头为 graph TD / graph LR 的段落转为 mermaid 代码块
   const formatContent = (text) => {
     if (!text) return "";
     let processed = text
       .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
-      .replace(/\\\[(.+?)\\\]/gs, '$$$$1$$$$');
-    processed = processed.replace(
-      /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
-      (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
-    );
+      .replace(/\\\[(.+?)\\\]/gs, '$$$$1$$$$')
+      .replace(/(?<!\$)\$\s+([^$]*?)\s+\$(?!\$)/g, '$$$1$$')
+      .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => `\n$$${m.trim()}$$\n`);
+    processed = processed
+      .replace(
+        /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
+        (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
+      )
+      .replace(/\n{3,}/g, "\n\n");
     return processed;
   };
 
