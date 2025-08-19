@@ -5,7 +5,10 @@ import api from "../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import "../ui/StudentAiTeacher.css";  // 与 JSX 同目录下的 CSS
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+import "../ui/StudentAiTeacher.css"; // 与 JSX 同目录下的 CSS
 
 let initSessionPromise = null;
 
@@ -18,6 +21,14 @@ export default function StudentAiTeacher() {
   const [question, setQuestion] = useState("");
   const [useDocs, setUseDocs] = useState(false);
   const endRef = useRef(null);
+
+  // 将常见的 \(\) 或 \[\] 形式的 LaTeX 包装为 remark-math 可识别的 $ 或 $$
+  const formatContent = (text) => {
+    if (!text) return "";
+    return text
+      .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
+      .replace(/\\\[(.+?)\\\]/gs, '$$$1$$$');
+  };
 
   // 常用的“热门问题”
   const hotQuestions = [
@@ -232,8 +243,11 @@ export default function StudentAiTeacher() {
                 {m.role === "user" ? "我" : "AI"}
               </div>
               <div className="sa-bubble">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {m.content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
+                >
+                  {formatContent(m.content)}
                 </ReactMarkdown>
               </div>
             </div>
