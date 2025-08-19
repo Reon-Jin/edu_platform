@@ -139,7 +139,7 @@ def retrieve_paragraphs(
     )
     if not include_inactive:
         stmt = stmt.where(DocumentActivation.is_active == 1)
-    docs = session.exec(stmt).all()
+    docs = session.exec(stmt).scalars().all()
 
     candidates: List[Tuple[int, str, float]] = []
     for doc in docs:
