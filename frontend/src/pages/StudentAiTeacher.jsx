@@ -52,7 +52,7 @@ export default function StudentAiTeacher() {
     if (!text) return "";
     let processed = text
       .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
-      .replace(/\\\[(.+?)\\\]/gs, '$$$1$$$');
+      .replace(/\\\[(.+?)\\\]/gs, '$$$$1$$$$');
     processed = processed.replace(
       /(^|\n)(graph (?:TD|LR)[\s\S]*?)(?=\n{2,}|$)/g,
       (_, prefix, graph) => `${prefix}\`\`\`mermaid\n${graph}\n\`\`\``
