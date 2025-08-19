@@ -8,7 +8,7 @@ from backend.utils.deepseek_client import (
     call_deepseek_api_chat,
     call_deepseek_api_chat_stream,
 )
-from backend.utils.rag_pipeline import retrieve_paragraphs
+from backend.utils.rag_pipeline import retrieve_from_db
 from datetime import datetime
 
 def ask_question(student_id: int, question: str) -> ChatHistory:
@@ -79,14 +79,15 @@ def ask_in_session(
 
         system_prompt = "你是学生的AI教师，请以此身份帮助学生。"
         if use_docs:
-            teacher_id = sess.exec(
+            teacher_ids = sess.exec(
                 select(Class.teacher_id)
                 .join(ClassStudent, Class.id == ClassStudent.class_id)
                 .where(ClassStudent.student_id == student_id)
-            ).first()
-            if teacher_id:
-                snippets = retrieve_paragraphs(
-                    question, teacher_id, sess, top_k=5, include_inactive=True
+            ).scalars().all()
+            teacher_ids = list({tid for tid in teacher_ids if tid})
+            if teacher_ids:
+                snippets = retrieve_from_db(
+                    question, teacher_ids, sess, top_k=5, include_inactive=True
                 )
                 if snippets:
                     refs = "\n".join(f"- {text}" for _, text in snippets)
@@ -129,14 +130,15 @@ def ask_in_session_stream(
 
         system_prompt = "你是学生的AI教师，请以此身份帮助学生。"
         if use_docs:
-            teacher_id = sess.exec(
+            teacher_ids = sess.exec(
                 select(Class.teacher_id)
                 .join(ClassStudent, Class.id == ClassStudent.class_id)
                 .where(ClassStudent.student_id == student_id)
-            ).first()
-            if teacher_id:
-                snippets = retrieve_paragraphs(
-                    question, teacher_id, sess, top_k=5, include_inactive=True
+            ).scalars().all()
+            teacher_ids = list({tid for tid in teacher_ids if tid})
+            if teacher_ids:
+                snippets = retrieve_from_db(
+                    question, teacher_ids, sess, top_k=5, include_inactive=True
                 )
                 if snippets:
                     refs = "\n".join(f"- {text}" for _, text in snippets)

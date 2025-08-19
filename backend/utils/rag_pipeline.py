@@ -5,7 +5,7 @@ import re
 import logging
 import platform
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Sequence, Union
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -166,22 +166,35 @@ def retrieve_paragraphs(
 
 def retrieve_from_db(
     query: str,
-    user_id: int,
+    user_id: Union[int, Sequence[int]],
     session,
-    top_k: int = 5
+    top_k: int = 5,
+    include_inactive: bool = False,
 ) -> List[Tuple[int, str]]:
+    """Fallback retrieval by chunk.
+
+    ``user_id`` may be a single teacher id or a sequence of teacher ids.  When
+    ``include_inactive`` is True, documents are retrieved regardless of their
+    activation state.
     """
-    Fallback retrieval by chunk, returns list of (doc_id, chunk_text).
-    """
+
+    # normalize teacher ids into a list
+    ids = [user_id] if isinstance(user_id, int) else list(user_id)
+    if not ids:
+        return []
+
     q_vec = get_model().encode(query)
+    id_clause = ",".join(str(int(uid)) for uid in ids)
     sql = (
         "SELECT v.doc_id, v.chunk_index, v.vector_blob, d.filepath "
         "FROM document_vector v "
         "JOIN document d ON v.doc_id=d.id "
         "JOIN document_activation a ON a.doc_id=d.id "
-        "WHERE a.teacher_id=:uid AND a.is_active=1"
+        f"WHERE a.teacher_id IN ({id_clause})"
     )
-    stmt = text(sql).bindparams(uid=user_id)
+    if not include_inactive:
+        sql += " AND a.is_active=1"
+    stmt = text(sql)
     rows = session.exec(stmt).all()
     if not rows:
         return []
