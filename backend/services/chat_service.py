@@ -83,8 +83,8 @@ def ask_in_session(
                 select(Class.teacher_id)
                 .join(ClassStudent, Class.id == ClassStudent.class_id)
                 .where(ClassStudent.student_id == student_id)
-            ).scalars().all()
-            teacher_ids = list({tid for tid in teacher_ids if tid})
+            ).all()
+            teacher_ids = list({(tid[0] if isinstance(tid, tuple) else tid) for tid in teacher_ids if tid})
             if teacher_ids:
                 snippets = retrieve_from_db(
                     question, teacher_ids, sess, top_k=5, include_inactive=True
@@ -134,8 +134,8 @@ def ask_in_session_stream(
                 select(Class.teacher_id)
                 .join(ClassStudent, Class.id == ClassStudent.class_id)
                 .where(ClassStudent.student_id == student_id)
-            ).scalars().all()
-            teacher_ids = list({tid for tid in teacher_ids if tid})
+            ).all()
+            teacher_ids = list({(tid[0] if isinstance(tid, tuple) else tid) for tid in teacher_ids if tid})
             if teacher_ids:
                 snippets = retrieve_from_db(
                     question, teacher_ids, sess, top_k=5, include_inactive=True
