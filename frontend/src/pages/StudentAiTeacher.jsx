@@ -53,7 +53,8 @@ export default function StudentAiTeacher() {
     if (!text) return "";
     let processed = text
       .replace(/\\\((.+?)\\\)/gs, '$$$1$$')
-      .replace(/\\\[(.+?)\\\]/gs, '$$$$1$$$$')
+      // Convert \[ ... \] to display-mode $$ ... $$
+      .replace(/\\\[(.+?)\\\]/gs, '$$$$$1$$$$')
       .replace(/(?<!\$)\$\s+([^$]*?)\s+\$(?!\$)/g, '$$$1$$')
       .replace(/\$\$([\s\S]+?)\$\$/g, (_, m) => `\n$$${m.trim()}$$\n`);
     processed = processed
