@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import "../ui/layout.css";
 
 export default function StudentLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const username = localStorage.getItem("username") || "";
+  const isAiPage = location.pathname.startsWith("/student/ai");
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -37,7 +39,7 @@ export default function StudentLayout() {
         <div style={{ flex: 1 }} />
         <button className="button logout-btn" onClick={logout}>登出</button>
       </div>
-      <div className={`main-content${open ? " shifted" : ""}`}>
+      <div className={`main-content${open ? " shifted" : ""}${isAiPage ? " ai-page" : ""}`}>
         <Outlet />
       </div>
     </>
