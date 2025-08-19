@@ -97,7 +97,7 @@ def analyze_student_homeworks(
     summary = _collect_homework_summary(student_id, teacher_id, class_id)
     prompt = (
         "你是一名专业的学情分析师，请根据以下学生的作业情况（每份作业的满分、得分以及错题）给出详细的学习分析。"
-        "使用JSON格式返回，需包含analysis(文字描述)、weak_points(数组)以及"
+        "使用JSON格式返回，需包含analysis(文字描述,尽量详细，利于学生知晓自己的情况)、weak_points(数组)以及"
         "recommendation(对象，含topic、num_single_choice、num_multiple_choice、"
         "num_fill_blank、num_short_answer、num_programming)：\n"
         f"{json.dumps(summary, ensure_ascii=False)}"
