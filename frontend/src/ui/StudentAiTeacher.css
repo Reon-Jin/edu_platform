@@ -1,231 +1,281 @@
-/* —— 顶级撑满 —— */
-html,
-body,
-#root {
-  height: 100%;
+/* ========== 主题（深色，与侧边栏一致的观感） ========== */
+:root{
+  --slate-900:#0f172a;
+  --slate-800:#1e293b;
+  --slate-700:#334155;
+  --ink-1:#e5e7eb;
+  --ink-2:#cbd5e1;
+  --ink-3:#94a3b8;
+  --ring: rgba(255,255,255,.08);
+  --card: #111827;               /* 卡片深灰 */
+  --card-2:#0b1220;              /* 更深背景 */
+  --grad: linear-gradient(135deg,#06b6d4,#14b8a6);
+  --shadow: 0 12px 36px rgba(2,6,23,.45);
+}
+
+/* ========== 页面固定大小：居中 1180px 宽，满高 ========== */
+.ait-page{
+  min-height:100vh;
+  height:100vh;
+  overflow:hidden;  /* 避免页面被撑长 */
+  background: linear-gradient(180deg,var(--slate-900),var(--slate-800));
+  color: var(--ink-1);
+  display:grid; place-items:center;
+}
+
+.ait-wrap{
+  width:1400px;
+  height:100vh;
+  padding:18px;
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  gap:18px;
+  box-sizing:border-box;
+  overflow:hidden;
+}
+
+/* ========== 卡片公共样式 ========== */
+.ait-card{
+  background: var(--card);
+  border-radius:16px;
+  box-shadow: var(--shadow);
+  border:1px solid var(--ring);
+}
+
+/* ========== 左侧会话栏 ========== */
+.ait-sessions{
+  background: var(--card);
+  border-radius:16px;
+  box-shadow: var(--shadow);
+  border:1px solid var(--ring);
+  padding:14px;
+  display:flex; flex-direction:column;
+  height: calc(100vh - 36px);
+  min-height:0;
+  overflow:hidden;
+}
+
+.ait-sessions-top{
+  display:flex; align-items:center; justify-content:space-between;
+  padding-bottom:10px; border-bottom:1px solid var(--ring);
+}
+.ait-brand{ display:flex; align-items:center; gap:10px; color:var(--ink-1); font-weight:700; }
+.ait-dot{ width:22px; height:22px; border-radius:6px; background:var(--grad); box-shadow:0 0 0 3px rgba(255,255,255,.06); }
+
+.ait-mini{
+  border:none; border-radius:10px; padding:6px 10px; cursor:pointer;
+  background: var(--grad); color:#fff; font-weight:700;
+  box-shadow:0 8px 22px rgba(20,184,166,.35);
+}
+
+.ait-session-list{
+  list-style:none; margin:0; padding:10px 0 0;
+  overflow:auto;
+  flex:1;
+  min-height:0;
+}
+.ait-session{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 10px; border-radius:12px; color:var(--ink-1);
+}
+.ait-session:hover{ background: rgba(255,255,255,.03); }
+.ait-session.is-active{ outline:2px solid rgba(20,184,166,.35); background: rgba(20,184,166,.06); }
+.ait-title{ flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }
+.ait-x{ border:none; background:transparent; color:var(--ink-3); cursor:pointer; font-size:18px; }
+
+/* ========== 右侧聊天面板 ========== */
+.ait-chat{
+  background: var(--card);
+  border-radius:16px;
+  box-shadow: var(--shadow);
+  border:1px solid var(--ring);
+  padding:14px;
+  height: calc(100vh - 36px);
+  min-height:0;
+  overflow:hidden;
+
+  display:grid;
+  grid-template-rows:
+    auto  /* head */
+    auto  /* tip */
+    auto  /* option */
+    1fr   /* messages */
+    auto  /* chips */
+    auto  /* input */
+    auto; /* foot */
+  row-gap:10px;
+  min-width:0;
+}
+
+/* 顶部 */
+.ait-head{ display:flex; gap:12px; align-items:center; }
+.ait-logo{
+  width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+  background: linear-gradient(135deg,#0ea5e9,#22d3ee);
+  box-shadow:0 8px 22px rgba(14,165,233,.35);
+}
+.ait-h1{ font-size:20px; font-weight:800; line-height:1; }
+.ait-hint{ color:var(--ink-3); font-size:12px; }
+
+.ait-tip{
+  color:var(--ink-2);
+  background: #0b1220;
+  border:1px dashed var(--ring);
+  border-radius:12px;
+  padding:8px 10px;
+}
+
+.ait-option{
+  display:inline-flex; align-items:center; gap:8px;
+  color:var(--ink-2);
+}
+.ait-option input{ accent-color:#10b981; }
+
+/* === 消息区 === */
+.ait-msgs{
+  background: var(--card-2);
+  border-radius:14px;
+  border:1px solid var(--ring);
+  padding:8px 6px;
+  overflow:auto;
+  min-height:0;
+}
+
+.ait-row{ display:flex; gap:10px; padding:10px 12px; }
+.ait-avatar{
+  width:36px; height:36px; border-radius:10px;
+  background: linear-gradient(135deg,#0ea5e9,#22d3ee);
+  color:#001018; display:grid; place-items:center; font-weight:900;
+}
+.from-ai .ait-avatar{
+  background: linear-gradient(135deg,#10b981,#34d399);
+  color:#00170f;
+}
+
+/* 气泡：固定宽度，自适应高度 */
+.ait-bubble{
+  width:700px;
+  padding:12px 14px;
+  border-radius:14px;
+  color: var(--ink-1);
+  background:#121826;
+  border:1px solid var(--ring);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  overflow-x:auto;       /* 支持横向滚动 */
+  overflow-y:auto;       /* 内容太长时可滚动 */
+  max-height:70vh;       /* 单条消息最大高度 */
+  line-height:1.6;
+  word-break:break-word;
+}
+
+.from-user .ait-bubble{ background:#0f1a24; }
+.from-ai   .ait-bubble{ background:#0f1f1a; }
+
+/* 滚动条美化 */
+.ait-bubble::-webkit-scrollbar { width: 6px; }
+.ait-bubble::-webkit-scrollbar-track { background: transparent; }
+.ait-bubble::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.ait-bubble::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== 修复 Markdown 列表 ===== */
+.ait-bubble ol,
+.ait-bubble ul {
   margin: 0;
+  padding-left: 2em;  /* 留出空间避免数字贴边 */
 }
-.sa-container {
-  height: 100%; /* occupy full height of parent */
-  display: flex;
+.ait-bubble li {
+  margin: 6px 0;
+  line-height: 1.6;
 }
-/* —— 主区垂直布局 —— */
-.sa-main {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-/* —— 聊天区撑满中间 —— */
-/* 把原来的 .sa-messages 改成这样： */
-.sa-messages {
-  flex: 1;          /* fill remaining space */
-  overflow-y: auto; /* scroll when content overflows */
-  margin-bottom: 1rem;
-  padding-right: 0.5rem;
-}
+.ait-bubble ol { list-style-type: decimal; list-style-position: outside; }
+.ait-bubble ul { list-style-type: disc; list-style-position: outside; }
 
-
-/* 以下是你原来的样式，不必改动，放在上面那段之后即可 */
-.sa-sidebar {
-  width: 200px;
-  border-right: 1px solid #e2e8f0;
-  padding: 1rem;
-  background: #ffffff;
-  box-sizing: border-box;
-}
-.sa-sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.sa-btn-mini {
-  font-size: 0.8rem;
-  padding: 0.2rem 0.5rem;
-  background: #38b2ac;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.sa-session-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 1rem;
-}
-.sa-session-item {
-  display: flex;
-  align-items: center;
-  padding: 0.4rem 0;
-}
-.sa-session-item.active .sa-session-title {
-  font-weight: bold;
-  color: #2c5282;
-}
-.sa-session-title {
-  flex: 1;
-  cursor: pointer;
+/* ===== 表格样式（暗色统一） ===== */
+/* ===== AI 聊天气泡里的表格样式（暗色风格） ===== */
+.ait-bubble table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  background: #1a2433;              /* 整个表格的深色背景 */
+  color: var(--ink-1);              /* 统一浅色文字 */
+  border: 1px solid var(--ring);
+  border-radius: 8px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.sa-icon-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-left: 0.25rem;
-  font-size: 1rem;
-  color: #e53e3e;
 }
 
-.sa-main {
-  flex: 1;
-  padding: 1.5rem;
-  box-sizing: border-box;
-}
-.sa-banner {
-  display: flex;
-  align-items: center;
-  background: linear-gradient(90deg, #4fd1c5, #4c51bf);
-  color: #fff;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-}
-.sa-logo {
-  width: 32px;
-  margin-right: 0.5rem;
-}
-.sa-tip {
-  font-size: 0.85rem;
-  color: #718096;
-  margin-bottom: 1rem;
+.ait-bubble th,
+.ait-bubble td {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.1); /* 半透明边框 */
+  text-align: left;
+  background: #1a2433;              /* ✅ 保证每个格子都是深色 */
+  color: var(--ink-1);              /* ✅ 文字用浅色 */
 }
 
-.sa-option {
-  margin-bottom: 0.5rem;
-}
-/* 让每条消息行撑满父容器 */
-.sa-msg {
-  display: flex;
-  width: 100%;        /* ← 关键，之前可能没加 */
-  margin-bottom: 0.75rem;
-}
-
-/* AI 消息保持左对齐 */
-.sa-msg-ai {
-  justify-content: flex-start;
-  flex-direction: row;
-}
-
-/* 我 的消息靠右、头像在右边 */
-/* —— 强制“我”的气泡靠右 —— */
-.sa-msg-user .sa-bubble {
-  margin-left: auto !important;
-  margin-right: 0.5rem;  /* 留一点右边距，看着不贴边 */
-}
-
-/* 同时头像也顺序反一下 */
-.sa-msg-user {
-  display: flex;             /* 确保头像和气泡是 flex 排列 */
-  align-items: flex-start;
-}
-.sa-msg-user .sa-avatar {
-  order: 2;                   /* 头像排在气泡后面 */
-  margin-left: 0.5rem;        /* 气泡和头像之间留空 */
-}
-.sa-msg-user .sa-bubble {
-  order: 1;
+.ait-bubble th {
+  background: #223044;              /* 表头稍微深一点，区分 */
+  font-weight: 700;
+  color: #e5e7eb;                   /* 更亮一点的文字 */
 }
 
 
-.sa-avatar {
-  font-size: 0.75rem;
-  color: #fff;
-  background: #718096;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 0.5rem;
+/* chips */
+.ait-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+.ait-chip{
+  border:1px solid var(--ring);
+  background:#0b1220;
+  color:var(--ink-2);
+  padding:6px 10px; border-radius:999px; cursor:pointer;
 }
-/* —— 气泡内部留更多空间 —— */
-.sa-bubble {
-  /* 原来可能是 padding: 0.5rem 0.75rem; */
-  padding: 0.75rem 1rem;       /* 左右内边距都调大一点 */
+.ait-chip:hover{ background:#0e1624; }
+
+/* 输入区 */
+.ait-input{
+  display:flex; align-items:center; gap:10px;
+  background:#0b1220;
+  border:1px solid var(--ring);
+  border-radius:14px; padding:10px 10px;
+}
+.ait-text{
+  flex:1; border:none; outline:none; font-size:15px;
+  color:var(--ink-1); background:transparent;
+}
+.ait-actions{ display:flex; align-items:center; gap:8px; }
+.ait-icon{
+  border:none; background:#111827; color:var(--ink-2);
+  border-radius:10px; padding:6px 10px; cursor:pointer;
+}
+.ait-send{
+  border:none; border-radius:10px; padding:8px 16px; cursor:pointer; color:#001b18;
+  background: var(--grad); font-weight:800;
+  box-shadow:0 10px 26px rgba(20,184,166,.35);
 }
 
-/* —— 针对有序列表 —— */
-.sa-bubble ol {
-  list-style-position: inside; /* 把“1.”挪到盒子内部 */
-  padding-left: 1rem;          /* 列表内容再往右缩一点 */
-  margin: 0.5rem 0;            /* 上下留点间距 */
+/* 页脚 */
+.ait-foot{ color:var(--ink-3); }
+.ait-foot a{ color:var(--ink-2); text-decoration:none; }
+.ait-foot a:hover{ text-decoration:underline; }
+
+/* KaTeX */
+.katex-display{ overflow:auto hidden; }
+
+/* 小屏适配 */
+@media (max-width: 1220px){
+  .ait-page{ display:block; }
+  .ait-wrap{ width:1180px; margin:0 auto; }
+  body{ overflow-x:auto; }
+}
+/* 用户消息行：反转布局（头像在右边） */
+.from-user {
+  flex-direction: row-reverse;  /* 水平反转 */
 }
 
-/* —— 针对无序列表（如果也有类似问题） —— */
-.sa-bubble ul {
-  list-style-position: inside;
-  padding-left: 1rem;
-  margin: 0.5rem 0;
-}
-
-.sa-msg-user .sa-bubble {
-  background: #bee3f8;
-}
-.sa-hot-qs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-.sa-chip {
-  padding: 0.3rem 0.6rem;
-  border: 1px solid #4fd1c5;
-  border-radius: 12px;
-  background: #f0fcfb;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-.sa-input-area {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.sa-input {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-.sa-input-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.sa-icon-btn {
-  font-size: 1.2rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-.sa-send-btn {
-  background: linear-gradient(90deg, #4fd1c5, #4c51bf);
-  color: #fff;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.sa-footer {
-  font-size: 0.8rem;
-  color: #a0aec0;
-  margin-top: 0.75rem;
-  text-align: center;
-}
-.sa-footer a {
-  color: #4c51bf;
-  text-decoration: none;
-  margin: 0 0.5rem;
+.from-user .ait-avatar {
+  margin-left: 10px;   /* 给气泡和头像留点间距 */
+  margin-right: 0;
 }

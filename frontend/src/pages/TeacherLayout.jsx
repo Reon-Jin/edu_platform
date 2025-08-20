@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import "../ui/layout.css";
 
 export default function TeacherLayout() {
-  const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);   // 仅折叠/展开
   const navigate = useNavigate();
   const username = localStorage.getItem("username") || "";
 
@@ -16,31 +16,73 @@ export default function TeacherLayout() {
 
   const nav = (path) => {
     navigate(path);
-    setOpen(false);
+    // 折叠逻辑不自动改变，避免“多余功能”
   };
 
   return (
     <>
-      <button
-        className={`toggle-btn${open ? " shifted" : ""}`}
-        onClick={() => setOpen(!open)}
-      >
-        {open ? "\u25C0" : "\u25B6"}
-      </button>
-      <div className={`sidebar${open ? " open" : ""}`}>
-        <div style={{ marginBottom: "1rem" }}>您好，教师{username}</div>
-        <button className="button" onClick={() => nav("/teacher/lesson")}>备课</button>
-        <button className="button" onClick={() => nav("/teacher/lesson/list")}>课程列表</button>
-        <button className="button" onClick={() => nav("/teacher/exercise")}>练习生成</button>
-        <button className="button" onClick={() => nav("/teacher/exercise/list")}>练习列表</button>
-        <button className="button" onClick={() => nav("/teacher/docs")}>资料管理</button>
-        <button className="button" onClick={() => nav("/teacher/classes")}>班级管理</button>
-        <div style={{ flex: 1 }} />
-        <button className="button logout-btn" onClick={logout}>登出</button>
-      </div>
-      <div className={`main-content${open ? " shifted" : ""}`}>
-        <Outlet />
-      </div>
+      {/* 左侧侧边栏，仅视觉升级 */}
+      <aside className={`slate-sidebar ${collapsed ? "collapsed" : ""}`}>
+        <div className="sb-top">
+          <div className="brand">
+            <div className="logo-dot" />
+            {!collapsed && <span className="brand-name">EduPanel</span>}
+          </div>
+          <button
+            className="collapse-btn"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label="折叠侧边栏"
+          >
+            {collapsed ? "»" : "«"}
+          </button>
+        </div>
+
+        <div className="sb-user" title={username}>
+          <div className="avatar-mini">{(username || "T").slice(0, 1)}</div>
+          {!collapsed && <div className="user-text">您好，教师{username}</div>}
+        </div>
+
+        <nav className="sb-nav">
+          <button className="sb-item" onClick={() => nav("/teacher/lesson")}>
+            <span className="sb-ico">📘</span>
+            {!collapsed && <span>备课</span>}
+          </button>
+          <button className="sb-item" onClick={() => nav("/teacher/lesson/list")}>
+            <span className="sb-ico">🗂️</span>
+            {!collapsed && <span>课程列表</span>}
+          </button>
+          <button className="sb-item" onClick={() => nav("/teacher/exercise")}>
+            <span className="sb-ico">🧩</span>
+            {!collapsed && <span>练习生成</span>}
+          </button>
+          <button className="sb-item" onClick={() => nav("/teacher/exercise/list")}>
+            <span className="sb-ico">📑</span>
+            {!collapsed && <span>练习列表</span>}
+          </button>
+          <button className="sb-item" onClick={() => nav("/teacher/docs")}>
+            <span className="sb-ico">📁</span>
+            {!collapsed && <span>资料管理</span>}
+          </button>
+          <button className="sb-item" onClick={() => nav("/teacher/classes")}>
+            <span className="sb-ico">🏫</span>
+            {!collapsed && <span>班级管理</span>}
+          </button>
+        </nav>
+
+        <div className="sb-bottom">
+          <button className="logout" onClick={logout}>
+            <span className="sb-ico">⎋</span>
+            {!collapsed && <span>登出</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* 主内容：仍然只渲染你的子路由 */}
+      <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"}`}>
+        <div className="page-shell">
+          <Outlet />
+        </div>
+      </main>
     </>
   );
 }
