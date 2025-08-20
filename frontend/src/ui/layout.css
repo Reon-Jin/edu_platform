@@ -78,7 +78,6 @@ body{
 /* 内容壳：深色卡片，与 student/ai 一致 */
 .page-shell{
   background:var(--card);
-  border-radius:16px;
   box-shadow:var(--shadow);
   min-height:100vh;
   padding:24px;
