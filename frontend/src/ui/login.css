@@ -176,3 +176,30 @@
     animation: none !important;
   }
 }
+
+/* src/ui/login.css */
+
+/* 页面右上角的 logo 容器 */
+.login-header {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  display: flex;
+  gap: 12px;
+  z-index: 999999;   /* 保证在最顶层 */
+  pointer-events: none; /* 如果只做展示，可以避免挡住点击事件 */
+}
+
+.header-logo {
+  height: 100px;
+  object-fit: contain;
+}
+
+/* 登录卡片标题 */
+.login-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-1);
+}
+
