@@ -2,12 +2,14 @@
 :root{
   --sidebar-w: 260px;
   --sidebar-w-collapsed: 88px;
-  --slate-900:#0f172a; --slate-800:#1e293b;
-  --text-1:#0b1220; --text-2:#334155; --muted:#6b7280;
-  --bg:#f6f8fb; --card:#ffffff; --ring:rgba(0,0,0,.06);
+  /* 深色主题变量，参照 student/ai 页面 */
+  --slate-900:#0f172a; --slate-800:#1e293b; --slate-700:#334155;
+  --text-1:#e5e7eb; --text-2:#cbd5e1; --muted:#94a3b8;
+  --bg:linear-gradient(180deg,var(--slate-900),var(--slate-800));
+  --card:#111827; --ring:rgba(255,255,255,.06);
   --brand-1:#06b6d4; --brand-2:#14b8a6;
   --grad: linear-gradient(135deg,var(--brand-1),var(--brand-2));
-  --shadow: 0 8px 30px rgba(17,24,39,.08);
+  --shadow:0 8px 30px rgba(2,6,23,.45);
 }
 
 /* ===== 基础 ===== */
@@ -62,26 +64,29 @@ body{
 }
 .logout:hover{ background:rgba(239,68,68,.22); }
 
-/* ===== 主内容区域（保持 <Outlet/>） ===== */
+/* ===== 主内容区域（与侧边栏无缝衔接） ===== */
 .app-main{
-  min-height:100vh; transition:margin-left .25s ease;
-  padding:24px 28px;
+  min-height:100vh;
+  transition:margin-left .25s ease;
+  padding:0;                /* 去掉白色间隙 */
+  background:var(--bg);
+  color:var(--text-1);
 }
 .app-main.shift-open{ margin-left:var(--sidebar-w); }
 .app-main.shift-collapsed{ margin-left:var(--sidebar-w-collapsed); }
 
-/* 内容壳，提高观感，不改变功能 */
+/* 内容壳：深色卡片，与 student/ai 一致 */
 .page-shell{
   background:var(--card);
-  border-radius:16px;
   box-shadow:var(--shadow);
-  min-height:calc(100vh - 48px);
+  min-height:100vh;
   padding:24px;
+  color:var(--text-1);
 }
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px){
-  .app-main{ padding:16px; }
+  .app-main{ padding:0; }
 }
 
 .app-main.ai-page { padding: 0; }
