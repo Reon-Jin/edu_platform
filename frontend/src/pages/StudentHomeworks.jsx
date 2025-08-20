@@ -1,26 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
-import "../index.css";
+import "../ui/student-homeworks.css"; // ⬅️ 新的样式表
 
 export default function StudentHomeworks() {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [search, setSearch] = useState("");
 
-  // 过滤
   const filtered = list.filter((hw) =>
     hw.subject.toLowerCase().includes(search.toLowerCase())
   );
 
-  // 状态映射（文字 + Emoji）
   const statusMap = {
     not_submitted: { text: "未提交", icon: "✏️" },
-    grading:        { text: "批改中", icon: "🕒" },
-    completed:      { text: "已完成", icon: "✅" },
+    grading:       { text: "批改中", icon: "🕒" },
+    completed:     { text: "已完成", icon: "✅" },
   };
 
-  // 拉数据
   useEffect(() => {
     async function load() {
       try {
@@ -33,7 +30,6 @@ export default function StudentHomeworks() {
     load();
   }, []);
 
-  // 统计信息
   const stats = list.reduce(
     (acc, hw) => {
       acc.total++;

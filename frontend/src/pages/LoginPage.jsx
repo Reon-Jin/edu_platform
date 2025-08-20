@@ -2,10 +2,15 @@
 import React, { useState } from "react";
 import { login } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
-import "../index.css";        // 全局样式（保持）
-import "../ui/login.css";     // 登录页专用样式（含动画）
+import "../index.css";        // 全局样式
+import "../ui/login.css";     // 登录页专用样式
 import AIEduConstellation from "./AIEduConstellation";
 import ShootingStars from "./ShootingStars";
+
+// 导入 logo
+import logo1 from "../pics/suda.png";
+import logo2 from "../pics/ruijie.png";   // 你需要自己在 assets 里放一张
+
 export default function LoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -37,6 +42,12 @@ export default function LoginPage() {
 
   return (
     <div className="login-container">
+      {/* 右上角 logo */}
+      <div className="login-header">
+        <img src={logo1} alt="Logo 1" className="header-logo" />
+        <img src={logo2} alt="Logo 2" className="header-logo" />
+      </div>
+
       {/* 动画背景层 */}
       <div className="login-bg" aria-hidden="true">
         <div className="bg-aurora" />
@@ -44,7 +55,6 @@ export default function LoginPage() {
         <AIEduConstellation />
         <ShootingStars count={16} speed={0.8} />
         <div className="bg-dots">
-          {/* 14 个“节点” */}
           {Array.from({ length: 14 }).map((_, i) => (
             <span key={i} style={{ "--i": i }} />
           ))}
@@ -53,6 +63,8 @@ export default function LoginPage() {
 
       {/* 登录卡片 */}
       <div className="login-card">
+        {/* 新增标题 */}
+        <h1 className="login-title">AI教育平台</h1>
         <h2>登录</h2>
         {error && <div className="login-error">{error}</div>}
         <form onSubmit={handleSubmit}>
