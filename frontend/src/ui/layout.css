@@ -14,7 +14,7 @@
 
 /* ===== 基础 ===== */
 *{ box-sizing: border-box; }
-html,body,#root{ height:100%; }
+html,body,#root{ height:100%; overflow:hidden; }
 body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, "PingFang SC","Microsoft YaHei",Segoe UI,Roboto,Helvetica,Arial,"Noto Sans CJK",sans-serif;
@@ -72,6 +72,7 @@ body{
   background:var(--bg);
   color:var(--text-1);
   position:relative;        /* 允许绝对定位的背景 */
+  overflow:hidden;          /* 避免背景造成的页面轻微滑动 */
 }
 .app-main.shift-open{ margin-left:var(--sidebar-w); }
 .app-main.shift-collapsed{ margin-left:var(--sidebar-w-collapsed); }
@@ -80,7 +81,8 @@ body{
 .page-shell{
   background:var(--card);
   box-shadow:var(--shadow);
-  min-height:100vh;
+  height:100vh;             /* 固定高度铺满屏幕 */
+  overflow:auto;            /* 需要时在内部滚动 */
   padding:24px;
   color:var(--text-1);
   position:relative;
