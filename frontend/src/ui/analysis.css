@@ -1,87 +1,80 @@
-:root{
-  --bg: #f7fbff;
-  --card-bg:#ffffff;
-  --text:#0f172a;
-  --muted:#6b7280;
-  --primary:#3b82f6;
-  --primary-600:#2563eb;
-  --ring:#93c5fd;
-  --border:#e5e7eb;
-  --shadow: 0 10px 28px rgba(15,23,42,0.06);
-  --radius:16px;
-  --gap:28px;
-  --spacing:14px;
+:root {
+  --bg: #0b1020; /* 深色背景 */
+  --card-bg: rgba(22, 28, 45, 0.55); /* 半透明玻璃 */
+  --card-strong: rgba(22, 28, 45, 0.75);
+  --text: #e0e6f5; /* 主文字浅色 */
+  --muted: #94a3b8;
+  --primary: #3b82f6; /* 亮蓝 */
+  --primary-600: #60a5fa;
+  --ring: rgba(59, 130, 246, 0.45);
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  --radius: 16px;
+  --gap: 28px;
+  --spacing: 14px;
   --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
           Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
           "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-*{ box-sizing: border-box; }
-html,body,#root{ height:100%; }
-body{
-  margin:0;
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
 }
 
 /* 页面容器 */
-.eval-page{
+.eval-page {
   padding: 28px;
   max-width: 1280px;
   margin: 0 auto;
 }
 
-/* ===== 双栏布局：默认均衡 =====
-   左侧 minmax(0,1fr) + 右侧 clamp(420px, 34vw, 640px)
-   在 is-compact（左侧内容少）时让右侧更宽
-   在 is-focus-right（手动）时右侧更大
-*/
-.eval-layout{
+/* ===== 双栏布局 ===== */
+.eval-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(420px, 34vw, 640px);
   gap: var(--gap);
   align-items: start;
 }
-
-/* 左侧内容少：自动把右侧放大一些 */
-.eval-layout.is-compact{
+.eval-layout.is-compact {
   grid-template-columns: minmax(320px, 0.8fr) clamp(520px, 44vw, 760px);
 }
-
-/* 用户手动“扩大右侧” */
-.eval-layout.is-focus-right{
+.eval-layout.is-focus-right {
   grid-template-columns: minmax(280px, 0.6fr) clamp(560px, 56vw, 860px);
 }
-
-/* 窄屏：纵向堆叠 */
-@media (max-width: 1024px){
+@media (max-width: 1024px) {
   .eval-layout,
   .eval-layout.is-compact,
-  .eval-layout.is-focus-right{
+  .eval-layout.is-focus-right {
     grid-template-columns: 1fr;
   }
 }
 
-/* 卡片 */
-.eval-card{
+/* 卡片玻璃质感 */
+.eval-card {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 18px 20px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
-/* 左卡片头部（标题 + 切换按钮） */
-.eval-card-head{
+/* 左卡片头部 */
+.eval-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-/* 右侧面板：sticky 更易用 */
-.eval-panel{
+/* 右侧 sticky 面板 */
+.eval-panel {
   position: sticky;
   top: 20px;
   max-height: calc(100vh - 40px);
@@ -89,142 +82,134 @@ body{
 }
 
 /* 标题 */
-.eval-title{
+.eval-title {
   margin: 0 0 10px;
   font-size: 20px;
   font-weight: 800;
   letter-spacing: .2px;
+  color: #f1f5f9;
 }
 
-/* Markdown 区域 */
-.eval-md{
+/* Markdown 内容 */
+.eval-md {
   min-height: 6rem;
-  color: #111827;
+  color: #e2e8f0;
   line-height: 1.7;
 }
 
 /* 提示/错误 */
-.eval-hint{ color: var(--muted); }
-.eval-alert{
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+.eval-hint { color: var(--muted); }
+.eval-alert {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
   padding: 10px 12px;
   border-radius: 10px;
   margin: 10px 0;
 }
 
 /* 表单 */
-.eval-form{
+.eval-form {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
 }
+.eval-group { display: flex; flex-direction: column; gap: 8px; }
+.eval-label { font-size: 14px; color: #cbd5e1; }
 
-.eval-group{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.eval-label{
-  font-size: 14px;
-  color: #334155;
-}
-
-.eval-input{
+/* 输入框 */
+.eval-input {
   width: 100%;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card-strong);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 14px;
+  color: var(--text);
   outline: none;
-  line-height: 1.6;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-.eval-input:focus{
+.eval-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--ring);
 }
 
-/* 主题多行输入 */
-.eval-textarea{
+/* 多行输入 */
+.eval-textarea {
   resize: vertical;
-  overflow: hidden;      /* 配合 JS 自动增高 */
+  overflow: hidden;
   min-height: 88px;
   max-height: 320px;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-/* 字数与提示 */
-.eval-help{
+/* 帮助字样 */
+.eval-help {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: var(--muted);
+  color: #94a3b8;
   margin-top: -2px;
 }
-.eval-help-tip{ opacity: .9; }
+.eval-help-tip { opacity: .9; }
 
 /* 按钮 */
-.eval-button{
+.eval-button {
   appearance: none;
   border: 1px solid var(--border);
-  background: #f8fafc;
-  color: #0f172a;
+  background: rgba(30, 41, 59, 0.6);
+  color: #e2e8f0;
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 14px;
   cursor: pointer;
-  transition: transform .06s ease, background .15s ease, border-color .15s ease;
+  transition: all .2s ease;
 }
-.eval-button:hover{
-  background: #eef2ff;
-  border-color: #e0e7ff;
+.eval-button:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
 }
-.eval-button:active{ transform: translateY(1px); }
-.eval-button:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-}
+.eval-button:active { transform: translateY(1px); }
+.eval-button:disabled { opacity: .6; cursor: not-allowed; }
 
-.eval-button--primary{
+.eval-button--primary {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
 }
-.eval-button--primary:hover{
+.eval-button--primary:hover {
   background: var(--primary-600);
   border-color: var(--primary-600);
+  box-shadow: 0 0 8px var(--primary);
 }
 
-/* 透明按钮（用于左卡片头部的布局切换） */
-.eval-button--ghost{
+/* 透明按钮 */
+.eval-button--ghost {
   background: transparent;
   border-color: var(--border);
-  color: #334155;
+  color: #94a3b8;
 }
 
-/* 预览区：右侧卡片内部滚动 */
-.eval-preview{
+/* 预览区 */
+.eval-preview {
   margin-top: 16px;
   max-height: 46vh;
   overflow: auto;
   padding-right: 4px;
 }
-.eval-actions{
+.eval-actions {
   display: flex;
   gap: 10px;
   margin-bottom: 10px;
 }
-.eval-preview-block{ margin: 10px 0 12px; }
-.eval-preview-item{ margin: 6px 0 0 12px; }
+.eval-preview-block { margin: 10px 0 12px; color: #cbd5e1; }
+.eval-preview-item { margin: 6px 0 0 12px; }
 
-/* 列表（Markdown/预览） */
-.eval-card ul{
+/* 列表 */
+.eval-card ul {
   padding-left: 20px;
   margin: 6px 0;
 }
-.eval-card li{ line-height: 1.7; }
+.eval-card li { line-height: 1.7; color: #cbd5e1; }
