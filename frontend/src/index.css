@@ -200,15 +200,19 @@ table {
   color: var(--text-1);
 }
 table, th, td { border: 1px solid var(--ring); padding: 8px; }
-th {
+thead {
+  background: rgba(22, 28, 45, 0.85) !important;
+  backdrop-filter: blur(6px);
+}
+thead th {
   text-align: left;
-  background-color: var(--slate-800);
+  background: transparent !important;
   font-weight: bold;
   color: var(--text-1);
 }
 td { text-align: left; background: var(--slate-900); }
-table tr:nth-child(even) { background-color: color-mix(in srgb, var(--slate-900) 90%, #000); }
-table tr:hover { background-color: var(--slate-800); }
+table tbody tr:nth-child(even) { background-color: color-mix(in srgb, var(--slate-900) 90%, #000); }
+table tbody tr:hover { background-color: var(--slate-800); }
 
 /* Small icon button used for history delete actions */
 .icon-button {
