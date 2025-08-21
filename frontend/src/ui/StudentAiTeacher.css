@@ -211,7 +211,7 @@
 .ait-bubble th,
 .ait-bubble td {
   padding: 10px 12px;
-  border: 1px solid rgba(255,255,255,.1); /* 半透明边框 */
+  border: 1px solid rgba(255,255,255,0.8); /* 半透明边框 */
   text-align: left;
   background: #1a2433;              /* ✅ 保证每个格子都是深色 */
   color: var(--ink-1);              /* ✅ 文字用浅色 */
