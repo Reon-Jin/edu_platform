@@ -10,6 +10,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../index.css";            // 全局样式
 import "../ui/teacher-lesson.css"; // 本页样式（含 .tl-loading 居中覆盖）
+import ShootingStars from "./ShootingStars";
 
 export default function TeacherLesson() {
   const [topic, setTopic] = useState("");
@@ -93,6 +94,7 @@ export default function TeacherLesson() {
 
   return (
     <div className="tl-container">
+      <ShootingStars count={16} speed={1} zIndex={-1} />
       <div className="tl-card" aria-busy={loading}>
         <h2 className="tl-title">教案备课</h2>
 
