@@ -1,0 +1,319 @@
+/* ========== 全局设置 ========== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #070c1a !important;  /* 深色背景，覆盖默认白底 */
+  color: #e9eef7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* ========== 主题变量 ========== */
+:root {
+  --bg: #070c1a;
+  --surface: rgba(18, 24, 38, 0.78);
+  --card-border: rgba(120, 150, 255, 0.18);
+  --text-1: #e9eef7;   /* 主文本白色偏冷 */
+  --text-2: #b9c3d9;   /* 次文本 */
+  --muted: #2a3348;
+
+  --brand: #33b1ff;    /* 渐变左：青蓝 */
+  --brand-2: #17d1c3;  /* 渐变右：青绿 */
+  --ring: rgba(83, 164, 255, 0.55);
+  --ok: #3ee6a0;
+  --error: #ff6b6b;
+}
+
+/* ========== 容器与卡片 ========== */
+.tl-container {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  place-items: start center;
+  padding: 2.5rem 1rem;
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(51, 177, 255, 0.08), transparent 60%),
+              radial-gradient(900px 600px at 90% 110%, rgba(23, 209, 195, 0.06), transparent 60%),
+              var(--bg);
+  color: var(--text-1);
+}
+
+.tl-card {
+  width: min(1100px, 92vw);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)),
+              var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  padding: 28px;
+  position: relative;
+  backdrop-filter: blur(8px);
+}
+
+/* 标题 */
+.tl-title {
+  margin: 0 0 18px;
+  color: var(--text-1);
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ========== 提示条 ========== */
+.tl-alert {
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+}
+.tl-alert-ok {
+  background: rgba(62, 230, 160, 0.12);
+  border-color: rgba(62, 230, 160, 0.35);
+  color: var(--text-1);
+}
+.tl-alert-error {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.35);
+  color: var(--text-1);
+}
+
+/* ========== 表单 ========== */
+.tl-form { margin-top: 18px; }
+
+.tl-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.tl-input {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: rgba(12, 18, 32, 0.9);
+  color: var(--text-1);
+  padding: 0 14px;
+  outline: none;
+  transition: box-shadow .2s, border-color .2s, background .2s;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+}
+.tl-input::placeholder { color: rgba(233, 238, 247, 0.55); }
+.tl-input:focus {
+  border-color: rgba(83, 164, 255, 0.55);
+  box-shadow: 0 0 0 6px rgba(83, 164, 255, 0.12);
+  background: rgba(12, 18, 32, 0.95);
+}
+
+.tl-actions-centered {
+  text-align: center;
+  margin-top: 18px;
+}
+
+/* ========== 按钮 ========== */
+.tl-btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  user-select: none;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: transform .08s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
+  color: var(--text-1);
+  backdrop-filter: blur(6px);
+}
+
+.tl-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 主按钮：科技渐变 */
+.tl-btn-primary {
+  width: min(720px, 92%);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0)),
+    linear-gradient(90deg, var(--brand), var(--brand-2));
+  box-shadow: 0 10px 26px rgba(36, 169, 255, 0.25),
+              inset 0 0 20px rgba(255,255,255,0.06);
+}
+.tl-btn-primary:hover {
+  box-shadow: 0 12px 30px rgba(36, 169, 255, 0.32),
+              inset 0 0 24px rgba(255,255,255,0.08);
+  transform: translateY(-1px);
+}
+.tl-btn-primary:active { transform: translateY(0); }
+
+.tl-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0 10px;
+  flex-wrap: wrap;
+}
+
+/* 次级按钮：玻璃态 */
+.tl-btn-glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid var(--card-border);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  min-width: 140px;
+}
+.tl-btn-glass:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.32); }
+
+/* 轮廓按钮 */
+.tl-btn-outline {
+  min-width: 140px;
+  background: transparent;
+  border: 1px solid rgba(83,164,255,0.45);
+}
+.tl-btn-outline:hover {
+  box-shadow: 0 0 0 6px rgba(83,164,255,0.12);
+}
+
+/* ========== Markdown 预览 ========== */
+.tl-md {
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(10, 14, 26, 0.55);
+  border: 1px solid var(--card-border);
+  color: var(--text-1);
+  overflow-x: auto;
+}
+.tl-md h1, .tl-md h2, .tl-md h3, .tl-md h4, .tl-md h5, .tl-md h6 { color: var(--text-1); }
+.tl-md p, .tl-md li, .tl-md code, .tl-md pre { color: var(--text-1); }
+.tl-md a {
+  color: var(--brand);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(51,177,255,0.4);
+}
+.tl-md a:hover {
+  color: var(--brand-2);
+  border-bottom-color: rgba(23,209,195,0.5);
+}
+.tl-md pre {
+  background: rgba(5, 8, 16, 0.75);
+  border: 1px solid rgba(120,150,255,0.15);
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+
+/* ========== 加载动画遮罩 ========== */
+.tl-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;                /* ✅ 改成 flex */
+  flex-direction: column;       /* 垂直排列 */
+  justify-content: center;      /* 垂直居中 */
+  align-items: center;          /* 水平居中 */
+  gap: 16px;                    /* 控制圈圈和文字之间的距离 */
+  background: rgba(5, 8, 16, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+}
+
+.tl-loading-text {
+  color: var(--text-1);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  margin-top: 12px;   /* 保险起见，也可以用 gap 控制 */
+}
+
+
+.tl-loader {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 6px 16px rgba(36,169,255,.35));
+}
+
+/* 中心渐变旋转圈 */
+.tl-loader .ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 0deg, var(--brand), var(--brand-2), var(--brand));
+  mask: radial-gradient(farthest-side, transparent 58%, #000 60%);
+  animation: tl-rotate 1.2s linear infinite;
+  opacity: .95;
+}
+
+/* 四个小粒子绕圈 */
+.tl-loader .dot {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, rgba(255,255,255,.2));
+  box-shadow: 0 0 12px rgba(255,255,255,.65), 0 0 30px rgba(36,169,255,.45);
+  top: 50%; left: 50%;
+  transform-origin: -46px -46px;
+  animation: tl-orbit 1.8s linear infinite;
+}
+.tl-loader .d1 { transform-origin: -46px -46px; animation-delay: 0s; }
+.tl-loader .d2 { transform-origin:  46px -46px; animation-delay: .15s; }
+.tl-loader .d3 { transform-origin:  46px  46px; animation-delay: .30s; }
+.tl-loader .d4 { transform-origin: -46px  46px; animation-delay: .45s; }
+
+@keyframes tl-rotate {
+  to { transform: rotate(360deg); }
+}
+@keyframes tl-orbit {
+  0%   { transform: rotate(0deg) translate(-50%, -50%); }
+  60%  { filter: brightness(1.2); }
+  100% { transform: rotate(360deg) translate(-50%, -50%); }
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .tl-btn-primary { width: 100%; }
+  .tl-card { padding: 20px; }
+}
+
+/* ====== 强力覆盖：干掉外层白底 ====== */
+html, body, #root, main, .app, .layout, .page, .content, .container,
+.wrapper, .content-wrapper, .student-content, .teacher-content {
+  background: transparent !important;
+}
+
+/* 本页兜底：无论外层如何，都显示深色玻璃背景 */
+.tl-container {
+  position: relative;
+  isolation: isolate;                  /* 建立栈上下文，确保伪元素分层正确 */
+  min-height: 100vh;
+}
+
+/* 用一个固定定位的遮罩做“深色玻璃宇宙背景” */
+.tl-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(51, 177, 255, 0.08), transparent 60%),
+    radial-gradient(900px 600px at 90% 110%, rgba(23, 209, 195, 0.06), transparent 60%),
+    #070c1a;                            /* 绝对深色兜底 */
+  /* 如果你有系统级毛玻璃，需要浏览器支持： */
+  /* backdrop-filter: blur(2px); */
+}
+
+/* 防止别处给卡片再套白背景或投影 */
+.tl-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)),
+    rgba(18, 24, 38, 0.78) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35) !important;
+  border: 1px solid rgba(120, 150, 255, 0.18) !important;
+}
+
+/* Markdown/表单等局部兜底，避免回到白色 */
+.tl-md,
+.tl-input {
+  background-color: rgba(10, 14, 26, 0.55) !important;
+}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "../ui/layout.css";
-
+import AIEduConstellation from "./AIEduConstellation";
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
@@ -68,6 +68,9 @@ export default function AdminLayout() {
       </aside>
 
       <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"}`}>
+          <AIEduConstellation />
+          <div className="bg-aurora" />
+          <div className="bg-grid" />
         <div className="page-shell">
           <Outlet />
         </div>

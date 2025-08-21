@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "../ui/layout.css";
-
+import AIEduConstellation from "./AIEduConstellation";
 export default function TeacherLayout() {
   const [collapsed, setCollapsed] = useState(false);   // 仅折叠/展开
   const navigate = useNavigate();
@@ -79,6 +79,9 @@ export default function TeacherLayout() {
 
       {/* 主内容：仍然只渲染你的子路由 */}
       <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"}`}>
+          <AIEduConstellation />
+          <div className="bg-aurora" />
+          <div className="bg-grid" />
         <div className="page-shell">
           <Outlet />
         </div>

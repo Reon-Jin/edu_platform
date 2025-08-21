@@ -7,8 +7,9 @@ import {
   optimizeLesson,
 } from "../api/teacher";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
-import "../index.css";  // 引用全局样式
+import remarkGfm from "remark-gfm";
+import "../index.css";            // 全局样式
+import "../ui/teacher-lesson.css"; // 本页样式（含 .tl-loading 居中覆盖）
 
 export default function TeacherLesson() {
   const [topic, setTopic] = useState("");
@@ -22,14 +23,14 @@ export default function TeacherLesson() {
     e.preventDefault();
     setError("");
     setMarkdown("");
-    setLoading(true);
     setSaved(false);
+    setLoading(true);
     try {
       const md = await prepareLessonMarkdown({ topic });
       setMarkdown(md);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || "生成教案失败");
+      setError(err?.response?.data?.detail || "生成教案失败");
     } finally {
       setLoading(false);
     }
@@ -91,32 +92,32 @@ export default function TeacherLesson() {
   };
 
   return (
-    <div className="container">
-      <div className="card">
-        <h2>教案备课</h2>
-        {error && <div className="error">{error}</div>}
-        {saved && <div className="success">教案已保存！</div>}
+    <div className="tl-container">
+      <div className="tl-card" aria-busy={loading}>
+        <h2 className="tl-title">教案备课</h2>
 
-        <form onSubmit={handleGenerate}>
-          <label>
-            主题
-            <input
-              className="input"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              required
-              placeholder="输入备课主题"
-            />
-          </label>
+        {error && <div className="tl-alert tl-alert-error">{error}</div>}
+        {saved && <div className="tl-alert tl-alert-ok">教案已保存！</div>}
 
-          {/* 生成教案按钮 */}
-          <div style={{ textAlign: "center" }}>
+        <form onSubmit={handleGenerate} className="tl-form" autoComplete="off">
+          <label className="tl-label" htmlFor="topic">主题</label>
+          <input
+            id="topic"
+            className="tl-input"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            required
+            placeholder="输入备课主题"
+            aria-label="备课主题"
+          />
+
+          <div className="tl-actions-centered">
             <button
-              className="generate-lesson-btn"
+              className="tl-btn tl-btn-primary"
               type="submit"
-              disabled={loading}
+              disabled={loading || !topic.trim()}
+              aria-busy={loading}
             >
-              <i className="icon icon-generate" />{" "}
               {loading ? "生成中…" : "生成教案"}
             </button>
           </div>
@@ -124,61 +125,26 @@ export default function TeacherLesson() {
 
         {markdown && (
           <>
-            <div
-              className="actions"
-              style={{
-                display: "flex",
-                gap: "1rem",
-                justifyContent: "center",
-                margin: "1rem 0",
-              }}
-            >
-
-              {/* AI 优化 */}
-              <button
-                className="button btn-secondary"
-                onClick={handleOptimize}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  width: "30%",
-                  minWidth: "120px",
-                }}
-              >
-                <i className="icon icon-magic" /> AI优化
+            <div className="tl-actions">
+              <button className="tl-btn tl-btn-glass" onClick={handleOptimize}>
+                AI 优化
               </button>
 
-              {/* 保存教案 */}
-              <button
-                className="button btn-secondary"
-                onClick={handleSave}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  width: "30%",
-                  minWidth: "120px",
-                }}
-              >
-                <i className="icon icon-save" /> 保存教案
+              <button className="tl-btn tl-btn-glass" onClick={handleSave}>
+                保存教案
               </button>
 
-              {/* 下载 PDF */}
               <button
-                className="button btn-tertiary"
+                className="tl-btn tl-btn-outline"
                 onClick={handleDownload}
                 disabled={!saved}
-                style={{
-                  padding: "0.5rem 1rem",
-                  fontSize: "0.9rem",
-                  width: "30%",
-                  minWidth: "120px",
-                }}
+                title={saved ? "下载 PDF" : "请先保存教案"}
               >
-                <i className="icon icon-download" /> 下载 PDF
+                下载 PDF
               </button>
             </div>
 
-            <div className="markdown-preview">
+            <div className="tl-md">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {markdown}
               </ReactMarkdown>
@@ -186,6 +152,20 @@ export default function TeacherLesson() {
           </>
         )}
       </div>
+
+      {/* ✅ 全屏、居中的加载遮罩：移到卡片外层 */}
+      {loading && (
+        <div className="tl-loading" role="alert" aria-live="assertive">
+          <div className="tl-loader" aria-hidden="true">
+            <span className="ring" />
+            <span className="dot d1" />
+            <span className="dot d2" />
+            <span className="dot d3" />
+            <span className="dot d4" />
+          </div>
+          <div className="tl-loading-text">AI 正在编排你的教案…</div>
+        </div>
+      )}
     </div>
   );
 }
