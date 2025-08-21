@@ -22,7 +22,7 @@ html, body { margin: 0; overflow: hidden; }
 
   --kpi-h: 82px;
   --chart-h: 220px;         /* 单个图表目标高度 */
-  --radius: 14px;
+  --radius: 20px;
   --blur: 10px;
 
   --legend-w: 140px;        /* 右侧图例固定宽度，确保两个饼图等大 */
@@ -115,12 +115,11 @@ body::before{
 .kpi .kpi-number{ font-size: 20px; }
 
 /* ===== 面板 ===== */
-/* 改动点1：用 padding 做留白；允许内容溢出可见，避免角落被裁切 */
 .panel {
-  padding: 14px;                 /* 内边距留白，避免再用 canvas 的 margin */
+  padding: 14px;
   display: grid;
   grid-template-rows: auto 1fr;
-  overflow: visible;             /* 由 hidden 改为 visible，角落不会被裁掉 */
+  overflow: visible;
   animation: rise 0.6s ease;
   border-radius: 10px;
   background: rgba(16, 22, 38, 0.65);
@@ -144,13 +143,12 @@ body::before{
   margin-bottom: 6px;
 }
 
-/* 改动点2：不要给 canvas 再加 margin，直接 100% 铺满容器 */
 .panel > canvas,
 .panel > div.chart-container {
-  margin: 0;                                    /* 取消 8px margin，防止被裁 */
-  width: 100% !important;
-  height: 100% !important;
-  display: block;                                /* 避免 baseline 造成 2~4px 缝隙 */
+  margin: 0;
+  width: 90% !important;
+  height: 90% !important;
+  display: block;
 }
 
 /* 位置映射到主网格 */
@@ -161,7 +159,7 @@ body::before{
 .panel-trend{    grid-column: 5 / span 4; grid-row: 4; }
 .panel-pies{     grid-column: 9 / span 4; grid-row: 4; }
 
-/* ===== 饼图组合：两列并排 + 固定宽度图例，确保两个饼图等大 ===== */
+/* ===== 饼图组合 ===== */
 .panel-pies{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -169,7 +167,6 @@ body::before{
   align-items: stretch;
 }
 
-/* 子面板：标题行 + 内容区（内容区再分 图表/图例） */
 .panel-pies .subpanel{
   display: grid;
   grid-template-rows: auto 1fr;
@@ -177,25 +174,22 @@ body::before{
   gap: 6px;
 }
 
-/* 内容区划分：图表 + 右侧固定宽度图例（如果你用 DOM 渲染图例，请给容器 class="legend"） */
 .panel-pies .content{
   display: grid;
-  grid-template-columns: 1fr var(--legend-w);   /* 图表自适应 + 固定宽度图例 */
+  grid-template-columns: 1fr var(--legend-w);
   grid-auto-rows: 1fr;
   gap: 10px;
-  min-height: 0;                                 /* 防止子元素撑爆 */
-}
-
-/* 图表容器保持正方形，两个饼图半径一致 */
-.panel-pies .panel-c{
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;                           /* 正方形画布 */
-  max-height: calc(var(--chart-h) - 34px);       /* 与上方标题间距相配 */
   min-height: 0;
 }
 
-/* 右侧图例区域（可放自定义 legend；若继续用内置 legend，可隐藏并自己渲染到这里） */
+.panel-pies .panel-c{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: calc(var(--chart-h) - 34px);
+  min-height: 0;
+}
+
 .panel-pies .legend{
   align-self: center;
   font-size: 12px;
@@ -203,7 +197,6 @@ body::before{
   overflow: hidden;
 }
 
-/* 画布填满容器 */
 .panel-c canvas{
   position: absolute;
   inset: 0;
@@ -211,10 +204,8 @@ body::before{
   height: 100% !important;
 }
 
-/* 标记：旧的 .mini 不再需要 */
 .panel-pies .panel-c.mini{ height: auto; }
 
-/* 徽章/状态 */
 .badge{
   font-size: 11px; padding: 2px 8px;
   background: rgba(51,197,255,0.14);
@@ -223,23 +214,7 @@ body::before{
   color: #cfe3ff;
 }
 
-/* 动画 */
 @keyframes rise{
   from{ opacity:0; transform: translateY(20px); }
   to{ opacity:1; transform: translateY(0); }
-}
-
-/* 1366×768 适配 */
-@media (max-height: 768px){
-  :root{
-    --header-h: 92px;
-    --kpi-h: 76px;
-    --chart-h: 208px;
-  }
-  .kpi .kpi-number{ font-size: 19px; }
-}
-
-/* 宽度较小回退：饼图上下排，图例仍固定宽，饼图仍等大 */
-@media (max-width: 1400px){
-  .panel-pies{ grid-template-columns: 1fr; }
 }
