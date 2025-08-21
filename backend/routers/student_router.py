@@ -20,6 +20,7 @@ from backend.services.chat_service import (
     ask_in_session,
     ask_in_session_stream,
     delete_session,
+    suggest_questions,
 )
 from backend.services.practice_service import (
     generate_practice, list_practices, get_practice, submit_practice,
@@ -62,6 +63,11 @@ def api_list_sessions(user: User = Depends(get_current_user)):
 def api_get_messages(sid: int, user: User = Depends(get_current_user)):
     msgs = get_messages(user.id, sid)
     return [MessageOut(id=m.id, session_id=m.session_id, role=m.role, content=m.content, created_at=m.created_at) for m in msgs]
+
+
+@router.get("/session/{sid}/suggest", response_model=List[str])
+def api_suggest(sid: int, user: User = Depends(get_current_user)):
+    return suggest_questions(user.id, sid)
 
 
 @router.post("/session/{sid}/ask", response_model=MessageOut)

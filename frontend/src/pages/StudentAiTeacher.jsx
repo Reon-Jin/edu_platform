@@ -55,11 +55,20 @@ export default function StudentAiTeacher() {
     return processed;
   };
 
-  const hotQuestions = [
+  const [hotQuestions, setHotQuestions] = useState([
     "如何解一元二次方程？",
     "写一首关于夏天的英文诗",
     "什么是 JavaScript 闭包？",
-  ];
+  ]);
+
+  const fetchHotQuestions = async (sid) => {
+    try {
+      const r = await api.get(`/student/ai/session/${sid}/suggest`);
+      if (Array.isArray(r.data)) setHotQuestions(r.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   // 初始化/加载会话
   useEffect(() => {
@@ -95,6 +104,7 @@ export default function StudentAiTeacher() {
       try {
         const r = await api.get(`/student/ai/session/${current}`);
         setMessages(r.data);
+        fetchHotQuestions(current);
       } catch (e) {
         console.error(e);
       }
@@ -149,6 +159,7 @@ export default function StudentAiTeacher() {
       try {
         const r = await api.get(`/student/ai/session/${current}`);
         setMessages(r.data);
+        fetchHotQuestions(current);
       } catch (e) {
         console.error(e);
       }
