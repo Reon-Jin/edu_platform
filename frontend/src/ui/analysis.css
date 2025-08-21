@@ -213,3 +213,20 @@ body {
   margin: 6px 0;
 }
 .eval-card li { line-height: 1.7; color: #cbd5e1; }
+
+/* 左卡片正文（Markdown）内部滚动 */
+.eval-md {
+  flex: 1;
+  max-height: calc(100vh - 160px); /* 预留头部、底部空间 */
+  overflow-y: auto;                /* 开启内部滚动 */
+  padding-right: 8px;              /* 给滚动条留点空间 */
+  line-height: 1.7;
+  color: #e2e8f0;
+}
+
+/* 美化滚动条 */
+.eval-md::-webkit-scrollbar { width: 10px; }
+.eval-md::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,.35);
+  border-radius: 8px;
+}
