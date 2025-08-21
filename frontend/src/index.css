@@ -620,72 +620,165 @@ table tr:hover { background-color: var(--slate-800); }
 .chart-card { height: 100%; display: flex; flex-direction: column; }
 .chart-card h4 { margin-bottom: 12px; font-size: 1rem; text-align: center; color: var(--text-1); }
 
-/* ========== Eval (analysis & form) ========== */
-.eval-container {
+/* src/index.css (Dark Sci-Fi Theme 全局深色 + 玻璃态) */
+
+/* ========== Global ========== */
+:root {
+  --bg: #070c1a;
+  --surface: rgba(22, 28, 45, 0.75);
+  --card: rgba(22, 28, 45, 0.7);
+  --slate-700: #1e293b;
+  --slate-800: #0f172a;
+  --slate-900: #0a0f1f;
+  --text-1: #e9eef7;
+  --text-2: #b9c3d9;
+  --muted: #2a3348;
+  --brand-1: #33b1ff;
+  --brand-2: #17d1c3;
+  --ring: rgba(83, 164, 255, 0.55);
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  background: var(--bg) !important;
+  color: var(--text-1);
+  animation: fade-in 0.5s ease-in-out;
+}
+
+/* ---------- Generic Container ---------- */
+.container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  padding: 4rem 2rem 2rem;
+  gap: 1rem;
+  background: transparent;
+}
+
+/* ========== Card ========== */
+.card {
+  width: 100%;
+  max-width: 1000px;
+  background: var(--surface);
+  border: 1px solid rgba(120,150,255,0.15);
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px 24px;
   color: var(--text-1);
 }
-.eval-container-horizontal {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.eval-container-horizontal .analysis { flex: 2; min-width: 0; }
-.eval-container-horizontal .form-card { flex: 0 0 300px; }
+.wide-card { width: clamp(700px, 75vw, 1000px); margin: 0 auto; padding: 2rem; }
 
-.eval-card {
-  background-color: var(--card);
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--ring);
-  color: var(--text-1);
-}
-.eval-card.analysis { background-color: var(--slate-800); }
+.card h2, .card h3 { color: var(--text-1); }
 
-.eval-title {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: var(--brand-1);
-  border-left: 4px solid var(--brand-2);
-  padding-left: 0.75rem;
-}
-
-.eval-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem 1.5rem;
-  margin-top: 1rem;
-}
-.eval-group { display: flex; flex-direction: column; gap: 0.5rem; }
-.eval-input {
-  padding: 0.5rem;
+/* ========== Inputs ========== */
+.input {
+  width: 100%;
+  padding: 1rem;
+  margin: 1rem 0 1.5rem;
+  font-size: 1rem;
   border: 1px solid var(--ring);
   border-radius: 8px;
-  background: var(--slate-900);
+  box-sizing: border-box;
+  background: var(--slate-800);
   color: var(--text-1);
 }
-.eval-button {
-  margin-top: 1.5rem;
-  padding: 0.6rem 1.2rem;
+.input::placeholder { color: var(--text-2); }
+
+/* ========== Buttons ========== */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
   border: none;
   border-radius: 8px;
-  background: var(--slate-700);
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
   color: var(--text-1);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease, transform 0.2s ease, filter .2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,.45);
+  margin-top: 1rem;
+  text-align: center;
+  text-decoration: none;
 }
-.eval-button.primary { background: linear-gradient(90deg, var(--brand-1), var(--brand-2)); color: #06121a; }
-.eval-button:hover { background-color: var(--slate-600, #475569); }
+.button:disabled { opacity: 0.6; cursor: not-allowed; }
+.button:not(:disabled):hover { transform: scale(1.03); filter: brightness(1.08); }
+.button:focus { outline: 2px solid var(--brand-1); outline-offset: 2px; }
 
-.eval-preview { margin-top: 2rem; border-top: 1px dashed var(--ring); padding-top: 1rem; }
-.eval-preview-block { margin-bottom: 1rem; }
-.eval-preview-item { margin-left: 1rem; margin-top: 0.5rem; }
+.btn-primary {
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2));
+  color: var(--text-1);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--brand-1);
+  border: 2px solid var(--brand-1);
+}
+.btn-secondary:hover { background: var(--brand-1); color: #05101a; }
+.btn-tertiary {
+  background: var(--slate-800);
+  color: var(--text-1);
+  border: 2px solid transparent;
+}
+.btn-tertiary:hover { background: var(--slate-700); }
+
+/* ========== Status text ========== */
+.error { color: #ff6b6b; text-align: center; margin-top: 1rem; }
+.success { color: #3ee6a0; text-align: center; margin-top: 1rem; }
+
+/* ========== Markdown preview box ========== */
+.markdown-preview {
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--slate-900);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  border: 1px solid var(--ring);
+  color: var(--text-1);
+}
+
+/* ========== Tables ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  color: var(--text-1);
+}
+table, th, td { border: 1px solid var(--ring); padding: 8px; }
+th {
+  text-align: left;
+  background: var(--slate-800);
+  color: var(--text-1);
+}
+td { background: var(--slate-900); }
+table tr:nth-child(even) { background: rgba(22,28,45,0.85); }
+table tr:hover { background: rgba(36,42,60,0.95); }
+
+/* ========== Sidebar ========== */
+.sidebar {
+  background: var(--slate-900);
+  border-right: 1px solid var(--ring);
+  color: var(--text-1);
+}
+
+/* ========== Chips / Tags ========== */
+.class-box { background: var(--card); }
+.chip { color: var(--text-1); }
+.badge, .tag { color: #0b1220; }
+
+/* ========== Animations ========== */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+

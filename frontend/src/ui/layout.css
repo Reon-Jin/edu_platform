@@ -90,3 +90,30 @@ body{
 }
 
 .app-main.ai-page { padding: 0; }
+
+/* Aurora 层 */
+.bg-aurora{
+  position:absolute; inset:5% 5% 5% 5%;   /* 原来是 -10%，改小范围 */
+  background:
+    radial-gradient(40vmax 40vmax at 20% -10%, rgba(20,184,166,.18), transparent 60%),
+    radial-gradient(30vmax 30vmax at 110% 10%, rgba(6,182,212,.16), transparent 60%),
+    radial-gradient(25vmax 25vmax at -10% 90%, rgba(56,189,248,.14), transparent 60%);
+  filter: blur(2px);
+  animation: aurora-pan 16s linear infinite;
+  opacity:.9;
+  z-index: -99991;
+}
+
+/* Grid 层 */
+.bg-grid{
+  position:absolute; inset:10% 10% 10% 10%;  /* 留出上下左右边距 */
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 36px 36px, 36px 36px;      /* 调小格子间距 */
+  mask-image: radial-gradient(60% 50% at 50% 40%, #000 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(60% 50% at 50% 40%, #000 60%, transparent 100%);
+  animation: grid-breathe 10s ease-in-out infinite;
+  opacity:.35;
+  z-index: -9999;
+}

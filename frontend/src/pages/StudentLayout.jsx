@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import "../ui/layout.css";
-
+import AIEduConstellation from "./AIEduConstellation";
 export default function StudentLayout() {
   const [collapsed, setCollapsed] = useState(false);   // 折叠/展开
   const navigate = useNavigate();
@@ -76,6 +76,9 @@ export default function StudentLayout() {
 
       {/* 主内容：与 TeacherLayout 同步的位移与壳层；AI页保留全屏特性 */}
       <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"} ${isAiPage ? "ai-page" : ""}`}>
+          <AIEduConstellation />
+          <div className="bg-aurora" />
+          <div className="bg-grid" />
         {isAiPage ? (
           // 保持 AI 页原样（不包裹外层卡片）
           <Outlet />
