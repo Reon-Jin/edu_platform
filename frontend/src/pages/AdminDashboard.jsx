@@ -94,7 +94,10 @@ export default function AdminDashboard() {
       data: ['A','B','C','D','F'].map(k => data.homework.score_dist[k] || 0),
       backgroundColor: 'rgba(51,197,255,0.35)',
       borderColor: '#33C5FF',
-      borderWidth: 1,
+      borderWidth: 0,
+      borderRadius: 4,
+      categoryPercentage: 0.72,
+      barPercentage: 0.72,
     }],
   };
 
@@ -104,10 +107,10 @@ export default function AdminDashboard() {
     datasets: [{
       label: '掌握度 (%)',
       data: masteryLabels.map(k => +(data.homework.mastery[k] * 100).toFixed(1)),
-      backgroundColor: 'rgba(80,160,255,0.2)',
+      backgroundColor: 'rgba(80,160,255,0.18)',
       borderColor: '#50A0FF',
       pointBackgroundColor: '#50A0FF',
-      borderWidth: 2,
+      borderWidth: 1.5,
     }],
   };
 
@@ -121,6 +124,7 @@ export default function AdminDashboard() {
       backgroundColor: 'rgba(155,89,255,0.18)',
       tension: 0.35,
       fill: true,
+      borderWidth: 1.5,
     }],
   };
 
@@ -134,6 +138,8 @@ export default function AdminDashboard() {
         backgroundColor: 'rgba(51,197,255,0.18)',
         tension: 0.35,
         fill: true,
+        borderWidth: 1.5,
+        pointRadius: 2,
       },
       {
         label: '练习',
@@ -142,6 +148,8 @@ export default function AdminDashboard() {
         backgroundColor: 'rgba(255,93,158,0.18)',
         tension: 0.35,
         fill: true,
+        borderWidth: 1.5,
+        pointRadius: 2,
       },
     ],
   };
@@ -154,6 +162,7 @@ export default function AdminDashboard() {
       backgroundColor: ['#33C5FF','#50A0FF','#9B59FF','#17D1C3','#FF5D9E'],
       borderWidth: 0,
       hoverOffset: 6,
+      radius: '82%'          // 缩小饼图半径
     }],
   };
 
@@ -165,25 +174,11 @@ export default function AdminDashboard() {
       backgroundColor: ['#33C5FF','#50A0FF','#9B59FF','#17D1C3','#FF5D9E','#FAD648','#6EE7B7','#7DD3FC'],
       borderWidth: 0,
       hoverOffset: 6,
+      radius: '82%'          // 缩小饼图半径
     }],
   };
 
-  const classDistOptions = {
-    plugins: {
-      legend: { labels: { color: '#cfe3ff', boxWidth: 10 } },
-      tooltip: {
-        callbacks: {
-          label: ctx => {
-            const label = ctx.label || '';
-            const names = stats.classDistribution[label].classes.join(', ');
-            return `${label}: ${ctx.parsed}个班级\n${names}`;
-          },
-        },
-      },
-    }
-  };
-
-  // 统一图表暗色主题
+  // ===== 统一“紧凑”主题：缩小字体、元素与留白 =====
   const darkChartOpts = {
     maintainAspectRatio: false,
     plugins: {
@@ -206,6 +201,66 @@ export default function AdminDashboard() {
         pointLabels: { color: '#cfe3ff' },
         ticks: { showLabelBackdrop: false, color: '#b9c6e4' }
       }
+    }
+  };
+
+  const compactOpts = {
+    ...darkChartOpts,
+    layout: { padding: 16 },
+    elements: {
+      point: { radius: 2, hitRadius: 6 },
+      line: { borderWidth: 1.5, tension: 0.35 },
+      bar:  { borderWidth: 0, borderRadius: 4 }
+    },
+    plugins: {
+      ...darkChartOpts.plugins,
+      legend: {
+        ...darkChartOpts.plugins.legend,
+        labels: {
+          ...darkChartOpts.plugins.legend.labels,
+          font: { size: 10 },
+          boxWidth: 10
+        }
+      },
+      tooltip: { ...darkChartOpts.plugins.tooltip, titleFont: { size: 11 }, bodyFont: { size: 11 } }
+    },
+    scales: {
+      ...darkChartOpts.scales,
+      x: { ...darkChartOpts.scales.x, ticks: { ...darkChartOpts.scales.x.ticks, font: { size: 10 } } },
+      y: { ...darkChartOpts.scales.y, ticks: { ...darkChartOpts.scales.y.ticks, font: { size: 10 } } },
+      r: {
+        ...darkChartOpts.scales.r,
+        pointLabels: { color: '#cfe3ff', font: { size: 10 } },
+        ticks: { display: false } // 雷达图更简洁
+      }
+    }
+  };
+
+  // 饼图（通用紧凑）
+  const pieCompact = {
+    layout: { padding: 12 },
+    plugins: {
+      legend: { position: 'right', labels: { color: '#cfe3ff', font: { size: 10 }, boxWidth: 10 } },
+      tooltip: { titleColor: '#0b1020', bodyColor: '#0b1020' }
+    },
+    maintainAspectRatio: false
+  };
+
+  // 班级分布饼图（带自定义 tooltip）
+  const classDistOptionsCompact = {
+    ...pieCompact,
+    plugins: {
+      ...pieCompact.plugins,
+      tooltip: {
+        ...pieCompact.plugins.tooltip,
+        callbacks: {
+          label: ctx => {
+            const label = ctx.label || '';
+            const names = stats.classDistribution[label].classes.join(', ');
+            return `${label}: ${ctx.parsed}个班级\n${names}`;
+          },
+        },
+      },
     }
   };
 
@@ -236,7 +291,7 @@ export default function AdminDashboard() {
 
       {/* 主网格（两行 KPI + 两行图表） */}
       <main className="neo-grid">
-        {/* KPI：两行×6（共 12 张，整齐无空洞） */}
+        {/* KPI：两行×6（共 12 张） */}
         <div className="kpi glass"><span className="kpi-title">教师数量</span><span className="kpi-number">{data.counts.teacher}</span></div>
         <div className="kpi glass"><span className="kpi-title">学生数量</span><span className="kpi-number">{data.counts.student}</span></div>
         <div className="kpi glass"><span className="kpi-title">课件数量</span><span className="kpi-number">{data.counts.courseware}</span></div>
@@ -262,43 +317,43 @@ export default function AdminDashboard() {
               data={{
                 labels: activityLabels,
                 datasets: [
-                  { label: '教师', data: teacherSeries, borderColor: '#33C5FF', backgroundColor: 'rgba(51,197,255,0.15)', tension: 0.35, fill: true },
-                  { label: '学生', data: studentSeries, borderColor: '#FF5D9E', backgroundColor: 'rgba(255,93,158,0.15)', tension: 0.35, fill: true },
+                  { label: '教师', data: teacherSeries, borderColor: '#33C5FF', backgroundColor: 'rgba(51,197,255,0.15)', tension: 0.35, fill: true, borderWidth: 1.5, pointRadius: 2 },
+                  { label: '学生', data: studentSeries, borderColor: '#FF5D9E', backgroundColor: 'rgba(255,93,158,0.15)', tension: 0.35, fill: true, borderWidth: 1.5, pointRadius: 2 },
                 ],
               }}
-              options={darkChartOpts}
+              options={compactOpts}
             />
           </div>
         </div>
 
         <div className="panel glass panel-score">
           <div className="panel-h"><span>成绩分布</span></div>
-          <div className="panel-c"><Bar data={scoreData} options={darkChartOpts} /></div>
+          <div className="panel-c"><Bar data={scoreData} options={compactOpts} /></div>
         </div>
 
         <div className="panel glass panel-mastery">
           <div className="panel-h"><span>知识点掌握度</span></div>
-          <div className="panel-c"><Radar data={masteryData} options={darkChartOpts} /></div>
+          <div className="panel-c"><Radar data={masteryData} options={compactOpts} /></div>
         </div>
 
         <div className="panel glass panel-cwday">
           <div className="panel-h"><span>课件生成（按天）</span></div>
-          <div className="panel-c"><Line data={cwDayData} options={darkChartOpts} /></div>
+          <div className="panel-c"><Line data={cwDayData} options={compactOpts} /></div>
         </div>
 
         <div className="panel glass panel-trend">
           <div className="panel-h"><span>新建课程／练习趋势</span></div>
-          <div className="panel-c"><Line data={newCourseData} options={darkChartOpts} /></div>
+          <div className="panel-c"><Line data={newCourseData} options={compactOpts} /></div>
         </div>
 
         <div className="panel glass panel-pies">
           <div className="subpanel">
             <div className="panel-h tight"><span>班级数量</span><strong>{stats.classCount}</strong></div>
-            <div className="panel-c mini"><Pie data={classDistData} options={classDistOptions} /></div>
+            <div className="panel-c"><Pie data={classDistData} options={classDistOptionsCompact} /></div>
           </div>
           <div className="subpanel">
             <div className="panel-h tight"><span>题型占比</span></div>
-            <div className="panel-c mini"><Pie data={qData} /></div>
+            <div className="panel-c"><Pie data={qData} options={pieCompact} /></div>
           </div>
         </div>
       </main>
