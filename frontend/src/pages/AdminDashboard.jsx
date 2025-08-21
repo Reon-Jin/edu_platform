@@ -11,6 +11,7 @@ import {
   RadialLinearScale,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js';
 import {
   fetchDashboard,
@@ -31,7 +32,8 @@ ChartJS.register(
   ArcElement,
   RadialLinearScale,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 export default function AdminDashboard() {
@@ -75,14 +77,12 @@ export default function AdminDashboard() {
     })();
   }, []);
 
-  if (error) {
-    return <div className="card error-card">{error}</div>;
-  }
+  if (error) return <div className="card error-card">{error}</div>;
   if (!data || !online || !participation || !performance || !stats || !courseTrend) {
     return <div className="card loading-card">加载中...</div>;
   }
 
-  // 数据准备
+  // ===== 数据准备 =====
   const activityLabels = data.activity.trend.map(t => t.date);
   const teacherSeries = data.activity.trend.map(t => t.teacher);
   const studentSeries = data.activity.trend.map(t => t.student);
@@ -92,8 +92,8 @@ export default function AdminDashboard() {
     datasets: [{
       label: '人数',
       data: ['A','B','C','D','F'].map(k => data.homework.score_dist[k] || 0),
-      backgroundColor: '#4BC0C0',
-      borderColor: '#36A2EB',
+      backgroundColor: 'rgba(51,197,255,0.35)',
+      borderColor: '#33C5FF',
       borderWidth: 1,
     }],
   };
@@ -103,11 +103,11 @@ export default function AdminDashboard() {
     labels: masteryLabels,
     datasets: [{
       label: '掌握度 (%)',
-      data: masteryLabels.map(k => (data.homework.mastery[k] * 100).toFixed(1)),
-      backgroundColor: 'rgba(54,162,235,0.3)',
-      borderColor: 'rgba(54,162,235,1)',
+      data: masteryLabels.map(k => +(data.homework.mastery[k] * 100).toFixed(1)),
+      backgroundColor: 'rgba(80,160,255,0.2)',
+      borderColor: '#50A0FF',
+      pointBackgroundColor: '#50A0FF',
       borderWidth: 2,
-      pointBackgroundColor: 'rgba(54,162,235,1)',
     }],
   };
 
@@ -117,9 +117,10 @@ export default function AdminDashboard() {
     datasets: [{
       label: '课件数',
       data: dayKeys.map(k => data.courseware_prod.day[k]),
-      borderColor: 'rgba(255,99,132,1)',
-      backgroundColor: 'rgba(255,99,132,0.3)',
-      tension: 0.3,
+      borderColor: '#9B59FF',
+      backgroundColor: 'rgba(155,89,255,0.18)',
+      tension: 0.35,
+      fill: true,
     }],
   };
 
@@ -129,16 +130,18 @@ export default function AdminDashboard() {
       {
         label: '课程',
         data: courseTrend.course,
-        borderColor: '#36A2EB',
-        backgroundColor: 'rgba(54,162,235,0.3)',
-        tension: 0.3,
+        borderColor: '#33C5FF',
+        backgroundColor: 'rgba(51,197,255,0.18)',
+        tension: 0.35,
+        fill: true,
       },
       {
         label: '练习',
         data: courseTrend.exercise,
-        borderColor: '#FF6384',
-        backgroundColor: 'rgba(255,99,132,0.3)',
-        tension: 0.3,
+        borderColor: '#FF5D9E',
+        backgroundColor: 'rgba(255,93,158,0.18)',
+        tension: 0.35,
+        fill: true,
       },
     ],
   };
@@ -148,8 +151,9 @@ export default function AdminDashboard() {
     labels: qLabels.map(k => qTypeMap[k] || k),
     datasets: [{
       data: qLabels.map(k => data.courseware_prod.qtype[k]),
-      backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF'],
-      hoverOffset: 4,
+      backgroundColor: ['#33C5FF','#50A0FF','#9B59FF','#17D1C3','#FF5D9E'],
+      borderWidth: 0,
+      hoverOffset: 6,
     }],
   };
 
@@ -158,15 +162,15 @@ export default function AdminDashboard() {
     labels: subjectLabels,
     datasets: [{
       data: subjectLabels.map(s => stats.classDistribution[s].count),
-      backgroundColor: [
-        '#FF6384','#36A2EB','#FFCE56','#4BC0C0',
-        '#9966FF','#F67019','#F53794','#B234AB'
-      ],
-      hoverOffset: 4,
+      backgroundColor: ['#33C5FF','#50A0FF','#9B59FF','#17D1C3','#FF5D9E','#FAD648','#6EE7B7','#7DD3FC'],
+      borderWidth: 0,
+      hoverOffset: 6,
     }],
   };
+
   const classDistOptions = {
     plugins: {
+      legend: { labels: { color: '#cfe3ff', boxWidth: 10 } },
       tooltip: {
         callbacks: {
           label: ctx => {
@@ -176,207 +180,128 @@ export default function AdminDashboard() {
           },
         },
       },
-    },
+    }
   };
 
+  // 统一图表暗色主题
+  const darkChartOpts = {
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cfe3ff', usePointStyle: true, pointStyle: 'rectRounded' } },
+      tooltip: { titleColor: '#0b1020', bodyColor: '#0b1020' },
+    },
+    scales: {
+      x: {
+        ticks: { color: '#b9c6e4', maxRotation: 0, autoSkip: true },
+        grid: { color: 'rgba(255,255,255,0.06)' }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { color: '#b9c6e4' },
+        grid: { color: 'rgba(255,255,255,0.06)' }
+      },
+      r: {
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        grid: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: '#cfe3ff' },
+        ticks: { showLabelBackdrop: false, color: '#b9c6e4' }
+      }
+    }
+  };
+
+  const avail = (100 - performance.averageErrorRate * 100).toFixed(2);
+  const practiceRate = (participation.practiceUsageRate * 100).toFixed(1) + '%';
+
   return (
-    <div className="dashboard-container">
-      <div className="dashboard">
-        {/* 头部 */}
-        <header className="dashboard-header">
-    {/* 左侧：标题 + 工具栏 */}
-    <div className="header-left">
-      <h2 className="dashboard-title">平台管理看板</h2>
-      <p className="dashboard-desc">实时监控教师、学生、课件和练习等关键指标。</p>
-      <div className="dashboard-toolbar">
-        <button className="btn">刷新</button>
-        <button className="btn btn-primary">导出数据</button>
-        <button className="btn">筛选</button>
-      </div>
-      <div className="dashboard-update-time">
-        数据更新时间：{new Date().toLocaleString()}
-      </div>
-    </div>
-
-    {/* 右侧：系统可用性 */}
-    <div className="header-right">
-      <div className="availability-card">
-        <h4>系统可用性</h4>
-        <p>
-          {/* 计算：100% - 平均接口错误率 */}
-          {(100 - performance.averageErrorRate * 100).toFixed(2)}%
-        </p>
-      </div>
-    </div>
-  </header>
-
-
-        {/* 概览卡片 */}
-        <section className="overview-section">
-          {/* 规模类 */}
-          <div className="group scale-group">
-            <h3 className="group-title">规模类</h3>
-            <div className="group-cards">
-              <div className="card overview-card">
-                <h4>教师数量</h4>
-                <p>{data.counts.teacher}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>学生数量</h4>
-                <p>{data.counts.student}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>课件数量</h4>
-                <p>{data.counts.courseware}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>练习数量</h4>
-                <p>{data.counts.exercise}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>公共资料数</h4>
-                <p>{data.counts.public_doc}</p>
-              </div>
-            </div>
+    <div className="neo-dashboard-root">
+      {/* 顶部 */}
+      <header className="neo-header">
+        <div className="neo-header-left">
+          <h2 className="neo-title">平台管理看板</h2>
+          <p className="neo-sub">实时监控教师、学生、课件与练习等关键指标</p>
+          <div className="neo-actions">
+            <button className="neo-btn">刷新</button>
+            <button className="neo-btn neo-primary">导出数据</button>
+            <button className="neo-btn">筛选</button>
           </div>
-
-          {/* 性能 & 体验 */}
-          <div className="group performance-group">
-            <h3 className="group-title">性能 & 体验</h3>
-            <div className="group-cards">
-              <div className="card overview-card">
-                <h4>平均完成时长 (h)</h4>
-                <p>{data.learning.avg_completion_hours.toFixed(1)}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>平均响应时长 (ms)</h4>
-                <p>{data.system.avg_response_ms.toFixed(1)}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>平均接口错误率</h4>
-                <p>{(performance.averageErrorRate * 100).toFixed(2)}%</p>
-              </div>
-              <div className="card overview-card">
-                <h4>平均页面加载时长 (ms)</h4>
-                <p>{performance.averageLoadTime.toFixed(1)}</p>
-              </div>
-            </div>
+          <div className="neo-time">数据更新时间：{new Date().toLocaleString()}</div>
+        </div>
+        <div className="neo-header-right">
+          <div className="neo-availability glass">
+            <span className="kpi-title">系统可用性</span>
+            <span className="kpi-number">{avail}%</span>
           </div>
+        </div>
+      </header>
 
-          {/* 实时在线 */}
-          <div className="group realtime-group">
-            <h3 className="group-title">实时在线</h3>
-            <div className="group-cards">
-              <div className="card overview-card">
-                <h4>在线教师数</h4>
-                <p>{online.teachers}</p>
-              </div>
-              <div className="card overview-card">
-                <h4>在线学生数</h4>
-                <p>{online.students}</p>
-              </div>
-            </div>
-          </div>
+      {/* 主网格（两行 KPI + 两行图表） */}
+      <main className="neo-grid">
+        {/* KPI：两行×6（共 12 张，整齐无空洞） */}
+        <div className="kpi glass"><span className="kpi-title">教师数量</span><span className="kpi-number">{data.counts.teacher}</span></div>
+        <div className="kpi glass"><span className="kpi-title">学生数量</span><span className="kpi-number">{data.counts.student}</span></div>
+        <div className="kpi glass"><span className="kpi-title">课件数量</span><span className="kpi-number">{data.counts.courseware}</span></div>
+        <div className="kpi glass"><span className="kpi-title">练习数量</span><span className="kpi-number">{data.counts.exercise}</span></div>
+        <div className="kpi glass"><span className="kpi-title">公共资料数</span><span className="kpi-number">{data.counts.public_doc}</span></div>
+        <div className="kpi glass"><span className="kpi-title">平均完成时长 (h)</span><span className="kpi-number">{data.learning.avg_completion_hours.toFixed(1)}</span></div>
 
-          {/* 参与度 */}
-          <div className="group participation-group">
-            <h3 className="group-title">参与度</h3>
-            <div className="group-cards">
-              <div className="card overview-card">
-                <h4>作业完成率</h4>
-                <p>{(participation.assignmentCompletionRate * 100).toFixed(1)}%</p>
-              </div>
-              <div className="card overview-card">
-                <h4>随练使用率</h4>
-                <p>{(participation.practiceUsageRate * 100).toFixed(1)}%</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 组织结构 */}
-          <div className="group structure-group">
-            <h3 className="group-title">组织结构</h3>
-            <div className="group-cards">
-              <div className="card overview-card">
-                <h4>班级数量</h4>
-                <p>{stats.classCount}</p>
-              </div>
-              <div className="card overview-card class-chart-card">
-                <h4>班级分布</h4>
-                <Pie data={classDistData} options={classDistOptions} />
-              </div>
-            </div>
-          </div>
-        </section>
+        <div className="kpi glass"><span className="kpi-title">平均响应时长 (ms)</span><span className="kpi-number">{data.system.avg_response_ms.toFixed(1)}</span></div>
+        <div className="kpi glass"><span className="kpi-title">平均接口错误率</span><span className="kpi-number">{(performance.averageErrorRate * 100).toFixed(2)}%</span></div>
+        <div className="kpi glass"><span className="kpi-title">平均页面加载时长 (ms)</span><span className="kpi-number">{performance.averageLoadTime.toFixed(1)}</span></div>
+        <div className="kpi glass"><span className="kpi-title">在线教师数</span><span className="kpi-number">{online.teachers}</span></div>
+        <div className="kpi glass"><span className="kpi-title">在线学生数</span><span className="kpi-number">{online.students}</span></div>
+        <div className="kpi glass"><span className="kpi-title">作业完成率</span><span className="kpi-number">{(participation.assignmentCompletionRate * 100).toFixed(1)}%</span></div>
 
         {/* 图表区 */}
-        <section className="charts-section">
-          <div className="charts-grid">
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>活跃度趋势（30天）</h4>
-              </div>
-              <Line
-                data={{
-                  labels: activityLabels,
-                  datasets: [
-                    {
-                      label: '教师',
-                      data: teacherSeries,
-                      borderColor: '#36A2EB',
-                      backgroundColor: 'rgba(54,162,235,0.3)',
-                      tension: 0.3,
-                    },
-                    {
-                      label: '学生',
-                      data: studentSeries,
-                      borderColor: '#FF6384',
-                      backgroundColor: 'rgba(255,99,132,0.3)',
-                      tension: 0.3,
-                    },
-                  ],
-                }}
-                options={{ scales: { y: { beginAtZero: true } } }}
-              />
-            </div>
-
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>成绩分布</h4>
-              </div>
-              <Bar data={scoreData} options={{ scales: { y: { beginAtZero: true } } }} />
-            </div>
-
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>知识点掌握度</h4>
-              </div>
-              <Radar data={masteryData} options={{ scales: { r: { beginAtZero: true } } }} />
-            </div>
-
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>课件生成（按天）</h4>
-              </div>
-              <Line data={cwDayData} options={{ scales: { y: { beginAtZero: true } } }} />
-            </div>
-
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>新建课程／练习趋势</h4>
-              </div>
-              <Line data={newCourseData} options={{ scales: { y: { beginAtZero: true } } }} />
-            </div>
-
-            <div className="card chart-card">
-              <div className="chart-card-header">
-                <h4>题型占比</h4>
-              </div>
-              <Pie data={qData} />
-            </div>
+        <div className="panel glass panel-activity">
+          <div className="panel-h">
+            <span>活跃度趋势（30天）</span>
+            <span className="badge">随练使用率 {practiceRate}</span>
           </div>
-        </section>
-      </div>
+          <div className="panel-c">
+            <Line
+              data={{
+                labels: activityLabels,
+                datasets: [
+                  { label: '教师', data: teacherSeries, borderColor: '#33C5FF', backgroundColor: 'rgba(51,197,255,0.15)', tension: 0.35, fill: true },
+                  { label: '学生', data: studentSeries, borderColor: '#FF5D9E', backgroundColor: 'rgba(255,93,158,0.15)', tension: 0.35, fill: true },
+                ],
+              }}
+              options={darkChartOpts}
+            />
+          </div>
+        </div>
+
+        <div className="panel glass panel-score">
+          <div className="panel-h"><span>成绩分布</span></div>
+          <div className="panel-c"><Bar data={scoreData} options={darkChartOpts} /></div>
+        </div>
+
+        <div className="panel glass panel-mastery">
+          <div className="panel-h"><span>知识点掌握度</span></div>
+          <div className="panel-c"><Radar data={masteryData} options={darkChartOpts} /></div>
+        </div>
+
+        <div className="panel glass panel-cwday">
+          <div className="panel-h"><span>课件生成（按天）</span></div>
+          <div className="panel-c"><Line data={cwDayData} options={darkChartOpts} /></div>
+        </div>
+
+        <div className="panel glass panel-trend">
+          <div className="panel-h"><span>新建课程／练习趋势</span></div>
+          <div className="panel-c"><Line data={newCourseData} options={darkChartOpts} /></div>
+        </div>
+
+        <div className="panel glass panel-pies">
+          <div className="subpanel">
+            <div className="panel-h tight"><span>班级数量</span><strong>{stats.classCount}</strong></div>
+            <div className="panel-c mini"><Pie data={classDistData} options={classDistOptions} /></div>
+          </div>
+          <div className="subpanel">
+            <div className="panel-h tight"><span>题型占比</span></div>
+            <div className="panel-c mini"><Pie data={qData} /></div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
