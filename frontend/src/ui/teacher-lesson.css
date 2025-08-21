@@ -50,13 +50,18 @@ html, body {
 }
 
 /* 标题 */
+/* 标题样式增强 */
 .tl-title {
   margin: 0 0 18px;
   color: var(--text-1);
   letter-spacing: 1px;
   font-weight: 700;
   text-align: center;
+
+  font-size: 1.8rem;      /* ✅ 放大字号，可以改成 2rem 更突出 */
+  line-height: 1.4;       /* 行高，保证不拥挤 */
 }
+
 
 /* ========== 提示条 ========== */
 .tl-alert {
