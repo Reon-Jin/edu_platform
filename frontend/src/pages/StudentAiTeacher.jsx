@@ -64,7 +64,16 @@ export default function StudentAiTeacher() {
   const fetchHotQuestions = async (sid) => {
     try {
       const r = await api.get(`/student/ai/session/${sid}/suggest`);
-      if (Array.isArray(r.data)) setHotQuestions(r.data);
+      let data = r.data;
+      if (typeof data === "string") {
+        try {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed)) data = parsed;
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      if (Array.isArray(data)) setHotQuestions(data);
     } catch (e) {
       console.error(e);
     }

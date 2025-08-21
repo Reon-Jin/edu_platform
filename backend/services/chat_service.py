@@ -195,13 +195,17 @@ def suggest_questions(student_id: int, session_id: int, num: int = 3) -> List[st
             return []
         try:
             data = json.loads(text)
-            if isinstance(data, dict) and "questions" in data:
-                questions = [str(q) for q in data["questions"]]
-            elif isinstance(data, list):
-                questions = [str(q) for q in data]
-            else:
-                raise ValueError
         except Exception:
+            try:
+                import ast
+                data = ast.literal_eval(text)
+            except Exception:
+                data = None
+        if isinstance(data, dict) and "questions" in data:
+            questions = [str(q).strip() for q in data["questions"]]
+        elif isinstance(data, list):
+            questions = [str(q).strip() for q in data]
+        else:
             questions = [
                 line.strip().lstrip("-•").strip()
                 for line in text.splitlines()
