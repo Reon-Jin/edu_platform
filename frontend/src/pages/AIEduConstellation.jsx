@@ -6,8 +6,8 @@ export default function AIEduConstellation({
   linkDist = 120,         // 连线距离阈值
   speed = 0.25,           // 漂移速度
   baseSize = 2.2,         // 点半径
-  color = "rgba(56,189,248,0.9)",   // 点颜色（青蓝）
-  linkColor = "rgba(20,184,166,0.25)" // 线颜色（青绿）
+  color = "rgba(56,189,248,0.5)",   // 点颜色（青蓝）
+  linkColor = "rgba(20,184,166,0.1)" // 线颜色（青绿）
 }) {
   const canvasRef = useRef(null);
   const mouse = useRef({ x: -9999, y: -9999 });
