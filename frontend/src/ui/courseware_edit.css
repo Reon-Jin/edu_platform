@@ -181,3 +181,35 @@
 }
 .markdown-body th { background: rgba(59,130,246,.12); }
 .markdown-body tr:nth-child(even) { background: rgba(148,163,184,.06); }
+
+/* 两栏网格：降低整体高度 */
+.cw-grid {
+  display: flex;
+  gap: 1rem;
+  height: 80vh; /* ⬅️ 原来是 calc(100vh - 80px)，现在降低到 70% 屏幕高度 */
+  min-height: 500px; /* ⬅️ 给个下限，避免太小 */
+}
+
+/* 左右面板 */
+.cw-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 必须有，保证子元素滚动 */
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(17, 24, 39, 0.45);
+  overflow: hidden; /* 防止多余内容外溢 */
+}
+
+/* 编辑器 + 预览区：独立滚动 */
+.cw-editor,
+.cw-preview {
+  flex: 1;
+  overflow-y: auto;   /* 内部滚动 */
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--slate-900);
+  border: 1px solid var(--ring);
+  min-height: 0;      /* 必须配合 flex 才能滚 */
+}
