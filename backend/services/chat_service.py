@@ -10,6 +10,7 @@ from backend.utils.deepseek_client import (
 )
 from backend.utils.rag_pipeline import retrieve_from_db
 from datetime import datetime
+import json
 
 def ask_question(student_id: int, question: str) -> ChatHistory:
     resp = call_deepseek_api(question)
@@ -167,6 +168,50 @@ def ask_in_session_stream(
     except Exception:
         sess.close()
         raise
+
+
+def suggest_questions(student_id: int, session_id: int, num: int = 3) -> List[str]:
+    """Generate follow-up questions for a student in a session"""
+    with Session(engine) as sess:
+        session = sess.get(ChatSession, session_id)
+        if not session or session.student_id != student_id:
+            return []
+        msgs = sess.exec(
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.created_at)
+        ).all()
+        conv = [{"role": m.role, "content": m.content} for m in msgs]
+        system_prompt = (
+            "你是一名AI教师助手，请根据对话内容预测学生可能继续提出的学习问题。"
+            "请只返回JSON数组，例如 ['问题1', '问题2', '问题3']。"
+        )
+        conv.insert(0, {"role": "system", "content": system_prompt})
+        conv.append({"role": "user", "content": f"生成{num}个我可能想问的问题。"})
+        try:
+            resp = call_deepseek_api_chat(conv)
+            text = resp["choices"][0]["message"]["content"]
+        except Exception:
+            return []
+        try:
+            data = json.loads(text)
+        except Exception:
+            try:
+                import ast
+                data = ast.literal_eval(text)
+            except Exception:
+                data = None
+        if isinstance(data, dict) and "questions" in data:
+            questions = [str(q).strip() for q in data["questions"]]
+        elif isinstance(data, list):
+            questions = [str(q).strip() for q in data]
+        else:
+            questions = [
+                line.strip().lstrip("-•").strip()
+                for line in text.splitlines()
+                if line.strip()
+            ]
+        return questions[:num]
 
 
 def delete_session(student_id: int, session_id: int) -> bool:
