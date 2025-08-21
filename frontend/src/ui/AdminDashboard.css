@@ -1,9 +1,9 @@
-/* ===== Dark Neon Glass — One Screen, Techy Charts ===== */
+/* ===== 基础 ===== */
 *,
 *::before,
 *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-html, body { margin: 0; overflow: hidden; }   /* 杜绝右侧滚动条 */
+html, body { margin: 0; overflow: hidden; }
 
 :root{
   --bg: #0b1020;
@@ -17,16 +17,18 @@ html, body { margin: 0; overflow: hidden; }   /* 杜绝右侧滚动条 */
   --brand: #33C5FF;
   --accent: #17D1C3;
 
-  --header-h: 96px;
-  --gap: 10px;
+  --header-h: 150px;
+  --gap: 15px;
 
-  /* 2 行 KPI + 2 行图表 */
   --kpi-h: 82px;
-  --chart-h: 220px; /* 单个图表高度 */
+  --chart-h: 220px;         /* 单个图表目标高度 */
   --radius: 14px;
   --blur: 10px;
+
+  --legend-w: 140px;        /* 右侧图例固定宽度，确保两个饼图等大 */
 }
 
+/* 背景 */
 body{
   background: var(--bg);
   color: var(--text-1);
@@ -39,6 +41,7 @@ body::before{
   pointer-events: none; z-index: 0;
 }
 
+/* 布局 */
 .neo-dashboard-root{
   position: relative;
   height: 100vh;
@@ -49,7 +52,6 @@ body::before{
   z-index: 1;
 }
 
-/* Header */
 .neo-header{
   display: grid;
   grid-template-columns: 1.25fr 0.75fr;
@@ -57,7 +59,7 @@ body::before{
   background: linear-gradient(90deg, rgba(16,24,48,0.9), rgba(12,20,40,0.82));
   border: 1px solid rgba(120,150,255,0.12);
   border-radius: var(--radius);
-  padding: 10px 14px;
+  padding: 20px 24px;
   align-items: center;
   box-shadow: 0 10px 40px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.03);
 }
@@ -72,8 +74,6 @@ body::before{
 }
 .neo-btn:hover{ background: rgba(255,255,255,0.12); }
 .neo-primary{ background: linear-gradient(90deg, var(--brand), var(--accent)); border: none; color: #06121f; font-weight: 700; }
-.neo-time{ margin-top: 2px; font-size: 11px; color: var(--text-2); }
-
 .neo-header-right{ display: flex; justify-content: flex-end; }
 .glass{
   background: var(--glass);
@@ -82,7 +82,7 @@ body::before{
   backdrop-filter: blur(var(--blur));
   box-shadow: 0 8px 30px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.03);
 }
-.neo-availability{ min-width: 210px; height: calc(var(--header-h) - 18px); display: grid; place-items: center; }
+.neo-availability{ min-width: 210px; height: calc(var(--header-h) - 50px); display: grid; place-items: center; }
 .kpi-title{ font-size: 12px; color: var(--text-2); }
 .kpi-number{
   font-size: 28px; font-weight: 800; line-height: 1;
@@ -90,7 +90,7 @@ body::before{
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
-/* 主网格：2 行 KPI + 2 行图表 */
+/* 主网格 */
 .neo-grid{
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -99,11 +99,12 @@ body::before{
   height: 100%;
 }
 
-/* KPI：6x2 */
+/* KPI */
 .kpi{
   grid-column: span 2;
   display: grid; place-items: center;
   position: relative; overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 .kpi::before{
   content:""; position:absolute; inset:-1px; border-radius:inherit;
@@ -113,22 +114,107 @@ body::before{
 }
 .kpi .kpi-number{ font-size: 20px; }
 
-/* 面板通用 */
-.panel{
-  padding: 8px;
+/* ===== 面板 ===== */
+/* 改动点1：用 padding 做留白；允许内容溢出可见，避免角落被裁切 */
+.panel {
+  padding: 14px;                 /* 内边距留白，避免再用 canvas 的 margin */
   display: grid;
-  grid-template-rows: 24px 1fr;
-  overflow: hidden;
-  animation: rise .6s ease;
+  grid-template-rows: auto 1fr;
+  overflow: visible;             /* 由 hidden 改为 visible，角落不会被裁掉 */
+  animation: rise 0.6s ease;
+  border-radius: 10px;
+  background: rgba(16, 22, 38, 0.65);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
-.panel,
-.kpi{ transition: transform .3s, box-shadow .3s; }
+
 .panel:hover,
-.kpi:hover{ transform: translateY(-4px); box-shadow: 0 8px 30px rgba(51,197,255,0.25), inset 0 0 0 1px rgba(255,255,255,0.05); }
-.panel-h{
-  display:flex; align-items:center; justify-content:space-between;
-  font-size: 12px; color: var(--text-2);
+.kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(51, 197, 255, 0.25),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
+
+/* 标题行 */
+.panel-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 6px;
+}
+
+/* 改动点2：不要给 canvas 再加 margin，直接 100% 铺满容器 */
+.panel > canvas,
+.panel > div.chart-container {
+  margin: 0;                                    /* 取消 8px margin，防止被裁 */
+  width: 100% !important;
+  height: 100% !important;
+  display: block;                                /* 避免 baseline 造成 2~4px 缝隙 */
+}
+
+/* 位置映射到主网格 */
+.panel-activity{ grid-column: 1 / span 4; grid-row: 3; }
+.panel-score{    grid-column: 5 / span 4; grid-row: 3; }
+.panel-mastery{  grid-column: 9 / span 4; grid-row: 3; }
+.panel-cwday{    grid-column: 1 / span 4; grid-row: 4; }
+.panel-trend{    grid-column: 5 / span 4; grid-row: 4; }
+.panel-pies{     grid-column: 9 / span 4; grid-row: 4; }
+
+/* ===== 饼图组合：两列并排 + 固定宽度图例，确保两个饼图等大 ===== */
+.panel-pies{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+/* 子面板：标题行 + 内容区（内容区再分 图表/图例） */
+.panel-pies .subpanel{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+/* 内容区划分：图表 + 右侧固定宽度图例（如果你用 DOM 渲染图例，请给容器 class="legend"） */
+.panel-pies .content{
+  display: grid;
+  grid-template-columns: 1fr var(--legend-w);   /* 图表自适应 + 固定宽度图例 */
+  grid-auto-rows: 1fr;
+  gap: 10px;
+  min-height: 0;                                 /* 防止子元素撑爆 */
+}
+
+/* 图表容器保持正方形，两个饼图半径一致 */
+.panel-pies .panel-c{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;                           /* 正方形画布 */
+  max-height: calc(var(--chart-h) - 34px);       /* 与上方标题间距相配 */
+  min-height: 0;
+}
+
+/* 右侧图例区域（可放自定义 legend；若继续用内置 legend，可隐藏并自己渲染到这里） */
+.panel-pies .legend{
+  align-self: center;
+  font-size: 12px;
+  color: var(--text-2);
+  overflow: hidden;
+}
+
+/* 画布填满容器 */
+.panel-c canvas{
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 标记：旧的 .mini 不再需要 */
+.panel-pies .panel-c.mini{ height: auto; }
+
+/* 徽章/状态 */
 .badge{
   font-size: 11px; padding: 2px 8px;
   background: rgba(51,197,255,0.14);
@@ -137,46 +223,13 @@ body::before{
   color: #cfe3ff;
 }
 
+/* 动画 */
 @keyframes rise{
   from{ opacity:0; transform: translateY(20px); }
   to{ opacity:1; transform: translateY(0); }
 }
 
-/* 图表区：两行三列 */
-.panel-activity{ grid-column: 1 / span 4; grid-row: 3; }
-.panel-score{    grid-column: 5 / span 4; grid-row: 3; }
-.panel-mastery{  grid-column: 9 / span 4; grid-row: 3; }
-.panel-cwday{    grid-column: 1 / span 4; grid-row: 4; }
-.panel-trend{    grid-column: 5 / span 4; grid-row: 4; }
-.panel-pies{     grid-column: 9 / span 4; grid-row: 4; }
-.panel-pies{
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: var(--gap);
-}
-.panel-pies .subpanel{
-  display: grid;
-  grid-template-rows: 24px 1fr;
-}
-
-.panel-c{ position: relative; height: calc(var(--chart-h) - 28px); }
-.panel-pies .panel-c.mini{ height: calc((var(--chart-h) - 40px) / 2); }
-
-/* 关键：图表全高铺满，避免裁切 */
-.panel-c canvas{ height: 100% !important; }
-
-/* 加载/错误 */
-.loading-card, .error-card{
-  background: var(--glass-strong);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: var(--radius);
-  width: 220px; height: 120px;
-  display: grid; place-items: center;
-  margin: 12vh auto; color: var(--text-1);
-}
-.error-card{ color:#ff9aa7; }
-
-/* 1366×768 适配：压缩高度仍保持完整显示 */
+/* 1366×768 适配 */
 @media (max-height: 768px){
   :root{
     --header-h: 92px;
@@ -184,4 +237,9 @@ body::before{
     --chart-h: 208px;
   }
   .kpi .kpi-number{ font-size: 19px; }
+}
+
+/* 宽度较小回退：饼图上下排，图例仍固定宽，饼图仍等大 */
+@media (max-width: 1400px){
+  .panel-pies{ grid-template-columns: 1fr; }
 }
