@@ -33,7 +33,7 @@ export default function LoginPage() {
       if (role === "teacher") navigate("/teacher");
       else if (role === "admin") navigate("/admin");
       else navigate("/student");
-    } catch (err) {
+    } catch {
       setError("用户名或密码错误");
     } finally {
       setLoading(false);

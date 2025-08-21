@@ -9,6 +9,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";  // 引入 GitHub 风格的 Markdown 支持
 import "../index.css";  // 引用全局样式
+import "../ui/teacher-lesson.css";  // 加载生成动画样式
 
 export default function TeacherLesson() {
   const [topic, setTopic] = useState("");
@@ -121,6 +122,12 @@ export default function TeacherLesson() {
             </button>
           </div>
         </form>
+        {loading && (
+          <div className="lesson-loader">
+            <div className="rocket">🚀</div>
+            <p>AI 正在生成教案，请稍候...</p>
+          </div>
+        )}
 
         {markdown && (
           <>

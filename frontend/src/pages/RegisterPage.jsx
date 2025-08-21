@@ -4,8 +4,7 @@ import { register } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import "../index.css";        // 全局样式（保持）
 import "../ui/login.css";     // 复用登录页的深色与动画样式
-import AIEduConstellation from "./AIEduConstellation";
-import ShootingStars from "./ShootingStars";
+import AnimatedBackground from "../components/AnimatedBackground";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -38,18 +37,8 @@ export default function RegisterPage() {
 
   return (
     <div className="login-container">
-      {/* 动画背景层（与登录页一致） */}
-      <div className="login-bg" aria-hidden="true">
-        <div className="bg-aurora" />
-        <div className="bg-grid" />
-        <AIEduConstellation />
-        <ShootingStars count={16} speed={0.8} />
-        <div className="bg-dots">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <span key={i} style={{ "--i": i }} />
-          ))}
-        </div>
-      </div>
+      {/* 动画背景层（复用登录页但不含流星） */}
+      <AnimatedBackground />
 
       {/* 注册卡片（沿用 login-card / login-input / login-button / login-link / login-error） */}
       <div className="login-card">

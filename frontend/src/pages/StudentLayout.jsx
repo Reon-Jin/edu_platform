@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import AnimatedBackground from "../components/AnimatedBackground";
 import "../ui/layout.css";
 
 export default function StudentLayout() {
@@ -8,6 +10,7 @@ export default function StudentLayout() {
   const location = useLocation();
   const username = localStorage.getItem("username") || "";
   const isAiPage = location.pathname.startsWith("/student/ai");
+  const MotionBox = motion.div;
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -76,13 +79,32 @@ export default function StudentLayout() {
 
       {/* 主内容：与 TeacherLayout 同步的位移与壳层；AI页保留全屏特性 */}
       <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"} ${isAiPage ? "ai-page" : ""}`}>
+        <AnimatedBackground />
         {isAiPage ? (
-          // 保持 AI 页原样（不包裹外层卡片）
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <MotionBox
+              key={location.pathname}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Outlet />
+            </MotionBox>
+          </AnimatePresence>
         ) : (
-          <div className="page-shell">
-            <Outlet />
-          </div>
+          <AnimatePresence mode="wait">
+            <MotionBox
+              key={location.pathname}
+              className="page-shell"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Outlet />
+            </MotionBox>
+          </AnimatePresence>
         )}
       </main>
     </>

@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import AnimatedBackground from "../components/AnimatedBackground";
 import "../ui/layout.css";
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const username = localStorage.getItem("username") || "";
+  const MotionBox = motion.div;
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -68,9 +72,19 @@ export default function AdminLayout() {
       </aside>
 
       <main className={`app-main ${collapsed ? "shift-collapsed" : "shift-open"}`}>
-        <div className="page-shell">
-          <Outlet />
-        </div>
+        <AnimatedBackground />
+        <AnimatePresence mode="wait">
+          <MotionBox
+            key={location.pathname}
+            className="page-shell"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Outlet />
+          </MotionBox>
+        </AnimatePresence>
       </main>
     </>
   );

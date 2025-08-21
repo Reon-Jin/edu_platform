@@ -1,0 +1,15 @@
+.lesson-loader{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:1.5rem;
+  color:var(--text-1);
+}
+.lesson-loader .rocket{
+  font-size:3rem;
+  animation: rocket-float .8s ease-in-out infinite alternate;
+}
+@keyframes rocket-float{
+  from{ transform: translateY(0) rotate(-10deg); }
+  to{ transform: translateY(-18px) rotate(10deg); }
+}

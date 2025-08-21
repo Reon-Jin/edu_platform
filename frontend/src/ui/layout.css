@@ -71,6 +71,7 @@ body{
   padding:0;                /* 去掉白色间隙 */
   background:var(--bg);
   color:var(--text-1);
+  position:relative;        /* 允许绝对定位的背景 */
 }
 .app-main.shift-open{ margin-left:var(--sidebar-w); }
 .app-main.shift-collapsed{ margin-left:var(--sidebar-w-collapsed); }
@@ -82,6 +83,8 @@ body{
   min-height:100vh;
   padding:24px;
   color:var(--text-1);
+  position:relative;
+  z-index:1;                /* 高于动画背景 */
 }
 
 /* ===== 响应式 ===== */
