@@ -10,7 +10,7 @@ import ShootingStars from "./ShootingStars";
 // 三个 logo
 import logo1 from "../pics/suda.png";
 import logo2 from "../pics/ruijie.png";
-import logo3 from "../pics/weilai.png";   // 新增：请确保文件存在
+import logo3 from "../pics/weilai.png";   // 请确保文件存在
 
 export default function LoginPage() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -63,7 +63,7 @@ export default function LoginPage() {
         {/* 抬头栏 */}
         <div className="card-header" role="banner">
           <div className="card-logos" aria-label="合作单位">
-            <img src={logo1} alt="Soochow University" className="card-logo" />
+            <img src={logo1} alt="Soochow University" className="card-logo suda-logo" />
             <span className="logo-divider" aria-hidden="true" />
             <img src={logo2} alt="Ruijie" className="card-logo" />
             <span className="logo-divider" aria-hidden="true" />

@@ -21,11 +21,10 @@
   overflow:hidden;
 }
 
-/* 背景层（略） */
+/* 背景层容器（动效样式保持你现有配置） */
 .login-bg{ position:absolute; inset:0; pointer-events:none; z-index:0; }
-/* aurora / grid / dots 与你现有的一致，省略不变 */
 
- /* ===== 登录卡片 ===== */
+/* ===== 登录卡片 ===== */
 .login-card{
   position:relative; z-index:1;
   background: linear-gradient(180deg, #0f172a, #0b1323);
@@ -34,7 +33,7 @@
   border-radius: 18px;
   box-shadow: var(--shadow);
   width: 100%;
-  max-width: 520px;           /* 稍加宽，容纳 3 logo */
+  max-width: 520px;           /* 容纳 3 logo */
   display:flex; flex-direction:column; gap:16px;
   backdrop-filter: blur(6px);
 }
@@ -55,11 +54,20 @@
   display:flex; align-items:center; justify-content:center;
   gap:16px; padding-top:4px;
 }
+
+/* 默认 logo 尺寸 */
 .card-logo{
-  /* 放大：原 64 -> 74；在高分屏上更清晰 */
-  height: 120px; width:auto; object-fit:contain;
+  height: 120px;              /* 其余两个 logo 的高度 */
+  width: auto;
+  object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
 }
+
+/* Soochow 大学 logo 稍大 */
+.suda-logo{
+  height: 140px;              /* 比其他两个略大 */
+}
+
 .logo-divider{
   width:1px; height:40px;
   background:linear-gradient(180deg, transparent, rgba(255,255,255,.22), transparent);
@@ -69,7 +77,7 @@
 /* 标题与副标题 */
 .card-titles{ line-height:1.1; position:relative; }
 .product-title{
-  font-size: 24px;            /* 略大 */
+  font-size: 24px;
   font-weight: 800; margin: 4px 0 0;
   letter-spacing:.02em; color:#f1f5f9;
 }
@@ -151,9 +159,10 @@
 }
 .login-link:hover{ text-decoration:underline; }
 
-/* 响应式微调 */
+/* 响应式微调（小屏整体缩小） */
 @media (max-width: 520px){
-  .card-logo{ height:64px; }          /* 小屏稍微缩小 */
+  .card-logo{ height:64px; }
+  .suda-logo{ height:74px; }            /* 仍然略大 */
   .product-title{ font-size:22px; }
   .card-logos{ gap:12px; }
 }
