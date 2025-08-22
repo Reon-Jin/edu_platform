@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "../ui/layout.css";
+import logo1 from "../pics/suda.png";
+import logo2 from "../pics/ruijie.png";
+import logo3 from "../pics/weilai.png";   // 你刚才上传的未来 logo
 import AIEduConstellation from "./AIEduConstellation";
 export default function TeacherLayout() {
   const [collapsed, setCollapsed] = useState(false);   // 仅折叠/展开
@@ -68,6 +71,12 @@ export default function TeacherLayout() {
             {!collapsed && <span>班级管理</span>}
           </button>
         </nav>
+
+        <div className="sb-logos">
+        <img src={logo1} alt="Suda" className="sb-logo" />
+        <img src={logo2} alt="Ruijie" className="sb-logo" />
+        <img src={logo3} alt="Weilai" className="sb-logo" />
+        </div>
 
         <div className="sb-bottom">
           <button className="logout" onClick={logout}>

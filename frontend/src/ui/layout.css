@@ -117,3 +117,36 @@ body{
   opacity:.35;
   z-index: -9999;
 }
+
+
+/* ===== 底部 logo 展示区（竖排版） ===== */
+.sb-logos {
+  display: flex;
+  flex-direction: column;   /* 始终竖排 */
+  justify-content: center;
+  align-items: center;
+  gap: 16px;                /* 默认间距 */
+  padding: 16px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  margin: 12px 6px;
+}
+
+/* 展开状态下 logo 较大 */
+.sb-logo {
+  height: 100px;   /* 展开时大一点 */
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+  transition: transform 0.2s ease, height 0.25s ease;
+}
+.sb-logo:hover {
+  transform: scale(1.08);
+}
+
+/* 折叠状态下 logo 较小 */
+.slate-sidebar.collapsed .sb-logo {
+  height: 32px;   /* 折叠时缩小 */
+}
+
+

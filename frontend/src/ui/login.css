@@ -57,7 +57,7 @@
 }
 .card-logo{
   /* 放大：原 64 -> 74；在高分屏上更清晰 */
-  height: 74px; width:auto; object-fit:contain;
+  height: 120px; width:auto; object-fit:contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
 }
 .logo-divider{
