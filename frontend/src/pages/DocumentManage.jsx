@@ -27,7 +27,10 @@ export default function DocumentManage() {
     setLoading(true);
     setError('');
     try {
-      const data = scope === 'public' ? await fetchPublicDocuments() : await fetchMyDocuments();
+      const data =
+        scope === 'public'
+          ? await fetchPublicDocuments()
+          : await fetchMyDocuments();
       setList(data);
     } catch (e) {
       console.error(e);
@@ -115,26 +118,62 @@ export default function DocumentManage() {
           </select>
         </div>
         {tab === 'my' && (
-          <div className="upload-dropzone" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()} onClick={openFileDialog} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') openFileDialog(); }}>
-            <input type="file" ref={fileRef} onChange={handleInputChange} style={{ display: 'none' }} />
+          <div
+            className="upload-dropzone"
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            onClick={openFileDialog}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') openFileDialog();
+            }}
+          >
+            <input
+              type="file"
+              ref={fileRef}
+              onChange={handleInputChange}
+              style={{ display: 'none' }}
+            />
             <div className="upload-icon">⬆️</div>
             <p>拖拽文件到此处或点击上传</p>
             {uploading && (
               <div className="progress">
-                <div className="progress-bar" style={{ width: `${progress}%` }} />
+                <div
+                  className="progress-bar"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             )}
             {uploading && <span className="progress-text">{progress}%</span>}
           </div>
         )}
         {error && <div className="error">{error}</div>}
-        <input
-          className="input"
-          placeholder="搜索文件"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 'auto' }}
-        />
+
+        {/* 搜索框 + URL输入框 */}
+        <div style={{ display: 'flex', gap: '1rem', margin: '1rem 0' }}>
+          <input
+            className="input"
+            placeholder="搜索文件"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ flex: 1 }}
+          />
+
+          <input
+            className="input"
+            placeholder="输入URL以批量上传文件"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                console.log('模拟批量上传 URL:', e.target.value);
+                alert(`已模拟批量上传: ${e.target.value}`);
+                e.target.value = '';
+              }
+            }}
+            style={{ flex: 1 }}
+          />
+        </div>
+
         {loading ? (
           <div>加载中...</div>
         ) : (
@@ -153,7 +192,13 @@ export default function DocumentManage() {
                   <td>{d.filename}</td>
                   <td>{formatDateTime(d.uploaded_at)}</td>
                   <td>
-                    <span className={`tag ${d.is_active ? 'tag-green' : 'tag-gray'}`}>{d.is_active ? '已激活' : '未激活'}</span>
+                    <span
+                      className={`tag ${
+                        d.is_active ? 'tag-green' : 'tag-gray'
+                      }`}
+                    >
+                      {d.is_active ? '已激活' : '未激活'}
+                    </span>
                   </td>
                   <td className="actions-cell">
                     <button
@@ -162,7 +207,9 @@ export default function DocumentManage() {
                       aria-label={d.is_active ? '取消激活' : '激活'}
                     >
                       {d.is_active ? '🛑' : '✅'}
-                      <span className="tooltip-text">{d.is_active ? '取消激活' : '激活'}</span>
+                      <span className="tooltip-text">
+                        {d.is_active ? '取消激活' : '激活'}
+                      </span>
                     </button>
                     {tab === 'my' && (
                       <button
