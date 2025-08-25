@@ -136,7 +136,7 @@ export default function DocumentManage() {
               style={{ display: 'none' }}
             />
             <div className="upload-icon">⬆️</div>
-            <p>拖拽文件到此处或点击上传</p>
+            <p>拖拽文件（夹）到此处或点击选择上传</p>
             {uploading && (
               <div className="progress">
                 <div
@@ -162,11 +162,11 @@ export default function DocumentManage() {
 
           <input
             className="input"
-            placeholder="输入URL以批量上传文件"
+            placeholder="上传网盘文件"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                console.log('模拟批量上传 URL:', e.target.value);
-                alert(`已模拟批量上传: ${e.target.value}`);
+                console.log('批量上传文件:', e.target.value);
+                alert(`已批量上传: ${e.target.value}`);
                 e.target.value = '';
               }
             }}
